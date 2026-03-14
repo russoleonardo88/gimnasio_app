@@ -1,0 +1,354 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="manifest" href="/static/manifest.json">
+
+<meta name="theme-color" content="#000000">
+
+<link rel="apple-touch-icon" href="/static/img/icon-192.png">
+
+</head>
+
+<style>
+
+.progreso-container{
+margin:20px;
+}
+
+.progreso-texto{
+margin-bottom:8px;
+font-size:14px;
+color:#aaa;
+}
+
+.barra{
+width:100%;
+height:12px;
+background:#333;
+border-radius:10px;
+overflow:hidden;
+}
+
+#barra-progreso{
+height:100%;
+width:0%;
+background:#00ff88;
+transition:0.3s;
+}
+
+body{
+    background:#0f0f0f;
+    font-family: Arial, sans-serif;
+    color:white;
+    margin:0;
+}
+
+.topbar{
+    background:#000;
+    padding:15px;
+    text-align:center;
+}
+
+.nombre{
+    font-size:22px;
+    color:#00ff88;
+}
+
+.rutina{
+    padding:15px;
+}
+
+.card{
+background:#1c1c1c;
+border-radius:18px;
+padding:18px;
+margin-bottom:15px;
+box-shadow:0 6px 20px rgba(0,0,0,0.4);
+border:1px solid #2a2a2a;
+transition:0.25s;
+}
+
+.card.hecho{
+opacity:0.6;
+transform:scale(0.98);
+}
+
+.ejercicio{
+    font-size:20px;
+    font-weight:bold;
+}
+
+.detalle{
+    color:#bbb;
+    margin-top:5px;
+}
+
+.logout{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    background:#ff4444;
+    border:none;
+    padding:12px 18px;
+    border-radius:12px;
+    color:white;
+    font-size:16px;
+}
+
+.dias{
+display:flex;
+justify-content:center;
+gap:10px;
+margin:15px;
+}
+
+.dias a{
+background:#1c1c1c;
+color:white;
+text-decoration:none;
+padding:10px 14px;
+border-radius:10px;
+font-weight:bold;
+}
+
+.dias a:hover{
+background:#00ff88;
+color:black;
+}
+
+.dias a.activo{
+background:#00ff88;
+color:black;
+}
+
+.check{
+display:flex;
+align-items:center;
+gap:10px;
+font-size:20px;
+}
+
+.check input{
+width:20px;
+height:20px;
+}
+
+.nombre-ejercicio{
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="topbar">
+<div class="nombre">Rutina de hoy: {{ dia }}</div>
+<div class="dias">
+
+<a href="/mi-rutina/?dia=Lunes" class="{% if dia == 'Lunes' %}activo{% endif %}">L</a>
+
+<a href="/mi-rutina/?dia=Martes" class="{% if dia == 'Martes' %}activo{% endif %}">M</a>
+
+<a href="/mi-rutina/?dia=Miércoles" class="{% if dia == 'Miércoles' %}activo{% endif %}">X</a>
+
+<a href="/mi-rutina/?dia=Jueves" class="{% if dia == 'Jueves' %}activo{% endif %}">J</a>
+
+<a href="/mi-rutina/?dia=Viernes" class="{% if dia == 'Viernes' %}activo{% endif %}">V</a>
+
+</div>
+
+<div class="progreso-container">
+
+<div class="progreso-texto">
+Progreso del entrenamiento: <span id="porcentaje">0%</span>
+</div>
+
+<div class="barra">
+
+<div id="barra-progreso"></div>
+
+</div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+function actualizarProgreso(){
+
+const checks = document.querySelectorAll("input[type='checkbox'][data-id]")
+const total = checks.length;
+
+let completados = 0;
+
+checks.forEach(function(c){
+if(c.checked){
+completados++;
+}
+});
+
+if(total === 0){
+return;
+}
+
+const porcentaje = Math.round((completados / total) * 100);
+
+document.getElementById("barra-progreso").style.width = porcentaje + "%";
+document.getElementById("porcentaje").innerText = porcentaje + "%";
+
+}
+
+const checks = document.querySelectorAll("input[type='checkbox']");
+
+checks.forEach(function(c){
+
+const id = c.dataset.id;
+
+if(localStorage.getItem("ejercicio_"+id) === "true"){
+c.checked = true;
+c.closest(".card").classList.add("hecho");
+}
+
+c.addEventListener("change", function(){
+
+localStorage.setItem("ejercicio_"+id, c.checked);
+
+const card = c.closest(".card");
+
+if(c.checked){
+card.classList.add("hecho");
+}else{
+card.classList.remove("hecho");
+}
+
+actualizarProgreso();
+
+});
+
+});
+
+actualizarProgreso();
+
+});
+
+</script>
+
+</div>
+
+
+<div class="rutina">
+
+<h2 style="color:#00ff88;">🏋️ Fuerza</h2>
+
+{% for ejercicio in ejercicios_normal %}
+
+<div class="card">
+
+<label class="check">
+
+<input type="checkbox" data-id="{{ ejercicio.id }}">
+
+<span class="nombre-ejercicio">
+{{ ejercicio.nombre }}
+</span>
+
+</label>
+
+{% if ejercicio.series %}
+<div class="detalle">
+Series: {{ ejercicio.series }}
+</div>
+{% endif %}
+
+{% if ejercicio.repeticiones %}
+<div class="detalle">
+Reps: {{ ejercicio.repeticiones }}
+</div>
+{% endif %}
+
+</div>
+
+{% endfor %}
+
+
+
+<h2 style="color:#ffaa00;">🔥 Abdominales</h2>
+
+{% for ejercicio in ejercicios_abdominal %}
+
+<div class="card">
+
+<label class="check">
+
+<input type="checkbox" data-id="{{ ejercicio.id }}">
+
+<span class="nombre-ejercicio">
+{{ ejercicio.nombre }}
+</span>
+
+</label>
+
+{% if ejercicio.series %}
+<div class="detalle">
+Series: {{ ejercicio.series }}
+</div>
+{% endif %}
+
+{% if ejercicio.repeticiones %}
+<div class="detalle">
+Reps: {{ ejercicio.repeticiones }}
+</div>
+{% endif %}
+
+</div>
+
+{% endfor %}
+
+
+
+<h2 style="color:#00c3ff;">🏃 Cardio</h2>
+
+{% for ejercicio in ejercicios_aerobico %}
+
+<div class="card">
+
+<label class="check">
+
+<input type="checkbox" data-id="{{ ejercicio.id }}">
+
+<span class="nombre-ejercicio">
+{{ ejercicio.nombre }}
+</span>
+
+</label>
+
+{% if ejercicio.tiempo %}
+<div class="detalle">
+Tiempo: {{ ejercicio.tiempo }} min
+</div>
+{% endif %}
+
+</div>
+
+{% endfor %}
+
+</div>
+
+
+<form action="/login/" method="get">
+<button class="logout">
+Cerrar sesión
+</button>
+</form>
+
+
+</body>
+</html>
