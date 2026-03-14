@@ -1,128 +1,100 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Rutina</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0a0a0a;
-            --card-bg: #141414;
-            --accent: #00ff88;
-            --text: #ffffff;
-            --muted: #888;
-        }
-
-        body {
-            background: var(--bg);
-            font-family: 'Inter', sans-serif;
-            color: var(--text);
-            margin: 0;
-            padding-bottom: 100px;
-        }
-
-        .topbar {
-            background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
-            padding: 25px 20px;
-            text-align: center;
-            border-bottom: 1px solid #222;
-        }
-
-        .nombre { font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom: 15px; }
-
-        .dias { display: flex; justify-content: space-between; gap: 8px; margin: 0 20px; }
-        .dias a {
-            flex: 1;
-            background: #1a1a1a;
-            color: var(--muted);
-            text-decoration: none;
-            padding: 12px 0;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-        .dias a.activo { background: var(--accent); color: black; }
-
-        .progreso-container { padding: 25px 20px; }
-        .barra { width: 100%; height: 8px; background: #222; border-radius: 4px; overflow: hidden; margin-top: 10px; }
-        #barra-progreso { height: 100%; width: 0%; background: var(--accent); box-shadow: 0 0 10px var(--accent); transition: 0.5s ease; }
-
+        body { background: #0f0f0f; font-family: 'Inter', sans-serif; color: white; margin: 0; padding-bottom: 80px; }
+        .topbar { background: #000; padding: 20px; text-align: center; border-bottom: 1px solid #222; }
+        .nombre { font-size: 20px; color: #00ff88; margin-bottom: 15px; }
+        
+        /* Secciones */
         .rutina { padding: 20px; }
-        h2 { font-size: 18px; margin: 30px 0 15px; display: flex; align-items: center; gap: 10px; }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 12px;
-            border: 1px solid #222;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .card:active { transform: scale(0.97); }
-        .card.hecho { border-color: var(--accent); background: #1a1a1a; }
+        h2 { font-size: 16px; margin: 25px 0 15px; color: #00ff88; text-transform: uppercase; }
         
-        .check { display: flex; align-items: center; gap: 15px; cursor: pointer; }
-        .check input { width: 22px; height: 22px; accent-color: var(--accent); }
+        .card { background: #1c1c1c; border-radius: 12px; padding: 15px; margin-bottom: 12px; border: 1px solid #333; }
+        .card.hecho { opacity: 0.5; border-color: #00ff88; }
         
-        .detalle { color: var(--muted); font-size: 14px; margin-top: 8px; padding-left: 37px; }
-
-        .logout {
-            position: fixed; bottom: 20px; left: 20px; right: 20px;
-            background: #1a1a1a; border: 1px solid #333;
-            padding: 15px; border-radius: 15px; color: #ff4444;
-            font-weight: 600; cursor: pointer;
-        }
+        .check { display: flex; align-items: center; gap: 10px; font-size: 18px; }
+        .detalle { color: #aaa; font-size: 14px; margin-top: 5px; }
+        
+        /* Barra Progreso */
+        .progreso-container { padding: 20px; }
+        .barra { width: 100%; height: 10px; background: #333; border-radius: 5px; overflow: hidden; margin-top: 5px; }
+        #barra-progreso { height: 100%; width: 0%; background: #00ff88; transition: 0.3s; }
     </style>
 </head>
 <body>
 
 <div class="topbar">
-    <div class="nombre">Rutina: {{ dia }}</div>
-    <div class="dias">
-        <a href="?dia=Lunes" class="{% if dia == 'Lunes' %}activo{% endif %}">L</a>
-        <a href="?dia=Martes" class="{% if dia == 'Martes' %}activo{% endif %}">M</a>
-        <a href="?dia=Miércoles" class="{% if dia == 'Miércoles' %}activo{% endif %}">X</a>
-        <a href="?dia=Jueves" class="{% if dia == 'Jueves' %}activo{% endif %}">J</a>
-        <a href="?dia=Viernes" class="{% if dia == 'Viernes' %}activo{% endif %}">V</a>
+    <div class="nombre">Rutina de hoy: {{ dia }}</div>
+    <div class="dias" style="display:flex; justify-content:center; gap:10px;">
+        <a href="?dia=Lunes" style="color:white; text-decoration:none; padding:5px;">L</a>
+        <a href="?dia=Martes" style="color:white; text-decoration:none; padding:5px;">M</a>
+        <a href="?dia=Miércoles" style="color:white; text-decoration:none; padding:5px;">X</a>
+        <a href="?dia=Jueves" style="color:white; text-decoration:none; padding:5px;">J</a>
+        <a href="?dia=Viernes" style="color:white; text-decoration:none; padding:5px;">V</a>
     </div>
 </div>
 
 <div class="progreso-container">
-    <div>Progreso <span id="porcentaje">0%</span></div>
+    <div style="font-size: 12px;">Progreso: <span id="porcentaje">0%</span></div>
     <div class="barra"><div id="barra-progreso"></div></div>
 </div>
 
 <div class="rutina">
-    {% if ejercicios_normal %}
     <h2>🏋️ Fuerza</h2>
     {% for ejercicio in ejercicios_normal %}
-    <div class="card" id="card-{{ejercicio.id}}">
-        <label class="check">
-            <input type="checkbox" data-id="{{ ejercicio.id }}">
-            <span style="font-weight:600">{{ ejercicio.nombre }}</span>
-        </label>
-        <div class="detalle">{{ ejercicio.series }} series × {{ ejercicio.repeticiones }} reps</div>
+    <div class="card">
+        <label class="check"><input type="checkbox" data-id="{{ ejercicio.id }}"> {{ ejercicio.nombre }}</label>
+        <div class="detalle">{{ ejercicio.series }} series - {{ ejercicio.repeticiones }} reps</div>
     </div>
     {% endfor %}
-    {% endif %}
 
+    <h2>🔥 Abdominales</h2>
+    {% for ejercicio in ejercicios_abdominal %}
+    <div class="card">
+        <label class="check"><input type="checkbox" data-id="{{ ejercicio.id }}"> {{ ejercicio.nombre }}</label>
+        <div class="detalle">{{ ejercicio.series }} series - {{ ejercicio.repeticiones }} reps</div>
     </div>
+    {% endfor %}
 
-<form action="/login/" method="get"><button class="logout">Cerrar sesión</button></form>
+    <h2>🏃 Cardio</h2>
+    {% for ejercicio in ejercicios_aerobico %}
+    <div class="card">
+        <label class="check"><input type="checkbox" data-id="{{ ejercicio.id }}"> {{ ejercicio.nombre }}</label>
+        <div class="detalle">{{ ejercicio.tiempo }} min</div>
+    </div>
+    {% endfor %}
+</div>
 
 <script>
-    // Tu lógica de JS permanece igual pero ahora afectará a estas nuevas clases
-    document.querySelectorAll("input[type='checkbox']").forEach(c => {
-        c.addEventListener("change", function() {
-            const card = this.closest(".card");
-            if(this.checked) card.classList.add("hecho");
-            else card.classList.remove("hecho");
-            // ... (tu lógica de porcentaje y localStorage aquí)
+    // Tu lógica original de JS que SÍ funcionaba
+    document.addEventListener("DOMContentLoaded", function(){
+        const checks = document.querySelectorAll("input[type='checkbox']");
+        function actualizarProgreso(){
+            const total = checks.length;
+            let comp = 0;
+            checks.forEach(c => { if(c.checked) comp++; });
+            const porc = total > 0 ? Math.round((comp / total) * 100) : 0;
+            document.getElementById("barra-progreso").style.width = porc + "%";
+            document.getElementById("porcentaje").innerText = porc + "%";
+        }
+        checks.forEach(c => {
+            const id = c.dataset.id;
+            if(localStorage.getItem("ejercicio_"+id) === "true") {
+                c.checked = true;
+                c.closest(".card").classList.add("hecho");
+            }
+            c.addEventListener("change", function(){
+                localStorage.setItem("ejercicio_"+id, this.checked);
+                this.closest(".card").classList.toggle("hecho", this.checked);
+                actualizarProgreso();
+            });
         });
+        actualizarProgreso();
     });
 </script>
-
 </body>
 </html>
