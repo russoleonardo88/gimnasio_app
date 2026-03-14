@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-3*r893bw)ik7h=!fd$x7ky$hiigyx@dy+*772wv^&e2t#hn#f&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['gimnasio-app-ftq4.onrender.com', '127.0.0.1', 'localhost']
 
 
 # Application definition
