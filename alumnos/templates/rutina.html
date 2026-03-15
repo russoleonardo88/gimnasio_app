@@ -5,122 +5,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Rutina</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --rojo: #d32f2f;
-            --blanco: #ffffff;
-            --gris-fondo: #f4f4f4;
-            --gris-texto: #666;
-        }
-
-        body { 
-            background-color: var(--gris-fondo); 
-            font-family: 'Inter', sans-serif; 
-            margin: 0; 
-            padding-bottom: 50px; 
-            color: #333;
-        }
-
-        /* Topbar Roja */
-        .topbar { 
-            background-color: var(--rojo); 
-            padding: 20px; 
-            display: flex; 
-            align-items: center; 
-            gap: 15px; 
-            color: white;
-        }
-        
-        .logo-img { width: 45px; height: 45px; border-radius: 5px; }
-        .titulo-dia { font-size: 20px; font-weight: 700; }
-
-        /* Estilo de Tarjetas tipo App */
-        .rutina { padding: 15px; }
-        .section-header { font-size: 14px; color: var(--rojo); font-weight: 700; margin: 20px 0 10px; text-transform: uppercase; }
-        
-        .card { 
-            background: var(--blanco); 
-            border-radius: 12px; 
-            padding: 16px; 
-            margin-bottom: 10px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        }
-        
-        .card.hecho { opacity: 0.6; border-left: 4px solid var(--rojo); }
-
-        .info-ejercicio { display: flex; flex-direction: column; }
-        .nombre-ejercicio { font-weight: 600; font-size: 16px; }
-        .detalle-ejercicio { font-size: 13px; color: var(--gris-texto); margin-top: 2px; }
-
-        .checkbox-custom { width: 22px; height: 22px; cursor: pointer; }
+        body { background:#0f0f0f; font-family: Arial, sans-serif; color:white; margin:0; }
+        .topbar { background:#000; padding:15px; text-align:center; }
+        .nombre { font-size:22px; color:#00ff88; margin-bottom: 10px; }
+        .dias { display:flex; justify-content:center; gap:10px; margin-bottom: 15px; }
+        .dias a { background:#1c1c1c; color:white; text-decoration:none; padding:10px 14px; border-radius:10px; font-weight:bold; }
+        .dias a.activo { background:#00ff88; color:black; }
+        .progreso-container { margin:0 20px 20px 20px; }
+        .barra { width:100%; height:12px; background:#333; border-radius:10px; overflow:hidden; }
+        #barra-progreso { height:100%; width:0%; background:#00ff88; transition:0.3s; }
+        .rutina { padding:15px; }
+        .card { background:#1c1c1c; border-radius:18px; padding:18px; margin-bottom:15px; border:1px solid #2a2a2a; }
+        .card.hecho { opacity:0.6; }
+        .logout { position:fixed; bottom:20px; right:20px; background:#ff4444; border:none; padding:12px 18px; border-radius:12px; color:white; font-size:16px; }
+        .check { display:flex; align-items:center; gap:10px; font-size:18px; font-weight:bold; }
+        .check input { width:20px; height:20px; }
+        .detalle { color:#bbb; margin-top:5px; font-size:14px; }
     </style>
 </head>
+
 <body>
-
-<div class="topbar">
-   <img src="{% static 'img/Logo_app.png' %}" class="logo-img" alt="Logo">
-    <div class="titulo-dia">Rutina: {{ dia }}</div>
-</div>
-
-<div class="rutina">
-    <div class="section-header">Fuerza</div>
-    {% for ejercicio in ejercicios_normal %}
-    <div class="card" id="card-{{ejercicio.id}}">
-        <div class="info-ejercicio">
-            <span class="nombre-ejercicio">{{ ejercicio.nombre }}</span>
-            <span class="detalle-ejercicio">{{ ejercicio.series }} sets de {{ ejercicio.repeticiones }} reps</span>
+    <div class="topbar">
+        <div class="nombre">Rutina de hoy: {{ dia }}</div>
+        <div class="dias">
+            <a href="/mi-rutina/?dia=Lunes" class="{% if dia == 'Lunes' %}activo{% endif %}">L</a>
+            <a href="/mi-rutina/?dia=Martes" class="{% if dia == 'Martes' %}activo{% endif %}">M</a>
+            <a href="/mi-rutina/?dia=Miércoles" class="{% if dia == 'Miércoles' %}activo{% endif %}">X</a>
+            <a href="/mi-rutina/?dia=Jueves" class="{% if dia == 'Jueves' %}activo{% endif %}">J</a>
+            <a href="/mi-rutina/?dia=Viernes" class="{% if dia == 'Viernes' %}activo{% endif %}">V</a>
         </div>
-        <input type="checkbox" class="checkbox-custom" data-id="{{ ejercicio.id }}">
-    </div>
-    {% endfor %}
-
-    <div class="section-header">Abdominales</div>
-    {% for ejercicio in ejercicios_abdominal %}
-    <div class="card" id="card-{{ejercicio.id}}">
-        <div class="info-ejercicio">
-            <span class="nombre-ejercicio">{{ ejercicio.nombre }}</span>
-            <span class="detalle-ejercicio">{{ ejercicio.series }} sets de {{ ejercicio.repeticiones }} reps</span>
+        <div class="progreso-container">
+            <div style="margin-bottom:5px; font-size:12px;">Progreso: <span id="porcentaje">0%</span></div>
+            <div class="barra"><div id="barra-progreso"></div></div>
         </div>
-        <input type="checkbox" class="checkbox-custom" data-id="{{ ejercicio.id }}">
     </div>
-    {% endfor %}
 
-    <div class="section-header">Cardio</div>
-    {% for ejercicio in ejercicios_aerobico %}
-    <div class="card" id="card-{{ejercicio.id}}">
-        <div class="info-ejercicio">
-            <span class="nombre-ejercicio">{{ ejercicio.nombre }}</span>
-            <span class="detalle-ejercicio">{{ ejercicio.tiempo }} min de actividad</span>
+    <div class="rutina">
+        {% for rutina in rutinas %}
+        <h2 style="color:#00ff88; font-size: 1.2rem;">{{ rutina.nombre }}</h2>
+        {% for ejercicio in rutina.ejercicio_set.all %}
+        <div class="card">
+            <label class="check">
+                <input type="checkbox" data-id="{{ ejercicio.id }}">
+                <span>🏋️ {{ ejercicio.nombre }}</span>
+            </label>
+            {% if ejercicio.series %}<div class="detalle">Series: {{ ejercicio.series }}</div>{% endif %}
+            {% if ejercicio.repeticiones %}<div class="detalle">Reps: {{ ejercicio.repeticiones }}</div>{% endif %}
         </div>
-        <input type="checkbox" class="checkbox-custom" data-id="{{ ejercicio.id }}">
+        {% endfor %}
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function(){
-        const checks = document.querySelectorAll(".checkbox-custom");
-        
-        checks.forEach(c => {
-            const id = c.dataset.id;
-            // Cargar estado inicial
-            if(localStorage.getItem("ejercicio_"+id) === "true") {
-                c.checked = true;
-                c.closest(".card").classList.add("hecho");
+    <form action="/login/" method="get">
+        <button class="logout">Cerrar sesión</button>
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            const checks = document.querySelectorAll("input[type='checkbox']");
+            function actualizarProgreso(){
+                const total = checks.length;
+                let comp = 0;
+                checks.forEach(c => { if(c.checked) comp++; });
+                const porc = total === 0 ? 0 : Math.round((comp / total) * 100);
+                document.getElementById("barra-progreso").style.width = porc + "%";
+                document.getElementById("porcentaje").innerText = porc + "%";
             }
-            
-            // Guardar al cambiar
-            c.addEventListener("change", function(){
-                localStorage.setItem("ejercicio_"+id, this.checked);
-                this.closest(".card").classList.toggle("hecho", this.checked);
+            checks.forEach(c => {
+                const id = c.dataset.id;
+                if(localStorage.getItem("ejercicio_"+id) === "true") {
+                    c.checked = true;
+                    c.closest(".card").classList.add("hecho");
+                }
+                c.addEventListener("change", () => {
+                    localStorage.setItem("ejercicio_"+id, c.checked);
+                    c.closest(".card").classList.toggle("hecho", c.checked);
+                    actualizarProgreso();
+                });
             });
+            actualizarProgreso();
         });
-    });
-</script>
-
+    </script>
 </body>
 </html>
