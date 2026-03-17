@@ -7,10 +7,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3*r893bw)ik7h=!fd$x7ky$hiigyx@dy+*772wv^&e2t#hn#f&')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# SECURITY WARNING: ¡IMPORTANTE! En desarrollo debe estar en True para ver imágenes
+DEBUG = True
 
-ALLOWED_HOSTS = ['gimnasio-app-ftq4.onrender.com', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['*'] # Permite probar en cualquier lado por ahora
 
 # Application definition
 INSTALLED_APPS = [
@@ -25,7 +25,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Para servir estáticos en Render
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -76,13 +76,22 @@ TIME_ZONE = 'America/Argentina/Buenos_Aires'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# --- ARCHIVOS ESTÁTICOS ---
 STATIC_URL = '/static/'
+
+# Esta carpeta es donde Django busca tus imágenes y CSS
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# Esta carpeta es la que usa Render para producción
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Almacenamiento optimizado para Render
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Login Configuration
-LOGIN_REDIRECT_URL = '/mi-rutina/'
+LOGIN_REDIRECT_URL = '/dashboard/' # Corregido para que vaya al menu principal
 LOGIN_URL = '/login/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

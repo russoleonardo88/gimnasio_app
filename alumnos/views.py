@@ -1,62 +1,76 @@
-import datetime
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Alumno, Rutina
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Alumno, Ejercicio, Asistencia
+from django.utils import timezone
 
-# Vista para manejar el Login
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            # Redirige a la rutina tras iniciar sesión correctamente
-            return redirect('mi_rutina')
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('dashboard_alumno')
     else:
         form = AuthenticationForm()
-    
-    return render(request, 'login.html', {'form': form})
+    return render(request, 'alumnos/login.html', {'form': form})
 
-# Vista para la rutina del alumno
+@login_required
+def dashboard_alumno(request):
+    try:
+        alumno = Alumno.objects.get(user=request.user)
+    except Alumno.DoesNotExist:
+        return render(request, 'alumnos/dashboard.html', {'error': 'No tienes un perfil de alumno asignado.'})
+
+    dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
+    progreso_dias = []
+
+    for dia in dias:
+        ejercicios_dia = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia)
+        total = ejercicios_dia.count()
+        completados = ejercicios_dia.filter(completado=True).count()
+        porcentaje = (completados / total * 100) if total > 0 else 0
+        
+        progreso_dias.append({
+            'nombre': dia,
+            'porcentaje': int(porcentaje)
+        })
+
+    return render(request, 'alumnos/dashboard.html', {
+        'alumno': alumno,
+        'progreso_dias': progreso_dias
+    })
+
 @login_required
 def mi_rutina(request):
+    dia_seleccionado = request.GET.get('dia', 'Lunes')
     alumno = Alumno.objects.get(user=request.user)
-    dia_url = request.GET.get("dia")
-
-    if dia_url:
-        hoy_es = dia_url
-    else:
-        hoy = datetime.datetime.today().strftime("%A")
-        dias = {
-            "Monday": "Lunes",
-            "Tuesday": "Martes",
-            "Wednesday": "Miércoles",
-            "Thursday": "Jueves",
-            "Friday": "Viernes",
-        }
-        hoy_es = dias.get(hoy)
-
-    rutina_hoy = Rutina.objects.filter(alumno=alumno, nombre=hoy_es)
-
-    ejercicios_normal = []
-    ejercicios_abdominal = []
-    ejercicios_aerobico = []
-
-    for rutina in rutina_hoy:
-        for ejercicio in rutina.ejercicio_set.all():
-            if ejercicio.tipo == "normal":
-                ejercicios_normal.append(ejercicio)
-            elif ejercicio.tipo == "abdominal":
-                ejercicios_abdominal.append(ejercicio)
-            elif ejercicio.tipo == "aerobico":
-                ejercicios_aerobico.append(ejercicio)
-
-    return render(request, "rutina.html", {
-        "rutinas": rutina_hoy,
-        "dia": hoy_es,
-        "ejercicios_normal": ejercicios_normal,
-        "ejercicios_abdominal": ejercicios_abdominal,
-        "ejercicios_aerobico": ejercicios_aerobico
+    ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado)
+    
+    return render(request, 'alumnos/mi_rutina.html', {
+        'ejercicios': ejercicios,
+        'dia': dia_seleccionado
     })
+
+@csrf_exempt
+@login_required
+def marcar_ejercicio_hecho(request, ejercicio_id):
+    if request.method == 'POST':
+        try:
+            ejercicio = Ejercicio.objects.get(id=ejercicio_id, alumno__user=request.user)
+            ejercicio.completado = not ejercicio.completado
+            ejercicio.ultima_vez_hecho = timezone.now()
+            ejercicio.save()
+            return JsonResponse({'status': 'ok', 'completado': ejercicio.completado})
+        except Ejercicio.DoesNotExist:
+            return JsonResponse({'status': 'error'}, status=404)
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')

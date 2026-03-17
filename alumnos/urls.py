@@ -1,12 +1,13 @@
-from django.contrib import admin
 from django.urls import path
-from alumnos.views import login_view, mi_rutina
-from django.contrib.auth import views as auth_views
+from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('login/', login_view, name='login'),
-    path('mi-rutina/', mi_rutina, name='mi_rutina'),
-    # Esto es por si quieres añadir un logout en el futuro
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('', views.login_view, name='login'),
+    path('login/', views.login_view, name='login'),
+    path('mi-rutina/', views.mi_rutina, name='mi_rutina'),
+    path('dashboard/', views.dashboard_alumno, name='dashboard_alumno'),
+    path('logout/', views.logout_view, name='logout'),
+    
+    # ESTA ES LA LÍNEA CLAVE NUEVA:
+    path('marcar-hecho/<int:ejercicio_id>/', views.marcar_ejercicio_hecho, name='marcar_hecho'),
 ]

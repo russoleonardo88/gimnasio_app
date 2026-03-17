@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aquiles App - Mi Rutina</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --negro-puro: #000000;
+            --negro-card: #121212;
+            --verde-aquiles: #98cf2c;
+            --gris-texto: #a0a0a0;
+            --blanco: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--negro-puro);
+            color: var(--blanco);
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: var(--negro-puro);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #222;
+        }
+
+        .btn-atras {
+            color: var(--verde-aquiles);
+            text-decoration: none;
+            font-size: 1.8rem;
+            margin-right: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .ejercicio-card {
+            background: var(--negro-card);
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ejercicio-info h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--blanco);
+        }
+
+        .ejercicio-info p {
+            margin: 5px 0 0 0;
+            color: var(--gris-texto);
+            font-size: 0.9rem;
+        }
+
+        .circulo {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .circulo.completado {
+            background-color: var(--verde-aquiles);
+            border-color: var(--verde-aquiles);
+            box-shadow: 0 0 15px rgba(152, 207, 44, 0.4);
+        }
+
+        .circulo.completado::after {
+            content: '✓';
+            color: #000;
+            font-weight: 900;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="{% url 'dashboard_alumno' %}" class="btn-atras">←</a>
+        <h1>RUTINA: {{ dia }}</h1>
+    </div>
+
+    <div class="container">
+        {% for ejercicio in ejercicios %}
+        <div class="ejercicio-card">
+            <div class="ejercicio-info">
+                <h3>{{ ejercicio.nombre }}</h3>
+                <p>{{ ejercicio.series }} series x {{ ejercicio.repeticiones }} reps</p>
+            </div>
+            <div 
+                class="circulo {% if ejercicio.completado %}completado{% endif %}" 
+                onclick="marcarHecho({{ ejercicio.id }})">
+            </div>
+        </div>
+        {% empty %}
+        <p style="text-align: center; color: var(--gris-texto);">No hay ejercicios para hoy.</p>
+        {% endfor %}
+    </div>
+
+    <script>
+    function marcarHecho(ejercicioId) {
+        const elemento = event.target;
+        
+        fetch(`/marcar-hecho/${ejercicioId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                if (data.completado) {
+                    elemento.classList.add('completado');
+                } else {
+                    elemento.classList.remove('completado');
+                }
+            }
+        });
+    }
+    </script>
+</body>
+</html>

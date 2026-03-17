@@ -1,15 +1,7 @@
 from django.contrib import admin
-from .models import Alumno, Rutina, Ejercicio
-
-
-class EjercicioInline(admin.TabularInline):
-    model = Ejercicio
-    extra = 1
-
-
-class RutinaAdmin(admin.ModelAdmin):
-    inlines = [EjercicioInline]
-
+from .models import Alumno, Ejercicio, Entrenador, Asistencia
 
 admin.site.register(Alumno)
-admin.site.register(Rutina, RutinaAdmin)
+admin.site.register(Ejercicio)
+admin.site.register(Entrenador)
+admin.site.register(Asistencia)

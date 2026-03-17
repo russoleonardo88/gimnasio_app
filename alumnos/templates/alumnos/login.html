@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aquiles App - Login</title>
+    {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --negro-puro: #000000;
+            --negro-card: #0a0a0a;
+            --verde-aquiles: #98cf2c;
+            --blanco: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--negro-puro);
+            color: var(--blanco);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 350px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .logo-login {
+            width: 120px;
+            height: auto;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 10px rgba(152, 207, 44, 0.3));
+        }
+
+        h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            color: var(--blanco);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--negro-card);
+            border: 1px solid #222;
+            border-radius: 8px;
+            color: white;
+            box-sizing: border-box; /* Para que el padding no ensanche el input */
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--verde-aquiles);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--verde-aquiles);
+            border: none;
+            border-radius: 8px;
+            color: black;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .error-msg {
+            color: #ff4444;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <img src="{% static 'img/logo_app.jpg' %}" alt="Aquiles Logo" class="logo-login">
+        
+        <h1>Aquiles App</h1>
+
+        {% if form.errors %}
+            <p class="error-msg">Usuario o contraseña incorrectos</p>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="text" name="username" placeholder="USUARIO" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="CONTRASEÑA" required>
+            </div>
+            <button type="submit">Entrar</button>
+        </form>
+    </div>
+
+</body>
+</html>
