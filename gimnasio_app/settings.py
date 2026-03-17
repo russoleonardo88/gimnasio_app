@@ -88,10 +88,10 @@ STATICFILES_DIRS = [
 # Esta carpeta es la que usa Render para producción
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Almacenamiento optimizado para Render
+# Almacenamiento optimizado para Render 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Login Configuration
+# Configuración de Login
 LOGIN_REDIRECT_URL = '/dashboard/' # Corregido para que vaya al menu principal
 LOGIN_URL = '/login/'
 
