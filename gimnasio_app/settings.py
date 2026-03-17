@@ -10,7 +10,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3*r893bw)ik7h=!fd$x7k
 # SECURITY WARNING: ¡IMPORTANTE! En desarrollo debe estar en True para ver imágenes
 DEBUG = True
 
-ALLOWED_HOSTS = ['*'] # Permite probar en cualquier lado por ahora
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [
@@ -25,7 +25,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Para servir estáticos en Render
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -79,20 +79,19 @@ USE_TZ = True
 # --- ARCHIVOS ESTÁTICOS ---
 STATIC_URL = '/static/'
 
-# Esta carpeta es donde Django busca tus imágenes y CSS
+# Solo dejamos la ruta que existe para evitar conflictos
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),           # Carpeta static en la raíz
-    os.path.join(BASE_DIR, 'alumnos', 'static'), # Carpeta static dentro de la app alumnos
+    os.path.join(BASE_DIR, 'alumnos', 'static'),
 ]
 
-# Esta carpeta es la que usa Render para producción
+# Carpeta para producción en Render
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Almacenamiento optimizado para Render 
+# Almacenamiento optimizado
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Configuración de Login
-LOGIN_REDIRECT_URL = '/dashboard/' # Corregido para que vaya al menu principal
+# Login Configuration
+LOGIN_REDIRECT_URL = '/dashboard/'
 LOGIN_URL = '/login/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
