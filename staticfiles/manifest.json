@@ -1,20 +1,20 @@
 {
-  "name": "Gym Rutinas",
-  "short_name": "Gym",
-  "start_url": "/mi-rutina/",
+  "name": "Aquiles App",
+  "short_name": "Aquiles",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f0f",
-  "theme_color": "#000000",
+  "background_color": "#000000",
+  "theme_color": "#98cf2c",
   "icons": [
     {
-      "src": "/static/img/icon-192.png",
+      "src": "/static/img/logo_aquiles.jpg",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/jpeg"
     },
     {
-      "src": "/static/img/icon-512.png",
+      "src": "/static/img/logo_aquiles.jpg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/jpeg"
     }
   ]
 }
