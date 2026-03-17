@@ -50,18 +50,19 @@ def dashboard_alumno(request):
         'progreso_dias': progreso_dias
     })
 
-@login_required
-def mi_rutina(request):
-    dia_seleccionado = request.GET.get('dia', 'Lunes')
-    alumno = Alumno.objects.get(user=request.user)
-    ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado)
-    
-    # CORREGIDO: Buscamos mi_rutina.html directamente en templates/
-    return render(request, 'mi_rutina.html', {
-        'ejercicios': ejercicios,
-        'dia': dia_seleccionado
-    })
-
 @csrf_exempt
 @login_required
-def marcar_
+def marcar_ejercicio_hecho(request, ejercicio_id):
+    if request.method == 'POST':
+        try:
+            ejercicio = Ejercicio.objects.get(id=ejercicio_id, alumno__user=request.user)
+            ejercicio.completado = not ejercicio.completado
+            ejercicio.ultima_vez_hecho = timezone.now()
+            ejercicio.save()
+            return JsonResponse({'status': 'ok', 'completado': ejercicio.completado})
+        except Ejercicio.DoesNotExist:
+            return JsonResponse({'status': 'error'}, status=404)
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
