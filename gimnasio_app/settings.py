@@ -1,18 +1,18 @@
 import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# --- RUTAS BÁSICAS ---
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# --- SEGURIDAD ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3*r893bw)ik7h=!fd$x7ky$hiigyx@dy+*772wv^&e2t#hn#f&')
 
-# SECURITY WARNING: ¡IMPORTANTE! En desarrollo debe estar en True para ver imágenes
+# DEBUG: En True para desarrollo. En producción real debería ser False.
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# Application definition
+# --- APLICACIONES ---
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -23,9 +23,10 @@ INSTALLED_APPS = [
     'alumnos',
 ]
 
+# --- MIDDLEWARE ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # WhiteNoise siempre después de Security
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -54,7 +55,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 
-# Database
+# --- BASE DE DATOS ---
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -62,7 +63,7 @@ DATABASES = {
     }
 }
 
-# Password validation
+# --- VALIDACIÓN DE CONTRASEÑAS ---
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -70,27 +71,26 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internationalization
+# --- INTERNACIONALIZACIÓN ---
 LANGUAGE_CODE = 'es-es'
 TIME_ZONE = 'America/Argentina/Buenos_Aires'
 USE_I18N = True
 USE_TZ = True
 
-# --- ARCHIVOS ESTÁTICOS ---
+# --- ARCHIVOS ESTÁTICOS (EL CORAZÓN DEL PROBLEMA) ---
 STATIC_URL = '/static/'
 
-# Solo dejamos la ruta que existe para evitar conflictos
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'alumnos', 'static'),
-]
+# Dejamos STATICFILES_DIRS vacío para evitar el "conflicto" de duplicados.
+# Django encontrará automáticamente /alumnos/static/ porque 'alumnos' está en INSTALLED_APPS.
+STATICFILES_DIRS = []
 
-# Carpeta para producción en Render
+# Carpeta donde se reúnen los archivos para producción
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Almacenamiento optimizado
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Almacenamiento simplificado para evitar errores de caché con logos viejos
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# Login Configuration
+# --- CONFIGURACIÓN DE LOGIN ---
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGIN_URL = '/login/'
 
