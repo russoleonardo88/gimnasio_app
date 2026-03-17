@@ -81,7 +81,8 @@ STATIC_URL = '/static/'
 
 # Esta carpeta es donde Django busca tus imágenes y CSS
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'static'),           # Carpeta static en la raíz
+    os.path.join(BASE_DIR, 'alumnos', 'static'), # Carpeta static dentro de la app alumnos
 ]
 
 # Esta carpeta es la que usa Render para producción
