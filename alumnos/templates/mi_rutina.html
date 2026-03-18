@@ -60,7 +60,6 @@
             padding: 20px;
         }
 
-        /* --- NUEVOS ESTILOS CATEGORÍAS --- */
         .tipo-titulo {
             font-size: 11px;
             color: var(--verde-aquiles);
@@ -75,10 +74,6 @@
             border: 1px solid rgba(152, 207, 44, 0.2);
         }
 
-        .tipo-titulo:first-child {
-            margin-top: 5px;
-        }
-
         .ejercicio-card {
             background: var(--negro-card);
             border: 1px solid #222;
@@ -88,7 +83,6 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: transform 0.2s;
         }
 
         .ejercicio-info h3 {
@@ -96,7 +90,6 @@
             font-size: 1.1rem;
             color: var(--blanco);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .ejercicio-info p {
@@ -106,24 +99,13 @@
             font-weight: 600;
         }
 
-        .peso-tag {
-            display: inline-block;
-            margin-top: 8px;
-            background: rgba(152, 207, 44, 0.1);
-            color: var(--verde-aquiles);
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
         .circulo {
             width: 50px;
             height: 50px;
             border: 3px solid #333;
             border-radius: 50%;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -133,8 +115,6 @@
         .circulo.completado {
             background-color: var(--verde-aquiles);
             border-color: var(--verde-aquiles);
-            box-shadow: 0 0 20px rgba(152, 207, 44, 0.3);
-            transform: scale(1.05);
         }
 
         .circulo::after {
@@ -142,7 +122,6 @@
             color: transparent;
             font-weight: 900;
             font-size: 1.5rem;
-            transition: color 0.2s;
         }
 
         .circulo.completado::after {
@@ -172,20 +151,19 @@
             <div class="seccion-tipo">
                 <span class="tipo-titulo">🧘 Zona Media</span>
                 {% for ejercicio in ejercicios %}
-                    {% if ejercicio.tipo == 'ZONA_MEDIA' %}
+                    {% if ejercicio.tipo == 'ZONA_MEDIA' or ejercicio.tipo == 'TABATA' %}
                         {% include "includes/card_ejercicio.html" with ej=ejercicio %}
                     {% endif %}
                 {% endfor %}
             </div>
 
             <div class="seccion-tipo">
-                <span class="tipo-titulo">💪 Fuerza</span>
-                {% for ejercicio in ejercicios %}
-                    {% if ejercicio.tipo == 'FUERZA' %}
-                        {% include "includes/card_ejercicio.html" with ej=ejercicio %}
-                    {% endif %}
-                {% endfor %}
-            </div>
+            <span class="tipo-titulo">🧘 Zona Media</span>
+            {% for ejercicio in ejercicios %}
+             {% if ejercicio.tipo == 'ZONA_MEDIA' %} {% include "includes/card_ejercicio.html" with ej=ejercicio %}
+             {% endif %}
+             {% endfor %}
+          </div>
         {% else %}
             <div style="text-align: center; margin-top: 50px;">
                 <p style="color: var(--gris-texto); font-weight: 600;">No hay ejercicios cargados para el {{ dia }}.</p>
@@ -194,43 +172,37 @@
 
     </div>
 
-    {% if False %} 
-        {# Este bloque no se renderiza, es solo para explicar la lógica de abajo #}
-    {% endif %}
+    <script>
+    function toggleEjercicio(ejercicioId) {
+        const elemento = document.getElementById(`check-${ejercicioId}`);
+        if (!elemento) return;
 
-   {% for ej in ejercicios %}
-    {% include "includes/card_ejercicio.html" with ej=ej %}
-{% empty %}
-    <p>No hay ejercicios para el día {{ dia }}.</p>
-{% endfor %}
+        elemento.style.pointerEvents = 'none';
 
-       <script>
-        // Esta parte es la misma que ya tenías
-        function marcarHecho(elemento, ejercicioId) {
-            elemento.style.pointerEvents = 'none';
-            fetch(`/marcar-hecho/${ejercicioId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
+        // USAMOS LA URL QUE YA TENÍAS DEFINIDA EN TU PROYECTO
+        fetch(`/marcar-hecho/${ejercicioId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                if (data.completado) {
+                    elemento.classList.add('completado');
+                } else {
+                    elemento.classList.remove('completado');
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    if (data.completado) {
-                        elemento.classList.add('completado');
-                    } else {
-                        elemento.classList.remove('completado');
-                    }
-                }
-                elemento.style.pointerEvents = 'auto';
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                elemento.style.pointerEvents = 'auto';
-            });
-        }
+            }
+            elemento.style.pointerEvents = 'auto';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            elemento.style.pointerEvents = 'auto';
+        });
+    }
     </script>
 </body>
 </html>

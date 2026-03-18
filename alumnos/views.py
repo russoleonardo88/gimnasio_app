@@ -1,88 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from .models import Alumno, Ejercicio, Asistencia, Entrenador
-from django.contrib.auth.models import User
-from django.utils import timezone
-from django.db.models import Count, Avg
-from django.db.models.functions import ExtractMonth
-from django.contrib import messages
-from datetime import timedelta
-
-# --- VISTAS DE AUTENTICACIÓN ---
-
-def login_view(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            if user.is_staff:
-                return redirect('gestion_gym')
-            return redirect('dashboard_alumno')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
-
-def logout_view(request):
-    logout(request)
-    return redirect('login')
-
-@login_required
-def cambiar_password(request):
-    if request.method == 'POST':
-        form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)
-            messages.success(request, '¡Contraseña actualizada con éxito!')
-            return redirect('dashboard_alumno')
-    else:
-        form = PasswordChangeForm(request.user)
-    return render(request, 'cambiar_password.html', {'form': form})
-
-# --- VISTAS DEL ALUMNO (DASHBOARD Y RUTINA) ---
-
-@login_required
-def dashboard_alumno(request):
-    try:
-        alumno = Alumno.objects.get(user=request.user)
-    except Alumno.DoesNotExist:
-        if request.user.is_staff:
-            return redirect('gestion_gym')
-        return render(request, 'dashboard.html', {'error': 'No tienes un perfil de alumno asignado.'})
-
-    dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    progreso_dias = []
-    for dia in dias_semana:
-        ejercicios_dia = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia)
-        total = ejercicios_dia.count()
-        completados = ejercicios_dia.filter(completado=True).count()
-        porcentaje = (completados / total * 100) if total > 0 else 0
-        progreso_dias.append({'nombre': dia, 'porcentaje': int(porcentaje)})
-
-    stats_base = Asistencia.objects.filter(alumno=alumno).annotate(
-        mes=ExtractMonth('fecha')
-    ).values('mes').order_by('mes')
-
-    nombres_meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-    labels_grafico = [nombres_meses[item['mes']-1] for item in stats_base]
-    datos_asistencia = [Asistencia.objects.filter(alumno=alumno, fecha__month=item['mes']).count() for item in stats_base]
-    datos_rendimiento = [round(float(Asistencia.objects.filter(alumno=alumno, fecha__month=item['mes']).aggregate(Avg('porcentaje_completado'))['porcentaje_completado__avg'] or 0), 1) for item in stats_base]
-
-    asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
-    hace_una_semana = timezone.now().date() - timedelta(days=7)
-    asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
-    mensaje_motivador = f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥"
-
-    return render(request, 'dashboard.html', {
-        'alumno': alumno, 'progreso_dias': progreso_dias, 'asistencias': asistencias_recientes,
-        'mensaje_motivador': mensaje_motivador, 'labels_grafico': labels_grafico,
-        'datos_asistencia': datos_asistencia, 'datos_rendimiento': datos_rendimiento,
-    })
+# --- BUSCÁ ESTAS FUNCIONES Y REEMPLAZALAS ---
 
 @login_required
 def mi_rutina(request):
@@ -92,7 +8,9 @@ def mi_rutina(request):
     }
     dia_default = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
     dia_seleccionado = request.GET.get('dia', dia_default)
-    alumno = Alumno.objects.get(user=request.user)
+    alumno = get_object_or_404(Alumno, user=request.user)
+    
+    # IMPORTANTE: Asegurate de que el filtro use dia_semana si así se llama en tu modelo
     ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado)
     
     hoy = timezone.now().date()
@@ -103,144 +21,33 @@ def mi_rutina(request):
 
     return render(request, 'mi_rutina.html', {'ejercicios': ejercicios, 'dia': dia_seleccionado, 'alumno': alumno})
 
-@csrf_exempt
 @login_required
-def marcar_ejercicio_hecho(request, ejercicio_id):
+def agregar_ejercicio(request, alumno_id):
     if request.method == 'POST':
-        try:
-            ejercicio = Ejercicio.objects.get(id=ejercicio_id, alumno__user=request.user)
-            ejercicio.completado = not ejercicio.completado
-            ejercicio.ultima_vez_hecho = timezone.now()
-            ejercicio.save()
-            
-            ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana)
-            total = ejercicios_dia.count()
-            hechos = ejercicios_dia.filter(completado=True).count()
-            nuevo_progreso = (hechos / total * 100) if total > 0 else 0
-            
-            asistencia = Asistencia.objects.filter(alumno=ejercicio.alumno, fecha=timezone.now().date()).first()
-            if asistencia:
-                asistencia.porcentaje_completado = nuevo_progreso
-                asistencia.save()
-            
-            return JsonResponse({'status': 'ok', 'completado': ejercicio.completado, 'progreso': int(nuevo_progreso)})
-        except Ejercicio.DoesNotExist:
-            return JsonResponse({'status': 'error'}, status=404)
-
-# --- VISTAS DE ADMINISTRACIÓN (RECEPCIÓN Y GESTIÓN) ---
-
-def control_acceso(request):
-    mensaje, clase_alerta, alumno_info = "", "", None
-    if request.method == "POST":
-        codigo_ingresado = request.POST.get("codigo", "").upper().strip()
-        try:
-            alumno = Alumno.objects.get(codigo=codigo_ingresado)
-            if not alumno.activo:
-                mensaje = f"ACCESO DENEGADO: {alumno.user.first_name.upper()} ESTÁ DE BAJA"
-                clase_alerta = "danger"
-            else:
-                Asistencia.objects.get_or_create(alumno=alumno, fecha=timezone.now().date())
-                mensaje = f"BIENVENIDO/A {alumno.user.first_name.upper()}!"
-                clase_alerta = "success"
-                alumno_info = alumno
-        except Alumno.DoesNotExist:
-            mensaje, clase_alerta = "CÓDIGO NO ENCONTRADO", "warning"
-    return render(request, "recepcion.html", {"mensaje": mensaje, "clase_alerta": clase_alerta, "alumno_info": alumno_info})
-
-@login_required
-def gestion_gym(request):
-    if not request.user.is_staff: return redirect('dashboard_alumno')
-    alumnos_activos = Alumno.objects.filter(activo=True)
-    alumnos_baja = Alumno.objects.filter(activo=False)
-    stats_alumnos = []
-    hoy = timezone.now().date()
-    for alu in alumnos_activos:
-        conteo = Asistencia.objects.filter(alumno=alu, fecha__month=hoy.month).count()
-        meta = int(alu.plan_semanal) * 4
-        porcentaje = (conteo / meta * 100) if meta > 0 else 0
-        ultima = Asistencia.objects.filter(alumno=alu).order_by('-fecha').first()
-        stats_alumnos.append({
-            'alumno': alu, 'asistencias': conteo, 'porcentaje_asistencia': int(porcentaje),
-            'progreso_rutina': int(ultima.porcentaje_completado if ultima else 0),
-            'alerta_cambio': alu.rutina_vencida(), 'dias_rutina': alu.dias_transcurridos()
-        })
-    return render(request, 'gestion.html', {'stats_alumnos': stats_alumnos, 'alumnos_baja': alumnos_baja})
-
-@login_required
-def detalle_alumno(request, alumno_id):
-    alumno = get_object_or_404(Alumno, id=alumno_id)
-    dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia) for dia in dias}
-    return render(request, 'detalle_alumno.html', {'alumno': alumno, 'rutina': rutina, 'dias': dias})
-
-@login_required
-def editar_alumno(request, alumno_id):
-    if not request.user.is_staff: return redirect('dashboard_alumno')
-    alumno = get_object_or_404(Alumno, id=alumno_id)
-    if request.method == "POST":
-        alumno.user.first_name = request.POST.get('nombre')
-        alumno.user.last_name = request.POST.get('apellido')
-        alumno.user.save()
-        alumno.plan_semanal = request.POST.get('plan')
-        alumno.save()
-        return redirect('gestion_gym')
-    return render(request, 'editar_alumno.html', {'alumno': alumno})
-
-@login_required
-def resetear_rutina(request, alumno_id):
-    if not request.user.is_staff: return redirect('dashboard_alumno')
-    alumno = get_object_or_404(Alumno, id=alumno_id)
-    Ejercicio.objects.filter(alumno=alumno).delete()
-    alumno.fecha_inicio_rutina = timezone.now().date()
-    alumno.save()
-    return redirect('gestion_gym')
-
-@login_required
-def historial_asistencias(request, alumno_id):
-    if not request.user.is_staff: return redirect('dashboard_alumno')
-    alumno = get_object_or_404(Alumno, id=alumno_id)
-    asistencias = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')
-    return render(request, 'historial_asistencias.html', {'alumno': alumno, 'asistencias': asistencias})
-
-@login_required
-def alta_socio_rapida(request):
-    if not request.user.is_staff: return redirect('dashboard_alumno')
-    if request.method == "POST":
-        nombre = request.POST.get('nombre').strip()
-        apellido = request.POST.get('apellido').strip()
-        codigo = request.POST.get('codigo').upper().strip()
-        plan = request.POST.get('plan')
-        genero = 'Hombre' if codigo.startswith('H') else 'Mujer'
-        user = User.objects.create_user(username=codigo, first_name=nombre, last_name=apellido, password=codigo)
-        Alumno.objects.create(user=user, codigo=codigo, genero=genero, plan_semanal=plan, activo=True, fecha_inicio_rutina=timezone.now().date())
-        return redirect('gestion_gym')
-    return render(request, 'alta_socio.html')
-
-@login_required
-def eliminar_ejercicio(request, ejercicio_id):
-    ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id)
-    alu_id = ejercicio.alumno.id
-    if request.user.is_staff: ejercicio.delete()
-    return redirect('detalle_alumno', alumno_id=alu_id)
-
-@login_required
-def cambiar_estado_alumno(request, alumno_id):
-    if not request.user.is_staff: return redirect('dashboard_alumno')
-    alumno = get_object_or_404(Alumno, id=alumno_id)
-    alumno.activo = not alumno.activo
-    alumno.save()
-    return redirect('gestion_gym')
-
-@login_required
-def agregar_ejercicio_rapido(request, alumno_id):
-    if request.method == "POST":
         alumno = get_object_or_404(Alumno, id=alumno_id)
+        
+        # Capturamos los datos del formulario
+        nombre = request.POST.get('nombre')
+        tipo = request.POST.get('tipo') # Recibe 'FUERZA', 'AEROBICO' o 'ZONA_MEDIA'
+        dia = request.POST.get('dia')
+        series = request.POST.get('series') or 0
+        reps = request.POST.get('reps')
+        peso = request.POST.get('peso')
+        
+        # Limpiamos el peso por si viene vacío
+        if not peso or peso == "":
+            peso = 0
+
         Ejercicio.objects.create(
-            alumno=alumno, 
-            nombre=request.POST.get('nombre'), 
-            dia_semana=request.POST.get('dia'),
-            series=request.POST.get('series'), 
-            repeticiones=request.POST.get('reps'),
-            peso_sugerido=request.POST.get('peso') or 0
+            alumno=alumno,
+            nombre=nombre,
+            tipo=tipo,
+            dia_semana=dia, # Verificá que en tu models.py se llame dia_semana
+            series=series,
+            repeticiones=reps,
+            peso_sugerido=peso
         )
-    return redirect('detalle_alumno', alumno_id=alumno_id)
+        # CORRECCIÓN: Redirigir al detalle usando el ID numérico
+        return redirect('detalle_alumno', alumno_id=alumno.id)
+    
+    return redirect('gestion_gym')
