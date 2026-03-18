@@ -1,0 +1,38 @@
+<body style="background-color: #000; color: #fff; font-family: sans-serif; padding: 40px;">
+    
+    <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #98cf2c; padding-bottom: 20px; align-items: center;">
+        <h1>HISTORIAL: {{ alumno.user.get_full_name|upper }} ({{ alumno.codigo }})</h1>
+        <a href="{% url 'gestion_gym' %}" style="color: #98cf2c; text-decoration: none; font-weight: bold; border: 1px solid #98cf2c; padding: 8px 15px; border-radius: 5px;">← VOLVER AL PANEL</a>
+    </div>
+
+    <div style="margin-top: 30px; max-width: 800px;">
+        <h3 style="color: #98cf2c;">DÍAS REGISTRADOS</h3>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; background: #111; border-radius: 10px; overflow: hidden;">
+            <thead>
+                <tr style="background: #222; color: #98cf2c; text-align: left;">
+                    <th style="padding: 15px;">Fecha</th>
+                    <th style="padding: 15px;">Día</th>
+                    <th style="padding: 15px;">Progreso ese día</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for asis in asistencias %}
+                <tr style="border-bottom: 1px solid #222;">
+                    <td style="padding: 15px;">{{ asis.fecha|date:"d/m/Y" }}</td>
+                    <td style="padding: 15px;">{{ asis.fecha|date:"l" }}</td>
+                    <td style="padding: 15px;">
+                        <span style="color: {% if asis.porcentaje_completado > 80 %}#98cf2c{% else %}#ff4d4d{% endif %}; font-weight: bold;">
+                            {{ asis.porcentaje_completado }}% hecho
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="padding: 20px; text-align: center; color: #666;">No hay asistencias registradas aún.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>

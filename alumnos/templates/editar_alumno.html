@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Socio - Aquiles Gym</title>
+</head>
+<body style="background-color: #000; color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
+
+    <div style="background-color: #111; padding: 40px; border-radius: 15px; border: 1px solid #98cf2c; width: 100%; max-width: 400px; box-shadow: 0 0 20px rgba(152, 207, 44, 0.2);">
+        
+        <h2 style="color: #98cf2c; text-align: center; margin-top: 0; text-transform: uppercase;">Editar Perfil</h2>
+        <p style="text-align: center; color: #666; font-size: 14px; margin-bottom: 30px;">Socio: {{ alumno.codigo }}</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <label style="display: block; margin-bottom: 5px; color: #98cf2c; font-size: 12px; font-weight: bold;">NOMBRE</label>
+            <input type="text" name="nombre" value="{{ alumno.user.first_name }}" required
+                   style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box;">
+
+            <label style="display: block; margin-bottom: 5px; color: #98cf2c; font-size: 12px; font-weight: bold;">APELLIDO</label>
+            <input type="text" name="apellido" value="{{ alumno.user.last_name }}" required
+                   style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box;">
+
+            <label style="display: block; margin-bottom: 5px; color: #98cf2c; font-size: 12px; font-weight: bold;">PLAN SEMANAL (DÍAS)</label>
+            <select name="plan" style="width: 100%; padding: 12px; margin-bottom: 30px; border-radius: 5px; border: 1px solid #333; background: #000; color: #fff;">
+                <option value="1" {% if alumno.plan_semanal == 1 %}selected{% endif %}>1 día por semana</option>
+                <option value="2" {% if alumno.plan_semanal == 2 %}selected{% endif %}>2 días por semana</option>
+                <option value="3" {% if alumno.plan_semanal == 3 %}selected{% endif %}>3 días por semana</option>
+                <option value="4" {% if alumno.plan_semanal == 4 %}selected{% endif %}>4 días por semana</option>
+                <option value="5" {% if alumno.plan_semanal == 5 %}selected{% endif %}>5 días por semana</option>
+                <option value="6" {% if alumno.plan_semanal == 6 %}selected{% endif %}>6 días por semana</option>
+            </select>
+
+            <button type="submit" style="width: 100%; background-color: #98cf2c; color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
+                GUARDAR CAMBIOS
+            </button>
+
+            <a href="{% url 'gestion_gym' %}" style="display: block; text-align: center; margin-top: 20px; color: #666; text-decoration: none; font-size: 14px;">
+                Cancelar y volver
+            </a>
+        </form>
+    </div>
+
+</body>
+</html>

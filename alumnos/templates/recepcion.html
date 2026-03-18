@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Aquiles Gym - Recepción</title>
+    <style>
+        body { background-color: #000000; color: #ffffff; font-family: 'Arial Black', sans-serif; text-align: center; padding-top: 50px; overflow: hidden; }
+        .logo { width: 150px; margin-bottom: 20px; }
+        .titulo { color: #98cf2c; font-size: 3em; margin-bottom: 30px; }
+        
+        input { 
+            background: #111; color: #98cf2c; border: 3px solid #98cf2c; 
+            padding: 25px; font-size: 40px; text-align: center; width: 400px; 
+            border-radius: 15px; outline: none; transition: 0.3s;
+        }
+        
+        /* Colores de alerta */
+        .alerta { margin-top: 50px; padding: 30px; border-radius: 20px; display: inline-block; min-width: 500px; }
+        .success { background-color: #28a745; font-size: 35px; }
+        .danger { background-color: #dc3545; font-size: 30px; }
+        .warning { background-color: #ffc107; color: #000; font-size: 30px; }
+    </style>
+</head>
+<body>
+
+    <h1 class="titulo">AQUILES GYM</h1>
+    <h2>CONTROL DE ACCESO</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="codigo" id="codigo_input" placeholder="INGRESE CÓDIGO" autocomplete="off">
+    </form>
+
+    {% if mensaje %}
+    <div class="alerta {{ clase_alerta }}">
+        {{ mensaje }}
+    </div>
+    {% endif %}
+
+    <script>
+        // Siempre mantiene el foco en el input para el teclado de la PC
+        const input = document.getElementById('codigo_input');
+        input.focus();
+        document.addEventListener('click', () => input.focus());
+        
+        // Limpia el mensaje después de 4 segundos para que la pantalla quede limpia
+        {% if mensaje %}
+        setTimeout(() => {
+            window.location.href = window.location.pathname;
+        }, 4000);
+        {% endif %}
+    </script>
+</body>
+</html>

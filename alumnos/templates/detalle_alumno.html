@@ -1,0 +1,86 @@
+<body style="background-color: #000; color: #fff; font-family: sans-serif; padding: 40px;">
+    
+    <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #98cf2c; padding-bottom: 20px;">
+        <h1>
+    FICHA: 
+    {% if alumno.user.get_full_name %}
+        {{ alumno.user.get_full_name|upper }}
+    {% else %}
+        SOCIO {{ alumno.codigo }}
+    {% endif %}
+    ({{ alumno.codigo }})
+</h1>
+        <a href="{% url 'gestion_gym' %}" style="color: #98cf2c; text-decoration: none; font-weight: bold; align-self: center; border: 1px solid #98cf2c; padding: 8px 15px; border-radius: 5px;">← VOLVER AL PANEL</a>
+    </div>
+
+    <div style="display: flex; gap: 30px; margin-top: 30px;">
+        
+        <div style="flex: 1; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #222; height: fit-content;">
+            <h3 style="color: #98cf2c; margin-top: 0;">+ ASIGNAR EJERCICIO</h3>
+            <form action="{% url 'agregar_ejercicio' alumno.id %}" method="POST">
+                {% csrf_token %}
+                
+                <label style="font-size: 12px; color: #888;">Nombre del ejercicio:</label>
+                <input type="text" name="nombre" placeholder="Ej: Press de Banca" required style="width: 100%; padding: 10px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+
+                <label style="font-size: 12px; color: #888;">Día asignado:</label>
+                <select name="dia" style="width: 100%; padding: 10px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    {% for dia in dias %}
+                        <option value="{{ dia }}">{{ dia }}</option>
+                    {% endfor %}
+                </select>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 11px; color: #888;">Sets</label>
+                        <input type="number" name="series" placeholder="3" style="width: 100%; padding: 10px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 11px; color: #888;">Reps</label>
+                        <input type="text" name="reps" placeholder="12" style="width: 100%; padding: 10px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 11px; color: #888;">Kg</label>
+                        <input type="number" name="peso" placeholder="20" style="width: 100%; padding: 10px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    </div>
+                </div>
+
+                <button type="submit" style="width: 100%; padding: 15px; background: #98cf2c; color: #000; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+                    CARGAR EJERCICIO
+                </button>
+            </form>
+        </div>
+
+        <div style="flex: 3;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                {% for dia, ejercicios in rutina.items %}
+                <div style="background: #111; padding: 20px; border-radius: 12px; border: 1px solid #222;">
+                    <h4 style="color: #98cf2c; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; text-transform: uppercase; letter-spacing: 1px;">
+                        {{ dia }}
+                    </h4>
+                    
+                    <div style="margin-top: 15px;">
+                        {% for ej in ejercicios %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 10px; margin-bottom: 8px; border-radius: 5px; border-left: 3px solid #98cf2c;">
+                            <div style="font-size: 14px;">
+                                <strong style="color: #fff; display: block;">{{ ej.nombre }}</strong>
+                                <span style="color: #98cf2c;">{{ ej.series }}x{{ ej.repeticiones }}</span> 
+                                <small style="color: #666;">({{ ej.peso_sugerido }}kg)</small>
+                            </div>
+                            
+                            <a href="{% url 'eliminar_ejercicio' ej.id %}" 
+                               onclick="return confirm('¿Eliminar {{ ej.nombre }}?')"
+                               style="color: #ff4d4d; text-decoration: none; font-weight: bold; font-family: monospace; padding: 5px 8px; background: #222; border-radius: 4px; border: 1px solid #333;">
+                               X
+                            </a>
+                        </div>
+                        {% empty %}
+                            <p style="color: #444; font-size: 12px;">Sin ejercicios.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
