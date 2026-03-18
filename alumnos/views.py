@@ -117,7 +117,7 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
         except Ejercicio.DoesNotExist:
             return JsonResponse({'status': 'error'}, status=404)
 
-# --- VISTAS DE ADMINISTRACIÓN Y RECEPCIÓN ---
+# --- VISTAS DE ADMINISTRACIÓN, GESTIÓN Y RECEPCIÓN ---
 
 def control_acceso(request):
     mensaje, clase_alerta, alumno_info = "", "", None
@@ -141,6 +141,7 @@ def control_acceso(request):
 def gestion_gym(request):
     if not request.user.is_staff: return redirect('dashboard_alumno')
     alumnos_activos = Alumno.objects.filter(activo=True)
+    alumnos_baja = Alumno.objects.filter(activo=False)
     stats_alumnos = []
     hoy = timezone.now().date()
     for alu in alumnos_activos:
@@ -152,7 +153,7 @@ def gestion_gym(request):
             'alumno': alu, 'asistencias': conteo, 'porcentaje_asistencia': int(porcentaje),
             'progreso_rutina': int(ultima.porcentaje_completado if ultima else 0)
         })
-    return render(request, 'gestion.html', {'stats_alumnos': stats_alumnos})
+    return render(request, 'gestion.html', {'stats_alumnos': stats_alumnos, 'alumnos_baja': alumnos_baja})
 
 @login_required
 def detalle_alumno(request, alumno_id):
@@ -160,6 +161,19 @@ def detalle_alumno(request, alumno_id):
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
     rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia) for dia in dias}
     return render(request, 'detalle_alumno.html', {'alumno': alumno, 'rutina': rutina, 'dias': dias})
+
+@login_required
+def editar_alumno(request, alumno_id):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    if request.method == "POST":
+        alumno.user.first_name = request.POST.get('nombre')
+        alumno.user.last_name = request.POST.get('apellido')
+        alumno.user.save()
+        alumno.plan_semanal = request.POST.get('plan')
+        alumno.save()
+        return redirect('gestion_gym')
+    return render(request, 'editar_alumno.html', {'alumno': alumno})
 
 @login_required
 def agregar_ejercicio(request, alumno_id):
@@ -192,3 +206,33 @@ def cambiar_estado_alumno(request, alumno_id):
     alumno.activo = not alumno.activo
     alumno.save()
     return redirect('gestion_gym')
+
+@login_required
+def alta_socio_rapida(request):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    if request.method == "POST":
+        nombre = request.POST.get('nombre').strip()
+        apellido = request.POST.get('apellido').strip()
+        codigo = request.POST.get('codigo').upper().strip()
+        plan = request.POST.get('plan')
+        genero = 'Hombre' if codigo.startswith('H') else 'Mujer'
+        user = User.objects.create_user(username=codigo, first_name=nombre, last_name=apellido, password=codigo)
+        Alumno.objects.create(user=user, codigo=codigo, genero=genero, plan_semanal=plan, activo=True, fecha_inicio_rutina=timezone.now().date())
+        return redirect('gestion_gym')
+    return render(request, 'alta_socio.html')
+
+@login_required
+def resetear_rutina(request, alumno_id):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    Ejercicio.objects.filter(alumno=alumno).delete()
+    alumno.fecha_inicio_rutina = timezone.now().date()
+    alumno.save()
+    return redirect('gestion_gym')
+
+@login_required
+def historial_asistencias(request, alumno_id):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    asistencias = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')
+    return render(request, 'historial_asistencias.html', {'alumno': alumno, 'asistencias': asistencias})
