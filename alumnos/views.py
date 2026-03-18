@@ -176,7 +176,7 @@ def editar_alumno(request, alumno_id):
     return render(request, 'editar_alumno.html', {'alumno': alumno})
 
 @login_required
-def agregar_ejercicio(request, alumno_id):
+def agregar_ejercicio_rapido(request, alumno_id): # <-- CORREGIDO NOMBRE PARA MATCH CON URLS
     if request.method == 'POST':
         alumno = get_object_or_404(Alumno, id=alumno_id)
         Ejercicio.objects.create(
