@@ -64,24 +64,15 @@ def dashboard_alumno(request):
         porcentaje = (completados / total * 100) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': int(porcentaje)})
 
-    # Stats para gráficos
-    stats_base = Asistencia.objects.filter(alumno=alumno).annotate(
-        mes=ExtractMonth('fecha')
-    ).values('mes').order_by('mes')
-
-    nombres_meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-    labels_grafico = [nombres_meses[item['mes']-1] for item in stats_base]
-    datos_asistencia = [Asistencia.objects.filter(alumno=alumno, fecha__month=item['mes']).count() for item in stats_base]
-    
     asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
-    mensaje_motivador = f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥"
-
+    
     return render(request, 'dashboard.html', {
-        'alumno': alumno, 'progreso_dias': progreso_dias, 'asistencias': asistencias_recientes,
-        'mensaje_motivador': mensaje_motivador, 'labels_grafico': labels_grafico,
-        'datos_asistencia': datos_asistencia,
+        'alumno': alumno, 
+        'progreso_dias': progreso_dias, 
+        'asistencias': asistencias_recientes,
+        'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
     })
 
 @login_required
@@ -113,13 +104,11 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
             ejercicio.ultima_vez_hecho = timezone.now()
             ejercicio.save()
             
-            # Recalcular progreso del día
             ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana)
             total = ejercicios_dia.count()
             hechos = ejercicios_dia.filter(completado=True).count()
             nuevo_progreso = (hechos / total * 100) if total > 0 else 0
             
-            # Actualizar o crear asistencia del día
             asistencia, _ = Asistencia.objects.get_or_create(alumno=ejercicio.alumno, fecha=timezone.now().date())
             asistencia.porcentaje_completado = nuevo_progreso
             asistencia.save()
@@ -128,7 +117,25 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
         except Ejercicio.DoesNotExist:
             return JsonResponse({'status': 'error'}, status=404)
 
-# --- VISTAS DE GESTIÓN (ADMIN) ---
+# --- VISTAS DE ADMINISTRACIÓN Y RECEPCIÓN ---
+
+def control_acceso(request):
+    mensaje, clase_alerta, alumno_info = "", "", None
+    if request.method == "POST":
+        codigo_ingresado = request.POST.get("codigo", "").upper().strip()
+        try:
+            alumno = Alumno.objects.get(codigo=codigo_ingresado)
+            if not alumno.activo:
+                mensaje = f"ACCESO DENEGADO: {alumno.user.first_name.upper()} ESTÁ DE BAJA"
+                clase_alerta = "danger"
+            else:
+                Asistencia.objects.get_or_create(alumno=alumno, fecha=timezone.now().date())
+                mensaje = f"BIENVENIDO/A {alumno.user.first_name.upper()}!"
+                clase_alerta = "success"
+                alumno_info = alumno
+        except Alumno.DoesNotExist:
+            mensaje, clase_alerta = "CÓDIGO NO ENCONTRADO", "warning"
+    return render(request, "recepcion.html", {"mensaje": mensaje, "clase_alerta": clase_alerta, "alumno_info": alumno_info})
 
 @login_required
 def gestion_gym(request):
@@ -177,3 +184,11 @@ def eliminar_ejercicio(request, ejercicio_id):
     if request.user.is_staff:
         ejercicio.delete()
     return redirect('detalle_alumno', alumno_id=alu_id)
+
+@login_required
+def cambiar_estado_alumno(request, alumno_id):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    alumno.activo = not alumno.activo
+    alumno.save()
+    return redirect('gestion_gym')
