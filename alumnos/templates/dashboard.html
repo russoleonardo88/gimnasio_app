@@ -144,10 +144,10 @@
         .fecha-asistencia { font-weight: 700; color: #eee; text-transform: uppercase; }
         .porcentaje-asistencia { color: var(--verde-neon); font-weight: 800; }
 
-        /* --- GRILLA DE ESTADÍSTICAS CORREGIDA --- */
+        /* --- GRILLA DE ESTADÍSTICAS --- */
         .stats-grid {
             display: flex;
-            flex-direction: column; /* Apilados en móvil */
+            flex-direction: column;
             gap: 15px;
             margin-bottom: 25px;
             width: 100%;
@@ -159,7 +159,7 @@
             border-radius: 16px;
             padding: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            width: 100%; /* Ocupa todo el ancho en móvil */
+            width: 100%;
             box-sizing: border-box;
         }
 
@@ -172,37 +172,57 @@
             text-align: center;
         }
         
-        /* Contenedor para que el canvas sea responsivo */
         .chart-container {
             position: relative;
-            height: 200px; /* Altura controlada para móvil */
+            height: 200px;
             width: 100%;
         }
 
-        /* Ajustes para PC */
-        @media (min-width: 768px) {
-            body { padding: 30px; }
-            .stats-grid {
-                flex-direction: row; /* Uno al lado del otro en PC */
-            }
-            .chart-box {
-                width: 50%; /* Mitad cada uno */
-            }
-            .chart-container {
-                height: 250px;
-            }
+        /* --- ACCIONES FINAL --- */
+        .acciones-footer {
+            margin-top: 30px;
+            padding: 0 5px;
+        }
+
+        .btn-perfil {
+            display: block;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--verde-neon);
+            text-decoration: none;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(152, 207, 44, 0.2);
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .btn-perfil:active {
+            background: rgba(152, 207, 44, 0.1);
+            transform: scale(0.98);
         }
 
         .btn-logout {
             display: block;
             text-align: center;
-            color: #666;
+            color: #555;
             text-decoration: none;
-            font-size: 11px;
-            margin-top: 40px;
+            font-size: 10px;
             text-transform: uppercase;
             font-weight: 700;
             padding: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        @media (min-width: 768px) {
+            body { padding: 30px; }
+            .stats-grid { flex-direction: row; }
+            .chart-box { width: 50%; }
+            .chart-container { height: 250px; }
         }
     </style>
 </head>
@@ -276,7 +296,12 @@
         </div>
     </div>
 
-    <a href="{% url 'logout' %}" class="btn-logout">Cerrar Sesión de {{ alumno.user.first_name }}</a>
+    <div class="acciones-footer">
+        <a href="{% url 'cambiar_password' %}" class="btn-perfil">
+            ⚙️ MI PERFIL (CAMBIAR CLAVE)
+        </a>
+        <a href="{% url 'logout' %}" class="btn-logout">Cerrar Sesión de {{ alumno.user.first_name }}</a>
+    </div>
 
     <script>
         Chart.defaults.color = '#888';
@@ -294,7 +319,6 @@
             }
         };
 
-        // Gráfico Asistencias
         new Chart(document.getElementById('graficoAsistencias'), {
             type: 'bar',
             data: {
@@ -308,7 +332,6 @@
             options: ctxOptions
         });
 
-        // Gráfico Rendimiento
         const ctxRend = document.getElementById('graficoRendimiento').getContext('2d');
         let gradient = ctxRend.createLinearGradient(0, 0, 0, 200);
         gradient.addColorStop(0, 'rgba(152, 207, 44, 0.3)');
