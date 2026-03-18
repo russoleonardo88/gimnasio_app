@@ -26,7 +26,7 @@
             color: var(--blanco);
             margin: 0;
             padding: 0;
-            -webkit-tap-highlight-color: transparent; /* Quita el recuadro azul al tocar en celus */
+            -webkit-tap-highlight-color: transparent;
         }
 
         .header {
@@ -60,12 +60,31 @@
             padding: 20px;
         }
 
+        /* --- NUEVOS ESTILOS CATEGORÍAS --- */
+        .tipo-titulo {
+            font-size: 11px;
+            color: var(--verde-aquiles);
+            background: rgba(152, 207, 44, 0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 25px 0 15px 5px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 800;
+            border: 1px solid rgba(152, 207, 44, 0.2);
+        }
+
+        .tipo-titulo:first-child {
+            margin-top: 5px;
+        }
+
         .ejercicio-card {
             background: var(--negro-card);
             border: 1px solid #222;
             border-radius: 16px;
             padding: 20px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -108,7 +127,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0; /* Evita que el círculo se aplaste */
+            flex-shrink: 0;
         }
 
         .circulo.completado {
@@ -139,56 +158,94 @@
     </div>
 
     <div class="container">
-        {% for ejercicio in ejercicios %}
+        
+        {% if ejercicios %}
+            <div class="seccion-tipo">
+                <span class="tipo-titulo">🏃‍♂️ Aeróbico</span>
+                {% for ejercicio in ejercicios %}
+                    {% if ejercicio.tipo == 'AEROBICO' %}
+                        {% include "includes/card_ejercicio.html" with ej=ejercicio %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="seccion-tipo">
+                <span class="tipo-titulo">🧘 Zona Media</span>
+                {% for ejercicio in ejercicios %}
+                    {% if ejercicio.tipo == 'ZONA_MEDIA' %}
+                        {% include "includes/card_ejercicio.html" with ej=ejercicio %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="seccion-tipo">
+                <span class="tipo-titulo">💪 Fuerza</span>
+                {% for ejercicio in ejercicios %}
+                    {% if ejercicio.tipo == 'FUERZA' %}
+                        {% include "includes/card_ejercicio.html" with ej=ejercicio %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; margin-top: 50px;">
+                <p style="color: var(--gris-texto); font-weight: 600;">No hay ejercicios cargados para el {{ dia }}.</p>
+            </div>
+        {% endif %}
+
+    </div>
+
+    {% if False %} 
+        {# Este bloque no se renderiza, es solo para explicar la lógica de abajo #}
+    {% endif %}
+
+    {% for ejercicio in ejercicios %}
+        {# Muevo el HTML original aquí dentro para que funcione con los IF de arriba #}
+    {% endfor %}
+
+    {% macro card_ejercicio ej %}
         <div class="ejercicio-card">
             <div class="ejercicio-info">
-                <h3>{{ ejercicio.nombre }}</h3>
-                <p>{{ ejercicio.series }} series x {{ ejercicio.repeticiones }}</p>
-                {% if ejercicio.peso_sugerido %}
-                    <span class="peso-tag">Cargar: {{ ejercicio.peso_sugerido }}kg</span>
+                <h3>{{ ej.nombre }}</h3>
+                <p>{{ ej.series }} series x {{ ej.repeticiones }}</p>
+                {% if ej.peso_sugerido %}
+                    <span class="peso-tag">Cargar: {{ ej.peso_sugerido }}kg</span>
                 {% endif %}
             </div>
             <div 
-                id="check-{{ ejercicio.id }}"
-                class="circulo {% if ejercicio.completado %}completado{% endif %}" 
-                onclick="marcarHecho(this, {{ ejercicio.id }})">
+                id="check-{{ ej.id }}"
+                class="circulo {% if ej.completado %}completado{% endif %}" 
+                onclick="marcarHecho(this, {{ ej.id }})">
             </div>
         </div>
-        {% empty %}
-        <div style="text-align: center; margin-top: 50px;">
-            <p style="color: var(--gris-texto); font-weight: 600;">No hay ejercicios cargados para el {{ dia }}.</p>
-        </div>
-        {% endfor %}
-    </div>
+    {% endmacro %}
 
     <script>
-    function marcarHecho(elemento, ejercicioId) {
-        // Deshabilitamos el clic momentáneamente para evitar doble envío
-        elemento.style.pointerEvents = 'none';
-
-        fetch(`/marcar-hecho/${ejercicioId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'ok') {
-                if (data.completado) {
-                    elemento.classList.add('completado');
-                } else {
-                    elemento.classList.remove('completado');
+        // Esta parte es la misma que ya tenías
+        function marcarHecho(elemento, ejercicioId) {
+            elemento.style.pointerEvents = 'none';
+            fetch(`/marcar-hecho/${ejercicioId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
                 }
-            }
-            elemento.style.pointerEvents = 'auto';
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            elemento.style.pointerEvents = 'auto';
-        });
-    }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    if (data.completado) {
+                        elemento.classList.add('completado');
+                    } else {
+                        elemento.classList.remove('completado');
+                    }
+                }
+                elemento.style.pointerEvents = 'auto';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                elemento.style.pointerEvents = 'auto';
+            });
+        }
     </script>
 </body>
 </html>

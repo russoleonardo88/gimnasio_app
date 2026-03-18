@@ -26,22 +26,17 @@ class Alumno(models.Model):
     activo = models.BooleanField(default=True, help_text="Desmarcar para dar de BAJA al socio")
     plan_semanal = models.IntegerField(default=3, help_text="Cantidad de días por semana contratados (2, 3, 4, 5)")
     
-    # --- NUEVO CAMPO PARA PAGOS ---
     fecha_vencimiento = models.DateField(null=True, blank=True, help_text="Fecha en que vence la cuota")
-
     fecha_inicio_rutina = models.DateField(default=timezone.now)
     
     def dias_transcurridos(self):
-        """Calcula cuántos días lleva con la rutina actual"""
         diferencia = timezone.now().date() - self.fecha_inicio_rutina
         return diferencia.days
 
     def rutina_vencida(self):
-        """Devuelve True si pasaron más de 60 días"""
         return self.dias_transcurridos() >= 60
 
     def dias_restantes_plan(self):
-        """Calcula cuántos días le quedan de cuota"""
         if self.fecha_vencimiento:
             delta = self.fecha_vencimiento - timezone.now().date()
             return delta.days
@@ -50,7 +45,7 @@ class Alumno(models.Model):
     def __str__(self):
         return f"{self.codigo} - {self.user.first_name} {self.user.last_name}"
 
-# 3. Modelo para los Ejercicios
+# 3. Modelo para los Ejercicios (MODIFICADO)
 class Ejercicio(models.Model):
     DIAS_CHOICES = [
         ('Lunes', 'Lunes'),
@@ -61,9 +56,20 @@ class Ejercicio(models.Model):
         ('Sábado', 'Sábado'),
     ]
     
+    # --- NUEVAS CATEGORÍAS ---
+    TIPO_CHOICES = [
+        ('AEROBICO', '🏃‍♂️ Aeróbico'),
+        ('ZONA_MEDIA', '🧘 Zona Media'),
+        ('FUERZA', '💪 Fuerza'),
+    ]
+    
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE, related_name='ejercicios')
     nombre = models.CharField(max_length=100)
     dia_semana = models.CharField(max_length=15, choices=DIAS_CHOICES)
+    
+    # Campo nuevo para el tipo de ejercicio
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='FUERZA')
+    
     series = models.IntegerField()
     repeticiones = models.CharField(max_length=50) 
     peso_sugerido = models.FloatField(null=True, blank=True)
@@ -71,8 +77,12 @@ class Ejercicio(models.Model):
     ultima_vez_hecho = models.DateTimeField(null=True, blank=True)
     fecha_asignacion = models.DateField(auto_now_add=True)
 
+    class Meta:
+        # Esto hace que se ordenen automáticamente por tipo
+        ordering = ['tipo', 'id']
+
     def __str__(self):
-        return f"{self.nombre} - {self.alumno.codigo} ({self.dia_semana})"
+        return f"{self.nombre} ({self.get_tipo_display()}) - {self.alumno.codigo}"
 
 # 4. Registro de Asistencia
 class Asistencia(models.Model):

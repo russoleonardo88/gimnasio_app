@@ -67,7 +67,7 @@
             font-size: 11px;
             font-weight: 800;
             margin-top: 10px;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: 20px;
             display: inline-block;
             text-transform: uppercase;
@@ -92,6 +92,9 @@
             margin-left: 5px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         /* --- RUTINA --- */
@@ -250,7 +253,10 @@
         <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-aquiles">
     </div>
 
-    <h3 class="seccion-titulo">Mi Rutina Semanal</h3>
+    <h3 class="seccion-titulo">
+        Mi Rutina Semanal
+        <span style="font-size: 11px; opacity: 0.6; letter-spacing: 2px;">🏃‍♂️ 🧘 💪</span>
+    </h3>
     <div class="card">
         {% for dia in progreso_dias %}
         <a href="{% url 'mi_rutina' %}?dia={{ dia.nombre }}" class="progreso-item">
@@ -305,58 +311,4 @@
 
     <script>
         Chart.defaults.color = '#888';
-        Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.font.size = 10;
-
-        const labels = {{ labels_grafico|safe }};
-        const ctxOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { grid: { display: false }, ticks: { color: '#666', font: { weight: 'bold' } } },
-                y: { grid: { color: '#222', drawBorder: false }, ticks: { color: '#666', beginAtZero: true } }
-            }
-        };
-
-        new Chart(document.getElementById('graficoAsistencias'), {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: {{ datos_asistencia|safe }},
-                    backgroundColor: '#98cf2c',
-                    borderRadius: 4
-                }]
-            },
-            options: ctxOptions
-        });
-
-        const ctxRend = document.getElementById('graficoRendimiento').getContext('2d');
-        let gradient = ctxRend.createLinearGradient(0, 0, 0, 200);
-        gradient.addColorStop(0, 'rgba(152, 207, 44, 0.3)');
-        gradient.addColorStop(1, 'rgba(152, 207, 44, 0.0)');
-
-        let rendOpts = JSON.parse(JSON.stringify(ctxOptions));
-        rendOpts.scales.y.min = 0;
-        rendOpts.scales.y.max = 100;
-
-        new Chart(ctxRend, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: {{ datos_rendimiento|safe }},
-                    borderColor: '#98cf2c',
-                    backgroundColor: gradient,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#fff'
-                }]
-            },
-            options: rendOpts
-        });
-    </script>
-</body>
-</html>
+        Chart.defaults
