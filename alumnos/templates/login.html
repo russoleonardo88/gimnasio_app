@@ -7,7 +7,7 @@
     <title>Aquiles App - Login</title>
     
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <link rel="apple-touch-icon" href="{% static 'img/logo_aquiles.jpg' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/logo_aquiles.png' %}">
     <meta name="theme-color" content="#98cf2c">
 
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
@@ -39,10 +39,11 @@
         }
 
         .logo-login {
-            width: 120px;
+            width: 100px; /* Ajustado para que no ocupe tanto espacio en móvil */
             height: auto;
             margin-bottom: 10px;
-            filter: drop-shadow(0 0 10px rgba(152, 207, 44, 0.3));
+            /* Filtro para que resalte el logo neón */
+            filter: drop-shadow(0 0 15px rgba(152, 207, 44, 0.4));
         }
 
         h1 {
@@ -52,6 +53,7 @@
             letter-spacing: 3px;
             margin-bottom: 30px;
             color: var(--blanco);
+            font-weight: 700;
         }
 
         .form-group {
@@ -61,66 +63,74 @@
         input {
             width: 100%;
             padding: 15px;
-            background-color: var(--negro-card);
+            background-color: #111; /* Un gris muy oscuro para los campos */
             border: 1px solid #222;
-            border-radius: 8px;
+            border-radius: 12px; /* Bordes más redondeados estilo app moderna */
             color: white;
             box-sizing: border-box;
             font-size: 1rem;
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
         }
 
         input:focus {
             border-color: var(--verde-aquiles);
+            background-color: #161616;
+            box-shadow: 0 0 10px rgba(152, 207, 44, 0.1);
         }
 
         button {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             background-color: var(--verde-aquiles);
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             color: black;
             font-family: 'Oswald', sans-serif;
             font-size: 1.1rem;
-            font-weight: bold;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
             cursor: pointer;
             margin-top: 10px;
-            transition: transform 0.2s, background-color 0.3s;
+            transition: all 0.2s ease;
         }
 
         button:active {
-            transform: scale(0.95);
+            transform: scale(0.96);
+            filter: brightness(0.9);
         }
 
         .error-msg {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
             color: #ff4444;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
 
     <div class="login-container">
-        <img src="{% static 'img/logo_aquiles.jpg' %}" alt="Aquiles Logo" class="logo-login">
+        <img src="{% static 'img/logo_aquiles.png' %}" alt="Aquiles Logo" class="logo-login">
         
         <h1>Aquiles App</h1>
 
         {% if form.errors %}
-            <p class="error-msg">Usuario o contraseña incorrectos</p>
+            <div class="error-msg">USUARIO O CONTRASEÑA INCORRECTOS</div>
         {% endif %}
 
         <form method="POST">
             {% csrf_token %}
             <div class="form-group">
-                <input type="text" name="username" placeholder="USUARIO" required>
+                <input type="text" name="username" placeholder="USUARIO" required autocomplete="username">
             </div>
             <div class="form-group">
-                <input type="password" name="password" placeholder="CONTRASEÑA" required>
+                <input type="password" name="password" placeholder="CONTRASEÑA" required autocomplete="current-password">
             </div>
             <button type="submit">Entrar</button>
         </form>
