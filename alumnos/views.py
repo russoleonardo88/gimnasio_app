@@ -1,3 +1,19 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Alumno, Ejercicio, Asistencia, Entrenador
+from django.contrib.auth.models import User
+from django.utils import timezone
+from django.db.models import Count, Avg
+from django.db.models.functions import ExtractMonth
+from django.contrib import messages
+from datetime import timedelta
+
+# --- AHORA SÍ VIENEN LAS FUNCIONES QUE YA TENÉS ---
+
 # --- BUSCÁ ESTAS FUNCIONES Y REEMPLAZALAS ---
 
 @login_required
