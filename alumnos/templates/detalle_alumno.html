@@ -21,13 +21,13 @@
                 {% csrf_token %}
                 
                 <label style="font-size: 11px; color: #888; text-transform: uppercase;">Nombre del ejercicio:</label>
-                <input type="text" name="nombre" placeholder="Ej: Press de Banca" required style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; outline: none;">
+                <input type="text" name="nombre" id="input_nombre" placeholder="Ej: Bicicleta Fija" required style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; outline: none;">
 
                 <label style="font-size: 11px; color: #888; text-transform: uppercase;">Tipo / Categoría:</label>
-                <select name="tipo" required style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; cursor: pointer;">
+                <select name="tipo" id="tipo_select" required onchange="adaptarFormulario()" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; cursor: pointer;">
                     <option value="FUERZA">💪 FUERZA</option>
                     <option value="AEROBICO">🏃‍♂️ AERÓBICO</option>
-                    <option value="ZONA_MEDIA">🧘 ZONA MEDIA</option>
+                    <option value="ZONA_MEDIA">🧘 ZONA MEDIA (TABATA)</option>
                 </select>
 
                 <label style="font-size: 11px; color: #888; text-transform: uppercase;">Día asignado:</label>
@@ -38,22 +38,22 @@
                 </select>
 
                 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <div style="flex: 1;">
-                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Sets</label>
+                    <div style="flex: 1;" id="col_sets">
+                        <label id="label_series" style="font-size: 11px; color: #888; text-transform: uppercase;">Sets</label>
                         <input type="number" name="series" value="3" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
                     <div style="flex: 1;">
-                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Reps</label>
-                        <input type="text" name="reps" placeholder="12" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                        <label id="label_reps" style="font-size: 11px; color: #888; text-transform: uppercase;">Reps</label>
+                        <input type="text" name="reps" id="input_reps" placeholder="12" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
-                    <div style="flex: 1;">
+                    <div style="flex: 1;" id="campo_peso">
                         <label style="font-size: 11px; color: #888; text-transform: uppercase;">Kg</label>
                         <input type="number" name="peso" placeholder="0" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
                 </div>
 
-                <button type="submit" style="width: 100%; padding: 15px; background: #98cf2c; color: #000; font-weight: 900; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
-                    CARGAR A LA RUTINA
+                <button type="submit" style="width: 100%; padding: 15px; background: #98cf2c; color: #000; font-weight: 900; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; text-transform: uppercase;">
+                    Cargar a la rutina
                 </button>
             </form>
         </div>
@@ -62,9 +62,8 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                 {% for dia, ejercicios in rutina.items %}
                 <div style="background: #111; padding: 20px; border-radius: 12px; border: 1px solid #222;">
-                    <h4 style="color: #98cf2c; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between;">
+                    <h4 style="color: #98cf2c; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; text-transform: uppercase;">
                         {{ dia }}
-                        <span style="font-size: 10px; color: #555;">{{ ejercicios|length }} EJERC.</span>
                     </h4>
                     
                     <div style="margin-top: 15px;">
@@ -75,24 +74,21 @@
                             <div style="font-size: 14px;">
                                 <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 3px;">
                                     <strong style="color: #fff;">{{ ej.nombre|upper }}</strong>
-                                    <span style="font-size: 8px; padding: 2px 4px; border-radius: 3px; background: #222; color: #888; border: 1px solid #333;">
-                                        {{ ej.tipo }}
-                                    </span>
+                                    <span style="font-size: 8px; padding: 2px 4px; border-radius: 3px; background: #222; color: #888; border: 1px solid #333;">{{ ej.tipo }}</span>
                                 </div>
-                                <span style="color: #98cf2c; font-weight: bold;">{{ ej.series }}x{{ ej.repeticiones }}</span> 
-                                {% if ej.peso_sugerido %}
-                                    <small style="color: #666; margin-left: 5px;">{{ ej.peso_sugerido }}kg</small>
+
+                                {% if ej.tipo == 'ZONA_MEDIA' %}
+                                    <span style="color: #ffbb33; font-weight: bold;">⏱️ {{ ej.series }} RONDAS | {{ ej.repeticiones }}</span>
+                                {% elif ej.tipo == 'AEROBICO' %}
+                                    <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MINUTOS</span>
+                                {% else %}
+                                    <span style="color: #98cf2c; font-weight: bold;">{{ ej.series }}x{{ ej.repeticiones }}</span> 
+                                    {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">{{ ej.peso_sugerido }}kg</small>{% endif %}
                                 {% endif %}
                             </div>
                             
-                            <a href="{% url 'eliminar_ejercicio' ej.id %}" 
-                               onclick="return confirm('¿Eliminar {{ ej.nombre }}?')"
-                               style="color: #ff4d4d; text-decoration: none; font-size: 12px; background: #222; padding: 6px 10px; border-radius: 6px; border: 1px solid #333; transition: 0.2s;">
-                                🗑️
-                            </a>
+                            <a href="{% url 'eliminar_ejercicio' ej.id %}" onclick="return confirm('¿Eliminar?')" style="color: #ff4d4d; text-decoration: none; font-size: 12px; background: #222; padding: 6px 10px; border-radius: 6px; border: 1px solid #333;">🗑️</a>
                         </div>
-                        {% empty %}
-                            <p style="color: #444; font-size: 12px; font-style: italic; text-align: center;">Sin ejercicios cargados.</p>
                         {% endfor %}
                     </div>
                 </div>
@@ -100,4 +96,36 @@
             </div>
         </div>
     </div>
+
+    <script>
+    function adaptarFormulario() {
+        const tipo = document.getElementById('tipo_select').value;
+        const colSets = document.getElementById('col_sets');
+        const campoPeso = document.getElementById('campo_peso');
+        const labelSeries = document.getElementById('label_series');
+        const labelReps = document.getElementById('label_reps');
+        const inputReps = document.getElementById('input_reps');
+
+        if (tipo === 'AEROBICO') {
+            colSets.style.display = 'none';      // Ocultamos Sets
+            campoPeso.style.display = 'none';    // Ocultamos Kg
+            labelReps.innerText = 'TIEMPO';      // Cambiamos label a Tiempo
+            inputReps.placeholder = "20 min";    
+        } 
+        else if (tipo === 'ZONA_MEDIA') {
+            colSets.style.display = 'block';
+            campoPeso.style.display = 'none';
+            labelSeries.innerText = 'RONDAS';
+            labelReps.innerText = 'TIEMPO';
+            inputReps.placeholder = "20''/10''";
+        } 
+        else { // FUERZA
+            colSets.style.display = 'block';
+            campoPeso.style.display = 'block';
+            labelSeries.innerText = 'SETS';
+            labelReps.innerText = 'REPS';
+            inputReps.placeholder = "12";
+        }
+    }
+    </script>
 </body>
