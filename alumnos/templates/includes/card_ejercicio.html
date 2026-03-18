@@ -1,0 +1,21 @@
+<div class="ejercicio-card">
+    <div class="ejercicio-info">
+        <h3>{{ ej.nombre }}</h3>
+        <p>
+            {% if ej.tipo == 'ZONA_MEDIA' %}
+                ⏱️ {{ ej.series }} RONDAS | {{ ej.repeticiones }}
+            {% elif ej.tipo == 'AEROBICO' %}
+                🏃‍♂️ {{ ej.repeticiones }}
+            {% else %}
+                {{ ej.series }} series x {{ ej.repeticiones }}
+            {% endif %}
+        </p>
+        {% if ej.peso_sugerido %}
+            <span class="peso-tag">Cargar: {{ ej.peso_sugerido }}kg</span>
+        {% endif %}
+    </div>
+    <div id="check-{{ ej.id }}" 
+         class="circulo {% if ej.completado %}completado{% endif %}" 
+         onclick="toggleEjercicio({{ ej.id }})">
+    </div>
+</div>

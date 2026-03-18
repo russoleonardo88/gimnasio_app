@@ -198,28 +198,13 @@
         {# Este bloque no se renderiza, es solo para explicar la lógica de abajo #}
     {% endif %}
 
-    {% for ejercicio in ejercicios %}
-        {# Muevo el HTML original aquí dentro para que funcione con los IF de arriba #}
-    {% endfor %}
+   {% for ej in ejercicios %}
+    {% include "includes/card_ejercicio.html" with ej=ej %}
+{% empty %}
+    <p>No hay ejercicios para el día {{ dia }}.</p>
+{% endfor %}
 
-    {% macro card_ejercicio ej %}
-        <div class="ejercicio-card">
-            <div class="ejercicio-info">
-                <h3>{{ ej.nombre }}</h3>
-                <p>{{ ej.series }} series x {{ ej.repeticiones }}</p>
-                {% if ej.peso_sugerido %}
-                    <span class="peso-tag">Cargar: {{ ej.peso_sugerido }}kg</span>
-                {% endif %}
-            </div>
-            <div 
-                id="check-{{ ej.id }}"
-                class="circulo {% if ej.completado %}completado{% endif %}" 
-                onclick="marcarHecho(this, {{ ej.id }})">
-            </div>
-        </div>
-    {% endmacro %}
-
-    <script>
+       <script>
         // Esta parte es la misma que ya tenías
         function marcarHecho(elemento, ejercicioId) {
             elemento.style.pointerEvents = 'none';
