@@ -58,12 +58,24 @@ def dashboard_alumno(request):
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
     progreso_dias = []
     
+    # Obtenemos todos los ejercicios una sola vez para mejorar rendimiento
+    todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
+
     for dia in dias_semana:
-        ejercicios_dia = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).distinct()
+        # CORRECCIÓN: .all().distinct() para evitar duplicados visuales
+        ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).all().distinct()
         total = ejercicios_dia.count()
         completados = ejercicios_dia.filter(completado=True).count()
         porcentaje = (completados / total * 100) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': int(porcentaje)})
+
+    # Obtener ejercicios de HOY específicamente para el listado inferior
+    traduccion_dias = {
+        'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
+        'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday': 'Lunes'
+    }
+    dia_hoy_esp = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
+    ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).all().distinct()
 
     asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
@@ -73,6 +85,7 @@ def dashboard_alumno(request):
         'alumno': alumno, 
         'progreso_dias': progreso_dias, 
         'asistencias': asistencias_recientes,
+        'ejercicios_hoy': ejercicios_hoy, # Enviamos la lista limpia
         'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
     })
 
@@ -86,7 +99,8 @@ def mi_rutina(request):
     dia_seleccionado = request.GET.get('dia', dia_default)
     alumno = get_object_or_404(Alumno, user=request.user)
     
-    ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado).distinct()
+    # CORRECCIÓN: .all().distinct() asegura que traiga los IDs reales
+    ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado).all().distinct()
     
     hoy = timezone.now().date()
     for ej in ejercicios:
@@ -101,12 +115,14 @@ def mi_rutina(request):
 def marcar_ejercicio_hecho(request, ejercicio_id):
     if request.method == 'POST':
         try:
+            # Buscamos el ejercicio específico por ID
             ejercicio = Ejercicio.objects.get(id=ejercicio_id, alumno__user=request.user)
             ejercicio.completado = not ejercicio.completado
             ejercicio.ultima_vez_hecho = timezone.now()
             ejercicio.save()
             
-            ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana).distinct()
+            # Recalculamos el progreso del día sin duplicados
+            ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana).all().distinct()
             total = ejercicios_dia.count()
             hechos = ejercicios_dia.filter(completado=True).count()
             nuevo_progreso = (hechos / total * 100) if total > 0 else 0
@@ -161,7 +177,8 @@ def gestion_gym(request):
 def detalle_alumno(request, alumno_id):
     alumno = get_object_or_404(Alumno, id=alumno_id)
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).distinct() for dia in dias}
+    # CORRECCIÓN: .all().distinct() aquí también por seguridad
+    rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).all().distinct() for dia in dias}
     return render(request, 'detalle_alumno.html', {'alumno': alumno, 'rutina': rutina, 'dias': dias})
 
 @login_required
@@ -173,7 +190,6 @@ def editar_alumno(request, alumno_id):
         alumno.user.last_name = request.POST.get('apellido')
         alumno.user.save()
         alumno.plan_semanal = request.POST.get('plan')
-        # También permitimos editar los nuevos campos
         alumno.dni = request.POST.get('dni')
         alumno.domicilio = request.POST.get('domicilio')
         alumno.celular = request.POST.get('celular')
@@ -222,15 +238,12 @@ def alta_socio_rapida(request):
         apellido = request.POST.get('apellido').strip()
         codigo = request.POST.get('codigo').upper().strip()
         plan = request.POST.get('plan')
-        
-        # --- CAPTURA DE NUEVOS CAMPOS ---
         dni = request.POST.get('dni')
         domicilio = request.POST.get('domicilio')
         celular = request.POST.get('celular')
         emergencia = request.POST.get('emergencia')
         
         genero = 'H' if codigo.startswith('H') else 'M'
-        
         user = User.objects.create_user(username=codigo, first_name=nombre, last_name=apellido, password=codigo)
         
         Alumno.objects.create(
