@@ -6,9 +6,9 @@
     <title>Editar Socio - Aquiles Gym</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 </head>
-<body style="background-color: #0a0a0a; color: #fff; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px;">
+<body style="background-color: #0a0a0a; color: #fff; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 40px 20px;">
 
-    <div style="background-color: #141414; padding: 40px; border-radius: 20px; border: 1px solid #222; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+    <div style="background-color: #141414; padding: 40px; border-radius: 20px; border: 1px solid #222; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
         
         <div style="text-align: center; margin-bottom: 30px;">
             <h2 style="color: #98cf2c; margin: 0; text-transform: uppercase; font-weight: 900; letter-spacing: -0.5px; font-size: 24px;">Editar Perfil</h2>
@@ -34,12 +34,40 @@
                        onfocus="this.style.borderColor='#98cf2c'">
             </div>
 
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: #98cf2c; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">DNI</label>
+                <input type="text" name="dni" value="{{ alumno.dni|default:'' }}"
+                       style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; font-size: 15px; outline: none; transition: border-color 0.3s;"
+                       onfocus="this.style.borderColor='#98cf2c'">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: #98cf2c; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Domicilio</label>
+                <input type="text" name="domicilio" value="{{ alumno.domicilio|default:'' }}"
+                       style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; font-size: 15px; outline: none; transition: border-color 0.3s;"
+                       onfocus="this.style.borderColor='#98cf2c'">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: #98cf2c; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Celular</label>
+                <input type="text" name="celular" value="{{ alumno.celular|default:'' }}"
+                       style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; font-size: 15px; outline: none; transition: border-color 0.3s;"
+                       onfocus="this.style.borderColor='#98cf2c'">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: #98cf2c; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Contacto Emergencia</label>
+                <input type="text" name="emergencia" value="{{ alumno.contacto_emergencia|default:'' }}"
+                       style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; font-size: 15px; outline: none; transition: border-color 0.3s;"
+                       onfocus="this.style.borderColor='#98cf2c'">
+            </div>
+
             <div style="margin-bottom: 30px;">
                 <label style="display: block; margin-bottom: 8px; color: #98cf2c; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Plan Semanal</label>
                 <select name="plan" style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; font-size: 15px; cursor: pointer; appearance: none; outline: none;">
-                    {% for i in "123456" %}
+                    {% for i in "23456" %}
                         <option value="{{ i }}" {% if alumno.plan_semanal|slugify == i %}selected{% endif %}>
-                            {{ i }} día{% if i != "1" %}s{% endif %} por semana
+                            {{ i }} días por semana
                         </option>
                     {% endfor %}
                 </select>
