@@ -1,4 +1,5 @@
 import os
+import dj_database_url # <--- IMPORTANTE: Asegurate de tenerlo en requirements.txt
 from pathlib import Path
 
 # --- RUTAS BÁSICAS ---
@@ -7,8 +8,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- SEGURIDAD ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3*r893bw)ik7h=!fd$x7ky$hiigyx@dy+*772wv^&e2t#hn#f&')
 
-# DEBUG: En True para desarrollo. En producción real debería ser False.
-DEBUG = True
+# DEBUG: En True para desarrollo. False en producción.
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -26,7 +27,7 @@ INSTALLED_APPS = [
 # --- MIDDLEWARE ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # WhiteNoise siempre después de Security
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -55,12 +56,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 
-# --- BASE DE DATOS ---
+# --- BASE DE DATOS (LA SOLUCIÓN AL RESETEO) ---
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        # Si no hay DATABASE_URL configurada en Render, usa SQLite localmente
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600
+    )
 }
 
 # --- VALIDACIÓN DE CONTRASEÑAS ---
@@ -77,17 +79,10 @@ TIME_ZONE = 'America/Argentina/Buenos_Aires'
 USE_I18N = True
 USE_TZ = True
 
-# --- ARCHIVOS ESTÁTICOS (EL CORAZÓN DEL PROBLEMA) ---
+# --- ARCHIVOS ESTÁTICOS ---
 STATIC_URL = '/static/'
-
-# Dejamos STATICFILES_DIRS vacío para evitar el "conflicto" de duplicados.
-# Django encontrará automáticamente /alumnos/static/ porque 'alumnos' está en INSTALLED_APPS.
 STATICFILES_DIRS = []
-
-# Carpeta donde se reúnen los archivos para producción
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Almacenamiento simplificado para evitar errores de caché con logos viejos
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # --- CONFIGURACIÓN DE LOGIN ---
