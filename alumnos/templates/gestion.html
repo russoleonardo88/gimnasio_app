@@ -23,8 +23,8 @@
                     <th style="border-bottom: 2px solid #333;">Nombre / Historial</th>
                     <th style="border-bottom: 2px solid #333;">Plan</th>
                     <th style="border-bottom: 2px solid #333;">Asistencias</th>
-                    <th style="border-bottom: 2px solid #333;">% Cumplimiento</th>
-                    <th style="border-bottom: 2px solid #333;">Estado Rutina</th>
+                    <th style="border-bottom: 2px solid #333;">% Mes</th>
+                    <th style="border-bottom: 2px solid #333;">Rutina Hoy</th>
                     <th style="border-bottom: 2px solid #333;">Acciones</th>
                 </tr>
                 {% for item in stats_alumnos %}
@@ -48,18 +48,16 @@
 
                     <td>{{ item.alumno.plan_semanal }} días</td>
                     <td>{{ item.asistencias }}</td>
+                    
                     <td style="color: {% if item.porcentaje_asistencia < 50 %} #ff4d4d {% else %} #98cf2c {% endif %}; font-weight: bold;">
-                        {{ item.porcentaje_asistencia }}%
+                        {{ item.porcentaje_asistencia|floatformat:0 }}%
                     </td>
                     
-                    <td style="padding: 10px;">
-                        {% if item.alerta_cambio %}
-                            <a href="{% url 'resetear_rutina' item.alumno.id %}" onclick="return confirm('¿Seguro?')" style="background: #ff8800; color: #000; padding: 6px 10px; border-radius: 5px; font-weight: bold; font-size: 11px; text-decoration: none;">
-                                ⚠️ RENOVAR
-                            </a>
-                        {% else %}
-                            <span style="color: #666; font-size: 11px;">Al día</span>
-                        {% endif %}
+                    <td style="padding: 10px; width: 120px;">
+                        <div style="background: #222; width: 100%; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 4px;">
+                            <div style="background: #98cf2c; width: {{ item.progreso_rutina }}%; height: 100%;"></div>
+                        </div>
+                        <span style="font-size: 10px; color: #888;">{{ item.progreso_rutina|floatformat:0 }}% completado</span>
                     </td>
 
                     <td style="padding: 10px;">
@@ -86,10 +84,10 @@
             <ul style="list-style: none; padding: 0;">
                 {% for baja in alumnos_baja %}
                     <li style="padding: 10px 0; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: #ccc; font-size: 14px;">{{ baja.user.first_name|default:baja.codigo }}</span>
+                        <span style="color: #ccc; font-size: 14px;">{{ baja.user.get_full_name|default:baja.codigo }}</span>
                         <a href="{% url 'cambiar_estado_alumno' baja.id %}" 
                            style="text-decoration: none; color: #98cf2c; font-size: 12px; border: 1px solid #98cf2c; padding: 2px 6px; border-radius: 4px;">
-                           Reactivar
+                            Reactivar
                         </a>
                     </li>
                 {% empty %}

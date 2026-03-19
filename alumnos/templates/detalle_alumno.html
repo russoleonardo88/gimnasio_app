@@ -41,13 +41,13 @@
                 {% csrf_token %}
                 
                 <label style="font-size: 11px; color: #888; text-transform: uppercase;">Nombre del ejercicio:</label>
-                <input type="text" name="nombre" id="input_nombre" placeholder="Ej: Bicicleta Fija" required style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; outline: none;">
+                <input type="text" name="nombre" placeholder="Ej: Bicicleta Fija" required style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; outline: none;">
 
                 <label style="font-size: 11px; color: #888; text-transform: uppercase;">Tipo / Categoría:</label>
                 <select name="tipo" id="tipo_select" required onchange="adaptarFormulario()" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; cursor: pointer;">
                     <option value="FUERZA">💪 FUERZA</option>
                     <option value="AEROBICO">🏃‍♂️ AERÓBICO</option>
-                    <option value="ZONA_MEDIA">🧘 ZONA MEDIA (TABATA)</option>
+                    <option value="ZONA_MEDIA">🧘 ZONA MEDIA</option>
                 </select>
 
                 <label style="font-size: 11px; color: #888; text-transform: uppercase;">Día asignado:</label>
@@ -64,11 +64,15 @@
                     </div>
                     <div style="flex: 1;">
                         <label id="label_reps" style="font-size: 11px; color: #888; text-transform: uppercase;">Reps</label>
-                        <input type="text" name="reps" id="input_reps" placeholder="12" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                        <input type="text" name="reps" id="input_reps" placeholder="12" required style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
                     <div style="flex: 1;" id="campo_peso">
                         <label style="font-size: 11px; color: #888; text-transform: uppercase;">Kg</label>
                         <input type="number" name="peso" placeholder="0" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1; display: none;" id="campo_timmer">
+                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Timmer</label>
+                        <input type="text" name="timmer" placeholder="P1" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
                 </div>
 
@@ -97,10 +101,10 @@
                                     <span style="font-size: 8px; padding: 2px 4px; border-radius: 3px; background: #222; color: #888; border: 1px solid #333;">{{ ej.tipo }}</span>
                                 </div>
 
-                                {% if ej.tipo == 'ZONA_MEDIA' %}
-                                    <span style="color: #ffbb33; font-weight: bold;">⏱️ {{ ej.series }} RONDAS | {{ ej.repeticiones }}</span>
+                                {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' %}
+                                    <span style="color: #ffbb33; font-weight: bold;">⏱️ {{ ej.repeticiones }} MIN {% if ej.timmer %}| {{ ej.timmer }}{% endif %}</span>
                                 {% elif ej.tipo == 'AEROBICO' %}
-                                    <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MINUTOS</span>
+                                    <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timmer %}| {{ ej.timmer }}{% endif %}</span>
                                 {% else %}
                                     <span style="color: #98cf2c; font-weight: bold;">{{ ej.series }}x{{ ej.repeticiones }}</span> 
                                     {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">{{ ej.peso_sugerido }}kg</small>{% endif %}
@@ -122,30 +126,26 @@
         const tipo = document.getElementById('tipo_select').value;
         const colSets = document.getElementById('col_sets');
         const campoPeso = document.getElementById('campo_peso');
-        const labelSeries = document.getElementById('label_series');
+        const campoTimmer = document.getElementById('campo_timmer');
         const labelReps = document.getElementById('label_reps');
         const inputReps = document.getElementById('input_reps');
 
-        if (tipo === 'AEROBICO') {
+        if (tipo === 'AEROBICO' || tipo === 'ZONA_MEDIA') {
             colSets.style.display = 'none';
             campoPeso.style.display = 'none';
-            labelReps.innerText = 'TIEMPO';
-            inputReps.placeholder = "20 min";
-        } 
-        else if (tipo === 'ZONA_MEDIA') {
-            colSets.style.display = 'block';
-            campoPeso.style.display = 'none';
-            labelSeries.innerText = 'RONDAS';
-            labelReps.innerText = 'TIEMPO';
-            inputReps.placeholder = "20''/10''";
+            campoTimmer.style.display = 'block';
+            labelReps.innerText = 'MINUTOS';
+            inputReps.placeholder = "20";
         } 
         else { // FUERZA
             colSets.style.display = 'block';
             campoPeso.style.display = 'block';
-            labelSeries.innerText = 'SETS';
+            campoTimmer.style.display = 'none';
             labelReps.innerText = 'REPS';
             inputReps.placeholder = "12";
         }
     }
+    // Ejecutar al cargar para que inicie en el estado correcto
+    document.addEventListener('DOMContentLoaded', adaptarFormulario);
     </script>
 </body>

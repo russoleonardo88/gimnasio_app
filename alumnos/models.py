@@ -26,7 +26,7 @@ class Alumno(models.Model):
     activo = models.BooleanField(default=True, help_text="Desmarcar para dar de BAJA al socio")
     plan_semanal = models.IntegerField(default=3, help_text="Cantidad de días por semana contratados (2, 3, 4, 5)")
     
-    # --- NUEVOS CAMPOS AGREGADOS ---
+    # --- CAMPOS DE CONTACTO ---
     dni = models.CharField(max_length=20, blank=True, null=True, verbose_name="DNI")
     domicilio = models.CharField(max_length=255, blank=True, null=True)
     celular = models.CharField(max_length=25, blank=True, null=True)
@@ -65,7 +65,7 @@ class Ejercicio(models.Model):
     
     TIPO_CHOICES = [
         ('AEROBICO', '🏃‍♂️ Aeróbico'),
-        ('ZONA_MEDIA', '🧘 Zona Media'),
+        ('ZONA_MEDIA', '🧘 Zona Media'),  # Se quitó "(Tabata)" del nombre visible
         ('FUERZA', '💪 Fuerza'),
     ]
     
@@ -75,9 +75,14 @@ class Ejercicio(models.Model):
     
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='FUERZA')
     
-    series = models.IntegerField()
-    repeticiones = models.CharField(max_length=50) 
-    peso_sugerido = models.FloatField(null=True, blank=True)
+    series = models.IntegerField(default=1) # Usado para Sets en Fuerza y Rondas (si aplica)
+    repeticiones = models.CharField(max_length=50) # Usado para Reps en Fuerza o Tiempo en Aeróbico/Z.Media
+    peso_sugerido = models.FloatField(null=True, blank=True) # Solo para Fuerza
+    
+    # --- NUEVO CAMPO PARA TIMMER ---
+    timmer = models.CharField(max_length=10, blank=True, null=True, help_text="Ej: P1, P2, P3 o P4")
+    # ------------------------------
+
     completado = models.BooleanField(default=False)
     ultima_vez_hecho = models.DateTimeField(null=True, blank=True)
     fecha_asignacion = models.DateField(auto_now_add=True)
