@@ -1,139 +1,332 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Gestión - Aquiles Gym</title>
-</head>
-<body style="background-color: #000; color: #fff; font-family: sans-serif; padding: 40px;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Gestión - Aquiles Gym</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --negro-fondo: #0a0a0a;
+            --negro-card: #141414;
+            --verde-neon: #98cf2c;
+            --blanco: #ffffff;
+            --gris-texto: #888888;
+            --gris-borde: #222222;
+            --rojo-error: #ff4d4d;
+        }
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h1 style="color: #98cf2c; margin: 0;">PANEL DE GESTIÓN - AQUILES GYM</h1>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--negro-fondo);
+            color: var(--blanco);
+            margin: 0;
+            padding: 20px 40px;
+        }
+
+        /* --- HEADER --- */
+        .header-principal {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--gris-borde);
+        }
+
+        .titulo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .titulo-container h1 {
+            color: var(--verde-neon);
+            margin: 0;
+            text-transform: uppercase;
+            font-weight: 900;
+            font-size: 26px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-casco {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+        }
+
+        .btn-registrar {
+            background-color: var(--verde-neon);
+            color: var(--negro-fondo);
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 13px;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .btn-registrar:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* --- LAYOUT --- */
+        .container-gestion {
+            display: flex;
+            gap: 30px;
+        }
+
+        .columna-tablas { flex: 3; }
+        .columna-bajas { flex: 0.8; }
+
+        .seccion-card {
+            background: var(--negro-card);
+            border: 1px solid var(--gris-borde);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .seccion-titulo {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--gris-texto);
+            margin-top: 0;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .seccion-titulo::before {
+            content: '';
+            width: 4px;
+            height: 14px;
+            background: var(--verde-neon);
+            border-radius: 2px;
+        }
+
+        /* --- TABLAS ESTILO APP --- */
+        .tabla-aquiles {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tabla-aquiles th {
+            text-align: left;
+            color: var(--verde-neon);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 15px;
+            border-bottom: 1px solid var(--gris-borde);
+        }
+
+        .tabla-aquiles td {
+            padding: 18px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 14px;
+            color: #eee;
+        }
+
+        .tabla-aquiles tr:hover {
+            background: rgba(152, 207, 44, 0.02);
+        }
+
+        .nombre-socio {
+            color: var(--blanco);
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.2s;
+        }
+
+        .nombre-socio:hover {
+            color: var(--verde-neon);
+        }
+
+        .codigo-tag {
+            background: rgba(152, 207, 44, 0.1);
+            color: var(--verde-neon);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 12px;
+        }
+
+        /* --- BARRAS DE PROGRESO --- */
+        .progreso-container { width: 120px; }
+        .barra-fondo { background: #222; height: 6px; border-radius: 10px; overflow: hidden; }
+        .barra-relleno { background: var(--verde-neon); height: 100%; border-radius: 10px; }
+        .porcentaje-texto { font-size: 10px; color: var(--gris-texto); margin-top: 5px; display: block; font-weight: 600; }
+
+        /* --- ACCIONES --- */
+        .btn-accion {
+            text-decoration: none;
+            font-size: 18px;
+            margin: 0 5px;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        .btn-accion:hover { transform: scale(1.2); }
+
+        /* --- COLUMNA BAJAS --- */
+        .item-baja {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--gris-borde);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-reactivar {
+            color: var(--verde-neon);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: right;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-principal">
+        <div class="titulo-container">
+            <h1>PANEL DE GESTIÓN AQUILES GYM</h1>
+            <img src="{% static 'img/logo_aquiles.png' %}" alt="Casco Aquiles" class="logo-casco">
+        </div>
         
-        <a href="{% url 'alta_socio' %}" style="background-color: #98cf2c; color: #000; padding: 15px 25px; text-decoration: none; font-weight: bold; border-radius: 8px; font-size: 16px;">
+        <a href="{% url 'alta_socio' %}" class="btn-registrar">
             + REGISTRAR NUEVO SOCIO
         </a>
     </div>
-    
-    <div style="display: flex; gap: 40px;">
-        <div style="flex: 3;">
+
+    <div class="container-gestion">
+        
+        <div class="columna-tablas">
             
-            <h2 style="color: #98cf2c; border-bottom: 2px solid #333; padding-bottom: 10px;">SOCIOS HOMBRES (H)</h2>
-            <table border="0" style="width: 100%; border-collapse: collapse; text-align: center; background: #080808; margin-bottom: 40px;">
-                <tr style="background: #1a1a1a; color: #98cf2c;">
-                    <th style="padding: 15px; text-align: left; border-bottom: 2px solid #333;">Nombre / Historial</th>
-                    <th style="border-bottom: 2px solid #333;">Código</th>
-                    <th style="border-bottom: 2px solid #333;">Plan</th>
-                    <th style="border-bottom: 2px solid #333;">Asistencias</th>
-                    <th style="border-bottom: 2px solid #333;">% Mes</th>
-                    <th style="border-bottom: 2px solid #333;">Rutina Hoy</th>
-                    <th style="border-bottom: 2px solid #333;">Acciones</th>
-                </tr>
-                {% for item in stats_hombres %}
-                <tr style="border-bottom: 1px solid #222;">
-                    <td style="padding: 15px; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <a href="{% url 'detalle_alumno' item.alumno.id %}" style="color: #fff; text-decoration: none; font-weight: bold; border-bottom: 1px solid #444;">
-                                {{ item.alumno.user.last_name|upper }}, {{ item.alumno.user.first_name|upper }}
-                            </a>
-                            <a href="{% url 'historial_asistencias' item.alumno.id %}" title="Ver Historial" style="text-decoration: none; font-size: 16px; background: #222; padding: 4px 8px; border-radius: 4px; border: 1px solid #333;">
-                                📅
-                            </a>
-                        </div>
-                    </td>
+            <div class="seccion-card">
+                <h3 class="seccion-titulo">SOCIOS HOMBRES (H)</h3>
+                <table class="tabla-aquiles">
+                    <thead>
+                        <tr>
+                            <th>Nombre / Historial</th>
+                            <th>Código</th>
+                            <th>Plan</th>
+                            <th style="text-align: center;">% Mes</th>
+                            <th>Rutina Hoy</th>
+                            <th style="text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in stats_hombres %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'detalle_alumno' item.alumno.id %}" class="nombre-socio">
+                                    {{ item.alumno.user.last_name|upper }}, {{ item.alumno.user.first_name|upper }}
+                                </a>
+                                <a href="{% url 'historial_asistencias' item.alumno.id %}" style="text-decoration: none; margin-left: 8px;">📅</a>
+                            </td>
+                            <td><span class="codigo-tag">{{ item.alumno.codigo }}</span></td>
+                            <td style="font-size: 12px; font-weight: 600;">{{ item.alumno.plan_semanal }} DÍAS</td>
+                            <td style="text-align: center; font-weight: 900; color: {% if item.porcentaje_asistencia < 50 %}var(--rojo-error){% else %}var(--verde-neon){% endif %};">
+                                {{ item.porcentaje_asistencia }}%
+                            </td>
+                            <td>
+                                <div class="progreso-container">
+                                    <div class="barra-fondo">
+                                        <div class="barra-relleno" style="width: {{ item.progreso_rutina }}%;"></div>
+                                    </div>
+                                    <span class="porcentaje-texto">{{ item.progreso_rutina }}% COMPLETADO</span>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="{% url 'editar_alumno' item.alumno.id %}" class="btn-accion">✏️</a>
+                                <a href="{% url 'cambiar_estado_alumno' item.alumno.id %}" onclick="return confirm('¿Dar de baja?')" class="btn-accion">🚫</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" style="text-align: center; color: var(--gris-texto); padding: 40px;">No hay socios activos.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-                    <td style="font-weight: bold; color: #98cf2c;">{{ item.alumno.codigo }}</td>
+            <div class="seccion-card">
+                <h3 class="seccion-titulo">SOCIAS MUJERES (M)</h3>
+                <table class="tabla-aquiles">
+                    <thead>
+                        <tr>
+                            <th>Nombre / Historial</th>
+                            <th>Código</th>
+                            <th>Plan</th>
+                            <th style="text-align: center;">% Mes</th>
+                            <th>Rutina Hoy</th>
+                            <th style="text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in stats_mujeres %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'detalle_alumno' item.alumno.id %}" class="nombre-socio">
+                                    {{ item.alumno.user.last_name|upper }}, {{ item.alumno.user.first_name|upper }}
+                                </a>
+                                <a href="{% url 'historial_asistencias' item.alumno.id %}" style="text-decoration: none; margin-left: 8px;">📅</a>
+                            </td>
+                            <td><span class="codigo-tag">{{ item.alumno.codigo }}</span></td>
+                            <td style="font-size: 12px; font-weight: 600;">{{ item.alumno.plan_semanal }} DÍAS</td>
+                            <td style="text-align: center; font-weight: 900; color: {% if item.porcentaje_asistencia < 50 %}var(--rojo-error){% else %}var(--verde-neon){% endif %};">
+                                {{ item.porcentaje_asistencia }}%
+                            </td>
+                            <td>
+                                <div class="progreso-container">
+                                    <div class="barra-fondo">
+                                        <div class="barra-relleno" style="width: {{ item.progreso_rutina }}%;"></div>
+                                    </div>
+                                    <span class="porcentaje-texto">{{ item.progreso_rutina }}% COMPLETADO</span>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="{% url 'editar_alumno' item.alumno.id %}" class="btn-accion">✏️</a>
+                                <a href="{% url 'cambiar_estado_alumno' item.alumno.id %}" onclick="return confirm('¿Dar de baja?')" class="btn-accion">🚫</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" style="text-align: center; color: var(--gris-texto); padding: 40px;">No hay socias activas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-                    <td>{{ item.alumno.plan_semanal }} días</td>
-                    
-                    <td>{{ item.asistencias }}</td>
-                    
-                    <td style="color: {% if item.porcentaje_asistencia < 50 %} #ff4d4d {% else %} #98cf2c {% endif %}; font-weight: bold;">
-                        {{ item.porcentaje_asistencia }}%
-                    </td>
-                    
-                    <td style="padding: 10px; width: 120px;">
-                        <div style="background: #222; width: 100%; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 4px;">
-                            <div style="background: #98cf2c; width: {{ item.progreso_rutina }}%; height: 100%;"></div>
-                        </div>
-                        <span style="font-size: 10px; color: #888;">{{ item.progreso_rutina }}%</span>
-                    </td>
-
-                    <td style="padding: 10px;">
-                        <div style="display: flex; gap: 5px; justify-content: center;">
-                            <a href="{% url 'editar_alumno' item.alumno.id %}" title="Editar" style="text-decoration: none; background: #333; padding: 5px; border-radius: 5px; border: 1px solid #444;">✏️</a>
-                            <a href="{% url 'cambiar_estado_alumno' item.alumno.id %}" onclick="return confirm('¿Baja?')" style="text-decoration: none; background: #420000; padding: 5px; border-radius: 5px; border: 1px solid #ff4d4d;">🚫</a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="7" style="padding: 20px; color: #666;">No hay alumnos hombres activos.</td></tr>
-                {% endfor %}
-            </table>
-
-            <h2 style="color: #ff88ee; border-bottom: 2px solid #333; padding-bottom: 10px;">SOCIAS MUJERES (M)</h2>
-            <table border="0" style="width: 100%; border-collapse: collapse; text-align: center; background: #080808;">
-                <tr style="background: #1a1a1a; color: #ff88ee;">
-                    <th style="padding: 15px; text-align: left; border-bottom: 2px solid #333;">Nombre / Historial</th>
-                    <th style="border-bottom: 2px solid #333;">Código</th>
-                    <th style="border-bottom: 2px solid #333;">Plan</th>
-                    <th style="border-bottom: 2px solid #333;">Asistencias</th>
-                    <th style="border-bottom: 2px solid #333;">% Mes</th>
-                    <th style="border-bottom: 2px solid #333;">Rutina Hoy</th>
-                    <th style="border-bottom: 2px solid #333;">Acciones</th>
-                </tr>
-                {% for item in stats_mujeres %}
-                <tr style="border-bottom: 1px solid #222;">
-                    <td style="padding: 15px; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <a href="{% url 'detalle_alumno' item.alumno.id %}" style="color: #fff; text-decoration: none; font-weight: bold; border-bottom: 1px solid #444;">
-                                {{ item.alumno.user.last_name|upper }}, {{ item.alumno.user.first_name|upper }}
-                            </a>
-                            <a href="{% url 'historial_asistencias' item.alumno.id %}" title="Ver Historial" style="text-decoration: none; font-size: 16px; background: #222; padding: 4px 8px; border-radius: 4px; border: 1px solid #333;">
-                                📅
-                            </a>
-                        </div>
-                    </td>
-                    <td style="font-weight: bold; color: #ff88ee;">{{ item.alumno.codigo }}</td>
-                    <td>{{ item.alumno.plan_semanal }} días</td>
-                    <td>{{ item.asistencias }}</td>
-                    <td style="color: {% if item.porcentaje_asistencia < 50 %} #ff4d4d {% else %} #98cf2c {% endif %}; font-weight: bold;">
-                        {{ item.porcentaje_asistencia }}%
-                    </td>
-                    <td style="padding: 10px; width: 120px;">
-                        <div style="background: #222; width: 100%; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 4px;">
-                            <div style="background: #98cf2c; width: {{ item.progreso_rutina }}%; height: 100%;"></div>
-                        </div>
-                        <span style="font-size: 10px; color: #888;">{{ item.progreso_rutina }}%</span>
-                    </td>
-                    <td style="padding: 10px;">
-                        <div style="display: flex; gap: 5px; justify-content: center;">
-                            <a href="{% url 'editar_alumno' item.alumno.id %}" title="Editar" style="text-decoration: none; background: #333; padding: 5px; border-radius: 5px; border: 1px solid #444;">✏️</a>
-                            <a href="{% url 'cambiar_estado_alumno' item.alumno.id %}" onclick="return confirm('¿Baja?')" style="text-decoration: none; background: #420000; padding: 5px; border-radius: 5px; border: 1px solid #ff4d4d;">🚫</a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="7" style="padding: 20px; color: #666;">No hay alumnas mujeres activas.</td></tr>
-                {% endfor %}
-            </table>
         </div>
 
-        <div style="flex: 1; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #222; height: fit-content;">
-            <h2 style="color: #ff4d4d; margin-top: 0;">BAJAS</h2>
-            <ul style="list-style: none; padding: 0;">
+        <div class="columna-bajas">
+            <div class="seccion-card">
+                <h3 class="seccion-titulo" style="color: var(--rojo-error);">Bajas</h3>
                 {% for baja in alumnos_baja %}
-                    <li style="padding: 10px 0; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: #ccc; font-size: 14px;">{{ baja.user.last_name|upper }}, {{ baja.user.first_name|upper }}</span>
-                        <a href="{% url 'cambiar_estado_alumno' baja.id %}" 
-                           style="text-decoration: none; color: #98cf2c; font-size: 12px; border: 1px solid #98cf2c; padding: 2px 6px; border-radius: 4px;">
-                            Reactivar
-                        </a>
-                    </li>
+                <div class="item-baja">
+                    <span style="color: var(--blanco); font-size: 13px; font-weight: 700;">{{ baja.user.last_name|upper }}, {{ baja.user.first_name|upper }}</span>
+                    <span style="color: var(--gris-texto); font-size: 11px;">Cód: {{ baja.codigo }}</span>
+                    <a href="{% url 'cambiar_estado_alumno' baja.id %}" class="btn-reactivar">Reactivar socio</a>
+                </div>
                 {% empty %}
-                    <li style="color: #666;">No hay bajas.</li>
+                <p style="color: var(--gris-texto); font-size: 12px; text-align: center; padding: 20px;">No hay socios inactivos.</p>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
+
     </div>
 
 </body>

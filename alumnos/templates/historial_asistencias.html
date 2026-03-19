@@ -46,7 +46,11 @@
                         {{ asistencia.fecha|date:"d/m/Y" }}
                     </td>
                     <td style="padding: 15px; color: #bbb;">
-                        {{ asistencia.fecha|date:"H:i" }} hs
+                        {% if asistencia.fecha.hour %}
+                            {{ asistencia.fecha|date:"H:i" }} hs
+                        {% else %}
+                            Registrado
+                        {% endif %}
                     </td>
                     <td style="padding: 15px; text-align: center;">
                         <span style="background: rgba(152, 207, 44, 0.1); color: #98cf2c; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid #98cf2c;">
