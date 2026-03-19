@@ -49,7 +49,8 @@ def cambiar_password(request):
 @login_required
 def dashboard_alumno(request):
     try:
-        alumno = Alumno.objects.get(user=request.user)
+        # Optimizado con select_related
+        alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
         if request.user.is_staff:
             return redirect('gestion_gym')
@@ -57,8 +58,10 @@ def dashboard_alumno(request):
 
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
     progreso_dias = []
+    
     for dia in dias_semana:
-        ejercicios_dia = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia)
+        # Corregido con .distinct() para evitar duplicados en el conteo
+        ejercicios_dia = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).distinct()
         total = ejercicios_dia.count()
         completados = ejercicios_dia.filter(completado=True).count()
         porcentaje = (completados / total * 100) if total > 0 else 0
@@ -84,7 +87,9 @@ def mi_rutina(request):
     dia_default = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
     dia_seleccionado = request.GET.get('dia', dia_default)
     alumno = get_object_or_404(Alumno, user=request.user)
-    ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado)
+    
+    # Corregido con .distinct() para que el alumno no vea ejercicios repetidos
+    ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado).distinct()
     
     hoy = timezone.now().date()
     for ej in ejercicios:
@@ -104,7 +109,8 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
             ejercicio.ultima_vez_hecho = timezone.now()
             ejercicio.save()
             
-            ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana)
+            # Recalcular progreso con distinct
+            ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana).distinct()
             total = ejercicios_dia.count()
             hechos = ejercicios_dia.filter(completado=True).count()
             nuevo_progreso = (hechos / total * 100) if total > 0 else 0
@@ -140,8 +146,8 @@ def control_acceso(request):
 @login_required
 def gestion_gym(request):
     if not request.user.is_staff: return redirect('dashboard_alumno')
-    alumnos_activos = Alumno.objects.filter(activo=True)
-    alumnos_baja = Alumno.objects.filter(activo=False)
+    alumnos_activos = Alumno.objects.filter(activo=True).select_related('user')
+    alumnos_baja = Alumno.objects.filter(activo=False).select_related('user')
     stats_alumnos = []
     hoy = timezone.now().date()
     for alu in alumnos_activos:
@@ -159,7 +165,8 @@ def gestion_gym(request):
 def detalle_alumno(request, alumno_id):
     alumno = get_object_or_404(Alumno, id=alumno_id)
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia) for dia in dias}
+    # Usamos distinct aquí también para la vista del administrador
+    rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).distinct() for dia in dias}
     return render(request, 'detalle_alumno.html', {'alumno': alumno, 'rutina': rutina, 'dias': dias})
 
 @login_required
@@ -176,7 +183,7 @@ def editar_alumno(request, alumno_id):
     return render(request, 'editar_alumno.html', {'alumno': alumno})
 
 @login_required
-def agregar_ejercicio_rapido(request, alumno_id): # <-- CORREGIDO NOMBRE PARA MATCH CON URLS
+def agregar_ejercicio_rapido(request, alumno_id):
     if request.method == 'POST':
         alumno = get_object_or_404(Alumno, id=alumno_id)
         Ejercicio.objects.create(

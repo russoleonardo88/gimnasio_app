@@ -26,6 +26,13 @@ class Alumno(models.Model):
     activo = models.BooleanField(default=True, help_text="Desmarcar para dar de BAJA al socio")
     plan_semanal = models.IntegerField(default=3, help_text="Cantidad de días por semana contratados (2, 3, 4, 5)")
     
+    # --- NUEVOS CAMPOS AGREGADOS ---
+    dni = models.CharField(max_length=20, blank=True, null=True, verbose_name="DNI")
+    domicilio = models.CharField(max_length=255, blank=True, null=True)
+    celular = models.CharField(max_length=25, blank=True, null=True)
+    contacto_emergencia = models.CharField(max_length=25, blank=True, null=True, verbose_name="Celular de Emergencia")
+    # ------------------------------
+
     fecha_vencimiento = models.DateField(null=True, blank=True, help_text="Fecha en que vence la cuota")
     fecha_inicio_rutina = models.DateField(default=timezone.now)
     
@@ -45,7 +52,7 @@ class Alumno(models.Model):
     def __str__(self):
         return f"{self.codigo} - {self.user.first_name} {self.user.last_name}"
 
-# 3. Modelo para los Ejercicios (MODIFICADO)
+# 3. Modelo para los Ejercicios
 class Ejercicio(models.Model):
     DIAS_CHOICES = [
         ('Lunes', 'Lunes'),
@@ -56,7 +63,6 @@ class Ejercicio(models.Model):
         ('Sábado', 'Sábado'),
     ]
     
-    # --- NUEVAS CATEGORÍAS ---
     TIPO_CHOICES = [
         ('AEROBICO', '🏃‍♂️ Aeróbico'),
         ('ZONA_MEDIA', '🧘 Zona Media'),
@@ -67,7 +73,6 @@ class Ejercicio(models.Model):
     nombre = models.CharField(max_length=100)
     dia_semana = models.CharField(max_length=15, choices=DIAS_CHOICES)
     
-    # Campo nuevo para el tipo de ejercicio
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='FUERZA')
     
     series = models.IntegerField()
@@ -78,7 +83,6 @@ class Ejercicio(models.Model):
     fecha_asignacion = models.DateField(auto_now_add=True)
 
     class Meta:
-        # Esto hace que se ordenen automáticamente por tipo
         ordering = ['tipo', 'id']
 
     def __str__(self):
