@@ -17,13 +17,13 @@
     <div style="display: flex; gap: 20px; margin-bottom: 30px;">
         <div style="background: #111; padding: 20px; border-radius: 15px; border: 1px solid #222; flex: 1; text-align: center;">
             <span style="color: #888; font-size: 12px; text-transform: uppercase;">Asistencia del Mes</span>
-            <div style="font-size: 40px; font-weight: 900; color: {% if porcentaje < 50 %}#ff4d4d{% else %}#98cf2c{% endif %}; margin: 10px 0;">
-                {{ porcentaje|floatformat:0 }}%
+            <div style="font-size: 40px; font-weight: 900; color: {% if porcentaje_mes < 50 %}#ff4d4d{% else %}#98cf2c{% endif %}; margin: 10px 0;">
+                {{ porcentaje_mes|floatformat:0 }}%
             </div>
         </div>
 
         <div style="background: #111; padding: 20px; border-radius: 15px; border: 1px solid #222; flex: 1; text-align: center;">
-            <span style="color: #888; font-size: 12px; text-transform: uppercase;">Días Asistidos</span>
+            <span style="color: #888; font-size: 12px; text-transform: uppercase;">Días Asistidos (Últimos 30)</span>
             <div style="font-size: 40px; font-weight: 900; color: #fff; margin: 10px 0;">
                 {{ asistencias|length }}
             </div>
@@ -46,11 +46,7 @@
                         {{ asistencia.fecha|date:"d/m/Y" }}
                     </td>
                     <td style="padding: 15px; color: #bbb;">
-                        {% if asistencia.fecha.hour %}
-                            {{ asistencia.fecha|date:"H:i" }} hs
-                        {% else %}
-                            Registrado
-                        {% endif %}
+                        Registrado
                     </td>
                     <td style="padding: 15px; text-align: center;">
                         <span style="background: rgba(152, 207, 44, 0.1); color: #98cf2c; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid #98cf2c;">

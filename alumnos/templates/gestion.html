@@ -165,6 +165,17 @@
         .barra-relleno { background: var(--verde-neon); height: 100%; border-radius: 10px; }
         .porcentaje-texto { font-size: 10px; color: var(--gris-texto); margin-top: 5px; display: block; font-weight: 600; }
 
+        /* --- CUOTA TAG --- */
+        .cuota-tag {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 5px 12px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+        }
+
         /* --- ACCIONES --- */
         .btn-accion {
             text-decoration: none;
@@ -226,6 +237,7 @@
                             <th>Plan</th>
                             <th style="text-align: center;">% Mes</th>
                             <th>Rutina Hoy</th>
+                            <th style="text-align: center;">Cuota</th>
                             <th style="text-align: center;">Acciones</th>
                         </tr>
                     </thead>
@@ -252,12 +264,17 @@
                                 </div>
                             </td>
                             <td style="text-align: center;">
+                                <span class="cuota-tag" style="color: {{ item.cuota_color }}; background: rgba({{ item.cuota_color|slice:'4:-1' }}, 0.1); border-color: rgba({{ item.cuota_color|slice:'4:-1' }}, 0.2);">
+                                    {{ item.cuota_estado }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
                                 <a href="{% url 'editar_alumno' item.alumno.id %}" class="btn-accion">✏️</a>
                                 <a href="{% url 'cambiar_estado_alumno' item.alumno.id %}" onclick="return confirm('¿Dar de baja?')" class="btn-accion">🚫</a>
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="6" style="text-align: center; color: var(--gris-texto); padding: 40px;">No hay socios activos.</td></tr>
+                        <tr><td colspan="7" style="text-align: center; color: var(--gris-texto); padding: 40px;">No hay socios activos.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -273,6 +290,7 @@
                             <th>Plan</th>
                             <th style="text-align: center;">% Mes</th>
                             <th>Rutina Hoy</th>
+                            <th style="text-align: center;">Cuota</th>
                             <th style="text-align: center;">Acciones</th>
                         </tr>
                     </thead>
@@ -299,12 +317,17 @@
                                 </div>
                             </td>
                             <td style="text-align: center;">
+                                <span class="cuota-tag" style="color: {{ item.cuota_color }}; background: rgba({{ item.cuota_color|slice:'4:-1' }}, 0.1); border-color: rgba({{ item.cuota_color|slice:'4:-1' }}, 0.2);">
+                                    {{ item.cuota_estado }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
                                 <a href="{% url 'editar_alumno' item.alumno.id %}" class="btn-accion">✏️</a>
                                 <a href="{% url 'cambiar_estado_alumno' item.alumno.id %}" onclick="return confirm('¿Dar de baja?')" class="btn-accion">🚫</a>
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="6" style="text-align: center; color: var(--gris-texto); padding: 40px;">No hay socias activas.</td></tr>
+                        <tr><td colspan="7" style="text-align: center; color: var(--gris-texto); padding: 40px;">No hay socias activas.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

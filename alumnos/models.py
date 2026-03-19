@@ -26,6 +26,9 @@ class Alumno(models.Model):
     activo = models.BooleanField(default=True, help_text="Desmarcar para dar de BAJA al socio")
     plan_semanal = models.IntegerField(default=3, help_text="Cantidad de días por semana contratados (2, 3, 4, 5)")
     
+    # NUEVO CAMPO PARA LA CUOTA
+    cuota_pagada = models.BooleanField(default=False, verbose_name="¿Cuota Pagada este Mes?")
+    
     # --- CAMPOS DE CONTACTO ---
     dni = models.CharField(max_length=20, blank=True, null=True, verbose_name="DNI")
     domicilio = models.CharField(max_length=255, blank=True, null=True)

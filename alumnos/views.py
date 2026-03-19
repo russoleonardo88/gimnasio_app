@@ -64,7 +64,6 @@ def dashboard_alumno(request):
         ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).all().distinct()
         total = ejercicios_dia.count()
         completados = ejercicios_dia.filter(completado=True).count()
-        # Entero para el dashboard
         porcentaje = int((completados / total * 100)) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
@@ -120,7 +119,6 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
             ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana).all().distinct()
             total = ejercicios_dia.count()
             hechos = ejercicios_dia.filter(completado=True).count()
-            # Forzamos entero para el progreso de la base de datos
             nuevo_progreso = int((hechos / total * 100)) if total > 0 else 0
             
             asistencia, _ = Asistencia.objects.get_or_create(alumno=ejercicio.alumno, fecha=timezone.now().date())
@@ -131,7 +129,7 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
         except Ejercicio.DoesNotExist:
             return JsonResponse({'status': 'error'}, status=404)
 
-# --- VISTAS DE ADMINISTRACIÓN, GESTIÓN Y RECEPCIÓN ---
+# --- VISTAS DE ADMINISTRACIÓN Y GESTIÓN ---
 
 def control_acceso(request):
     mensaje, clase_alerta, alumno_info = "", "", None
@@ -153,44 +151,51 @@ def control_acceso(request):
 
 @login_required
 def gestion_gym(request):
-    if not request.user.is_staff: return redirect('dashboard_alumno')
+    if not request.user.is_staff:
+        return redirect('dashboard_alumno')
     
-    # PASO 1: Ordenar alfabéticamente por Apellido (last_name) como en la escuela
+    hoy = timezone.now().date()
+    dia_actual = hoy.day
+    es_fecha_cobro = 1 <= dia_actual <= 15
+    
     alumnos_activos = Alumno.objects.filter(activo=True).select_related('user').order_by('user__last_name', 'user__first_name')
-    alumnos_baja = Alumno.objects.filter(activo=False).select_related('user').order_by('user__last_name')
+    alumnos_baja = Alumno.objects.filter(activo=False).select_related('user')
     
-    # Listas para separar hombres y mujeres
     stats_hombres = []
     stats_mujeres = []
-    hoy = timezone.now().date()
     
     for alu in alumnos_activos:
-        conteo = Asistencia.objects.filter(alumno=alu, fecha__month=hoy.month).count()
+        conteo = Asistencia.objects.filter(alumno=alu, fecha__month=hoy.month, fecha__year=hoy.year).count()
         meta = int(alu.plan_semanal) * 4
-        
-        # Porcentaje de asistencia mensual como entero
-        porcentaje_mes = int((conteo / meta * 100)) if meta > 0 else 0
+        porcentaje_asistencia = int((conteo / meta * 100)) if meta > 0 else 0
         
         ultima = Asistencia.objects.filter(alumno=alu).order_by('-fecha').first()
-        # Progreso de hoy como entero
-        progreso_hoy = int(ultima.porcentaje_completado if ultima else 0)
+        progreso_rutina = int(ultima.porcentaje_completado if ultima else 0)
         
-        data_alumno = {
-            'alumno': alu, 
-            'asistencias': conteo, 
-            'porcentaje_asistencia': porcentaje_mes,
-            'progreso_rutina': progreso_hoy
-        }
-
-        # PASO 2: Separar por género
-        if alu.genero == 'H':
-            stats_hombres.append(data_alumno)
+        if alu.cuota_pagada:
+            cuota_estado, cuota_color = 'PAGADO', 'var(--verde-neon)'
+        elif es_fecha_cobro:
+            cuota_estado, cuota_color = 'PENDIENTE', 'var(--blanco)'
         else:
-            stats_mujeres.append(data_alumno)
+            cuota_estado, cuota_color = 'MOROSO', 'var(--rojo-error)'
 
+        data = {
+            'alumno': alu,
+            'asistencias': conteo,
+            'porcentaje_asistencia': porcentaje_asistencia,
+            'progreso_rutina': progreso_rutina,
+            'cuota_estado': cuota_estado,
+            'cuota_color': cuota_color,
+        }
+        
+        if alu.genero == 'H':
+            stats_hombres.append(data)
+        else:
+            stats_mujeres.append(data)
+            
     return render(request, 'gestion.html', {
-        'stats_hombres': stats_hombres, 
-        'stats_mujeres': stats_mujeres, 
+        'stats_hombres': stats_hombres,
+        'stats_mujeres': stats_mujeres,
         'alumnos_baja': alumnos_baja
     })
 
@@ -214,6 +219,8 @@ def editar_alumno(request, alumno_id):
         alumno.domicilio = request.POST.get('domicilio')
         alumno.celular = request.POST.get('celular')
         alumno.contacto_emergencia = request.POST.get('emergencia')
+        # Agregamos el guardado de la cuota desde el form si lo deseas
+        alumno.cuota_pagada = 'cuota_pagada' in request.POST
         alumno.save()
         return redirect('gestion_gym')
     return render(request, 'editar_alumno.html', {'alumno': alumno})
@@ -222,8 +229,6 @@ def editar_alumno(request, alumno_id):
 def agregar_ejercicio_rapido(request, alumno_id):
     if request.method == 'POST':
         alumno = get_object_or_404(Alumno, id=alumno_id)
-        timmer_form = request.POST.get('timmer')
-        
         Ejercicio.objects.create(
             alumno=alumno,
             nombre=request.POST.get('nombre'),
@@ -232,7 +237,7 @@ def agregar_ejercicio_rapido(request, alumno_id):
             series=request.POST.get('series') or 1,
             repeticiones=request.POST.get('reps'),
             peso_sugerido=request.POST.get('peso') or 0,
-            timmer=timmer_form
+            timmer=request.POST.get('timmer')
         )
         return redirect('detalle_alumno', alumno_id=alumno.id)
     return redirect('gestion_gym')
@@ -270,15 +275,9 @@ def alta_socio_rapida(request):
         user = User.objects.create_user(username=codigo, first_name=nombre, last_name=apellido, password=codigo)
         
         Alumno.objects.create(
-            user=user, 
-            codigo=codigo, 
-            genero=genero, 
-            plan_semanal=plan, 
-            dni=dni,
-            domicilio=domicilio,
-            celular=celular,
-            contacto_emergencia=emergencia,
-            activo=True, 
+            user=user, codigo=codigo, genero=genero, plan_semanal=plan, 
+            dni=dni, domicilio=domicilio, celular=celular,
+            contacto_emergencia=emergencia, activo=True, 
             fecha_inicio_rutina=timezone.now().date()
         )
         return redirect('gestion_gym')
@@ -295,11 +294,20 @@ def resetear_rutina(request, alumno_id):
 
 @login_required
 def historial_asistencias(request, alumno_id):
-    if not request.user.is_staff: return redirect('dashboard_alumno')
-    alumno = get_object_or_404(Alumno, id=alumno_id)
-    asistencias = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')
-    # Nos aseguramos de que el porcentaje sea entero antes de enviar al template
-    for asis in asistencias:
-        asis.porcentaje_completado = int(asis.porcentaje_completado)
+    if not request.user.is_staff:
+        return redirect('dashboard_alumno')
         
-    return render(request, 'historial_asistencias.html', {'alumno': alumno, 'asistencias': asistencias})
+    alumno = get_object_or_404(Alumno, id=alumno_id) # Corregido: era get_object_or_404
+    hoy = timezone.now().date()
+    hace_30_dias = hoy - timedelta(days=30)
+    asistencias = Asistencia.objects.filter(alumno=alumno, fecha__range=[hace_30_dias, hoy]).order_by('-fecha')
+    
+    conteo = Asistencia.objects.filter(alumno=alumno, fecha__month=hoy.month, fecha__year=hoy.year).count()
+    meta = int(alumno.plan_semanal) * 4
+    porcentaje_mes = int((conteo / meta * 100)) if meta > 0 else 0
+    
+    return render(request, 'historial_asistencias.html', {
+        'alumno': alumno, 
+        'asistencias': asistencias,
+        'porcentaje_mes': porcentaje_mes,
+    })
