@@ -2,18 +2,24 @@
     <div class="ejercicio-info">
         <h3>{{ ej.nombre }}</h3>
         <p>
-            {% if ej.tipo == 'ZONA_MEDIA' %}
-                ⏱️ {{ ej.series }} RONDAS | {{ ej.repeticiones }}
-            {% elif ej.tipo == 'AEROBICO' %}
-                🏃‍♂️ {{ ej.repeticiones }}
+            {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' or ej.tipo == 'TABATA' %}
+                ⏱️ {{ ej.series }} RONDAS | {{ ej.repeticiones }} REPS
+            {% elif ej.tipo == 'AEROBICO' or ej.tipo == 'AERÓBICO' %}
+                🏃‍♂️ {{ ej.repeticiones }} MINUTOS
+            {% elif ej.tipo == 'FUERZA' %}
+                🏋️ {{ ej.series }} SERIES x {{ ej.repeticiones }} REPS
             {% else %}
                 {{ ej.series }} series x {{ ej.repeticiones }}
             {% endif %}
         </p>
-        {% if ej.peso_sugerido %}
-            <span class="peso-tag">Cargar: {{ ej.peso_sugerido }}kg</span>
+        
+        {% if ej.peso_sugerido and ej.peso_sugerido > 0 %}
+            <span class="peso-tag" style="color: var(--verde-aquiles); font-size: 0.8rem; font-weight: 800; display: block; margin-top: 5px;">
+                ⚡ CARGAR: {{ ej.peso_sugerido }}kg
+            </span>
         {% endif %}
     </div>
+
     <div id="check-{{ ej.id }}" 
          class="circulo {% if ej.completado %}completado{% endif %}" 
          onclick="toggleEjercicio({{ ej.id }})">

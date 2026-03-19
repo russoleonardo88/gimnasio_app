@@ -142,28 +142,30 @@
             <div class="seccion-tipo">
                 <span class="tipo-titulo">🏃‍♂️ Aeróbico</span>
                 {% for ejercicio in ejercicios %}
-                    {% if ejercicio.tipo == 'AEROBICO' %}
+                    {% if ejercicio.tipo == 'AERÓBICO' or ejercicio.tipo == 'AEROBICO' %}
                         {% include "includes/card_ejercicio.html" with ej=ejercicio %}
                     {% endif %}
                 {% endfor %}
             </div>
 
             <div class="seccion-tipo">
-                <span class="tipo-titulo">🧘 Zona Media</span>
+                <span class="tipo-titulo">🏋️ Fuerza</span>
                 {% for ejercicio in ejercicios %}
-                    {% if ejercicio.tipo == 'ZONA_MEDIA' or ejercicio.tipo == 'TABATA' %}
+                    {% if ejercicio.tipo == 'FUERZA' %}
                         {% include "includes/card_ejercicio.html" with ej=ejercicio %}
                     {% endif %}
                 {% endfor %}
             </div>
 
             <div class="seccion-tipo">
-            <span class="tipo-titulo">🧘 Zona Media</span>
-            {% for ejercicio in ejercicios %}
-             {% if ejercicio.tipo == 'ZONA_MEDIA' %} {% include "includes/card_ejercicio.html" with ej=ejercicio %}
-             {% endif %}
-             {% endfor %}
-          </div>
+                <span class="tipo-titulo">🧘 Zona Media / Tabata</span>
+                {% for ejercicio in ejercicios %}
+                    {% if ejercicio.tipo == 'ZONA_MEDIA' or ejercicio.tipo == 'TABATA' or ejercicio.tipo == 'ZONA MEDIA' %}
+                        {% include "includes/card_ejercicio.html" with ej=ejercicio %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+
         {% else %}
             <div style="text-align: center; margin-top: 50px;">
                 <p style="color: var(--gris-texto); font-weight: 600;">No hay ejercicios cargados para el {{ dia }}.</p>
@@ -179,7 +181,6 @@
 
         elemento.style.pointerEvents = 'none';
 
-        // USAMOS LA URL QUE YA TENÍAS DEFINIDA EN TU PROYECTO
         fetch(`/marcar-hecho/${ejercicioId}/`, {
             method: 'POST',
             headers: {
