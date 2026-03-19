@@ -40,15 +40,23 @@
             box-sizing: border-box;
         }
 
+        /* --- CLASE PARA QUE LOS LINKS SEAN INTERACTIVOS --- */
+        .progreso-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .progreso-link:active { transform: scale(0.97); }
+        .progreso-link:hover { opacity: 0.9; }
+
         .seccion-titulo { font-size: 11px; font-weight: 700; color: var(--gris-texto); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; width: 100%; max-width: 800px; }
 
-        /* --- PROGRESO SEMANAL --- */
         .progreso-item { margin-bottom: 15px; }
         .progreso-info { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
         .barra-fondo { background: #222; height: 6px; border-radius: 10px; overflow: hidden; }
         .barra-relleno { background: var(--verde-neon); height: 100%; border-radius: 10px; transition: width 0.5s ease-in-out; }
 
-        /* --- ACTIVIDAD RECIENTE --- */
         .actividad-item {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 10px; padding: 15px;
@@ -56,7 +64,16 @@
             margin-bottom: 10px;
         }
 
-        /* --- ESTADÍSTICAS (GRÁFICOS) --- */
+        /* --- ESTILO PARA EL CHECKMARK ESTÉTICO --- */
+        .check-estetico {
+            width: 24px; height: 24px;
+            background-color: var(--verde-neon);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--negro-fondo);
+            font-size: 14px; font-weight: bold;
+        }
+
         .contenedor-graficos { 
             width: 100%; max-width: 800px; 
             display: grid; 
@@ -71,7 +88,6 @@
 
         .grafico-card { background: var(--negro-card); border: 1px solid var(--gris-borde); border-radius: 16px; padding: 15px; height: 250px; }
 
-        /* --- FOOTER --- */
         .footer-links { text-align: center; margin-top: auto; padding: 20px 0; width: 100%; max-width: 800px; }
         .link-perfil {
             display: inline-block;
@@ -106,15 +122,17 @@
     <h3 class="seccion-titulo">Mi Rutina Semanal (L-V)</h3>
     <div class="card-seccion">
         {% for item in progreso_dias %}
-        <div class="progreso-item">
-            <div class="progreso-info">
-                <span>{{ item.nombre }}</span>
-                <span style="color: var(--verde-neon);">{{ item.porcentaje }}%</span>
+        <a href="{% url 'mi_rutina' %}?dia={{ item.nombre }}" class="progreso-link">
+            <div class="progreso-item">
+                <div class="progreso-info">
+                    <span>{{ item.nombre }}</span>
+                    <span style="color: var(--verde-neon);">{{ item.porcentaje }}%</span>
+                </div>
+                <div class="barra-fondo">
+                    <div class="barra-relleno" style="width: {{ item.porcentaje }}%;"></div>
+                </div>
             </div>
-            <div class="barra-fondo">
-                <div class="barra-relleno" style="width: {{ item.porcentaje }}%;"></div>
-            </div>
-        </div>
+        </a>
         {% empty %}
         <p style="color: #444; text-align: center; font-size: 12px;">Sin rutina asignada.</p>
         {% endfor %}
@@ -129,7 +147,7 @@
                     <strong style="color: var(--blanco);">{{ ultima.fecha|date:"l j \d\e F"|upper }}</strong>
                     <p style="color: var(--gris-texto); margin: 3px 0 0 0; font-size: 12px;">Completaste el {{ ultima.porcentaje_completado }}% de tu rutina.</p>
                 </div>
-                <span style="color: var(--verde-neon); font-size: 20px;">✅</span>
+                <div class="check-estetico">✓</div>
             </div>
             {% endwith %}
         {% else %}
