@@ -2,13 +2,66 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aquiles App - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
     <style>
-        /* --- (Mantené tus estilos anteriores y AGREGÁ estos nuevos abajo) --- */
-        
-        .ejercicios-hoy-container {
-            margin-bottom: 25px;
+        :root {
+            --negro-fondo: #0a0a0a;
+            --negro-card: #141414;
+            --verde-neon: #98cf2c;
+            --blanco: #ffffff;
+            --gris-texto: #888888;
+            --gris-borde: #222222;
         }
 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--negro-fondo);
+            color: var(--blanco);
+            margin: 0;
+            padding: 15px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gris-borde);
+        }
+
+        .user-info h1 { font-size: 20px; font-weight: 900; margin: 0; text-transform: uppercase; }
+        .user-info p { color: var(--verde-neon); margin: 3px 0 0 0; font-size: 13px; font-weight: 600; }
+        .logo-aquiles { width: 50px; height: 50px; object-fit: contain; }
+
+        /* --- TARJETAS Y RUTINA --- */
+        .card {
+            background: var(--negro-card);
+            border: 1px solid var(--gris-borde);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .seccion-titulo {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gris-texto);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .progreso-item { margin-bottom: 12px; display: block; text-decoration: none; color: inherit; }
+        .barra-fondo { background: #222; height: 6px; border-radius: 10px; overflow: hidden; margin-top: 5px; }
+        .barra-relleno { background: var(--verde-neon); height: 100%; transition: width 0.6s ease; }
+
+        /* --- EJERCICIOS DE HOY --- */
         .ejercicio-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--gris-borde);
@@ -20,21 +73,9 @@
             align-items: center;
         }
 
-        .ejercicio-info h4 {
-            margin: 0;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--blanco);
-        }
-
-        .ejercicio-info p {
-            margin: 4px 0 0 0;
-            font-size: 12px;
-            color: var(--verde-neon);
-            font-weight: 600;
-        }
-
+        .ejercicio-info h4 { margin: 0; font-size: 14px; text-transform: uppercase; color: var(--blanco); }
+        .ejercicio-info p { margin: 4px 0 0 0; font-size: 12px; color: var(--verde-neon); font-weight: 600; }
+        
         .badge-tipo {
             font-size: 9px;
             background: rgba(152, 207, 44, 0.15);
@@ -54,33 +95,44 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: transparent;
-            transition: all 0.2s;
-            cursor: pointer;
             text-decoration: none;
+            color: transparent;
         }
 
         .check-circle.completado {
             background: var(--verde-neon);
             border-color: var(--verde-neon);
             color: var(--negro-fondo);
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
+    <div class="header">
+        <div class="user-info">
+            <h1>HOLA, {{ alumno.user.first_name|upper }}</h1>
+            <p>{{ mensaje_motivador }}</p>
+        </div>
+        <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-aquiles">
+    </div>
+
     <h3 class="seccion-titulo">Mi Rutina Semanal</h3>
     <div class="card">
         {% for dia in progreso_dias %}
+        <a href="{% url 'mi_rutina' %}?dia={{ dia.nombre }}" class="progreso-item">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700;">
+                <span>{{ dia.nombre|upper }}</span>
+                <span>{{ dia.porcentaje }}%</span>
+            </div>
+            <div class="barra-fondo">
+                <div class="barra-relleno" style="width: {{ dia.porcentaje }}%;"></div>
+            </div>
+        </a>
         {% endfor %}
     </div>
 
-    <h3 class="seccion-titulo">
-        Ejercicios de Hoy 
-        <span style="font-size: 10px; color: var(--verde-neon);">LISTO PARA ENTRENAR</span>
-    </h3>
-    <div class="ejercicios-hoy-container">
+    <h3 class="seccion-titulo">Ejercicios de Hoy</h3>
+    <div style="margin-bottom: 25px;">
         {% for ej in ejercicios_hoy %}
         <div class="ejercicio-card">
             <div class="ejercicio-info">
@@ -94,17 +146,20 @@
                     {% endif %}
                 </p>
             </div>
-            
-            <a href="{% url 'mi_rutina' %}" class="check-circle {% if ej.completado %}completado{% endif %}">
-                ✓
-            </a>
+            <a href="{% url 'mi_rutina' %}" class="check-circle {% if ej.completado %}completado{% endif %}">✓</a>
         </div>
         {% empty %}
-        <div class="card" style="text-align: center; padding: 20px;">
+        <div class="card" style="text-align: center;">
             <p style="color: var(--gris-texto); font-size: 13px; margin: 0;">Hoy es tu día de descanso. ¡Recuperá energías! 💤</p>
         </div>
         {% endfor %}
     </div>
-    <h3 class="seccion-titulo">Actividad Reciente</h3>
-    </body>
+
+    <div style="margin-top: 30px;">
+        <a href="{% url 'cambiar_password' %}" style="display: block; text-align: center; background: rgba(255,255,255,0.03); color: var(--verde-neon); text-decoration: none; font-size: 11px; font-weight: 700; padding: 14px; border-radius: 12px; border: 1px solid rgba(152,207,44,0.2);">
+            ⚙️ MI PERFIL (CAMBIAR CLAVE)
+        </a>
+    </div>
+
+</body>
 </html>
