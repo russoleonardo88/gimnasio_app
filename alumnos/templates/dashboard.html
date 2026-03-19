@@ -40,7 +40,7 @@
             box-sizing: border-box;
         }
 
-        .seccion-titulo { font-size: 11px; font-weight: 700; color: var(--gris-texto); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        .seccion-titulo { font-size: 11px; font-weight: 700; color: var(--gris-texto); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; width: 100%; max-width: 800px; }
 
         /* --- PROGRESO SEMANAL --- */
         .progreso-item { margin-bottom: 15px; }
@@ -57,24 +57,33 @@
         }
 
         /* --- ESTADÍSTICAS (GRÁFICOS) --- */
-        .contenedor-graficos { width: 100%; max-width: 800px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .contenedor-graficos { 
+            width: 100%; max-width: 800px; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+            margin-bottom: 25px; 
+        }
+        
+        @media (max-width: 600px) {
+            .contenedor-graficos { grid-template-columns: 1fr; }
+        }
+
         .grafico-card { background: var(--negro-card); border: 1px solid var(--gris-borde); border-radius: 16px; padding: 15px; height: 250px; }
 
-        /* --- FOOTER AJUSTADO A IMAGEN --- */
+        /* --- FOOTER --- */
         .footer-links { text-align: center; margin-top: auto; padding: 20px 0; width: 100%; max-width: 800px; }
-        
         .link-perfil {
             display: inline-block;
             color: var(--verde-neon);
             text-decoration: none;
             font-size: 11px; font-weight: 700;
             text-transform: uppercase;
-            padding: 10px;
+            padding: 10px 20px;
             background: rgba(152, 207, 44, 0.05);
             border-radius: 8px;
             margin-bottom: 15px;
         }
-
         .link-logout {
             display: block;
             color: #444;
@@ -89,42 +98,46 @@
     <div class="header">
         <div>
             <h1>HOLA, {{ user.first_name|upper }}</h1>
-            <p>Llevás {{ asistencias_semana }} días esta semana. ¡A darle! 🔥</p>
+            <p>{{ mensaje_motivador }}</p>
         </div>
         <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-casco">
     </div>
 
-    <h3 class="seccion-titulo" style="width: 100%; max-width: 800px;">Mi Rutina Semanal</h3>
+    <h3 class="seccion-titulo">Mi Rutina Semanal (L-V)</h3>
     <div class="card-seccion">
-        {% for dia, prog in progreso_semanal.items %}
+        {% for item in progreso_dias %}
         <div class="progreso-item">
             <div class="progreso-info">
-                <span>{{ dia }}</span>
-                <span style="color: var(--verde-neon);">{{ prog }}%</span>
+                <span>{{ item.nombre }}</span>
+                <span style="color: var(--verde-neon);">{{ item.porcentaje }}%</span>
             </div>
             <div class="barra-fondo">
-                <div class="barra-relleno" style="width: {{ prog }}%;"></div>
+                <div class="barra-relleno" style="width: {{ item.porcentaje }}%;"></div>
             </div>
         </div>
+        {% empty %}
+        <p style="color: #444; text-align: center; font-size: 12px;">Sin rutina asignada.</p>
         {% endfor %}
     </div>
 
-    <h3 class="seccion-titulo" style="width: 100%; max-width: 800px;">Actividad Reciente</h3>
+    <h3 class="seccion-titulo">Último Entrenamiento</h3>
     <div class="card-seccion">
-        {% if ultima_asistencia %}
-        <div class="actividad-item">
-            <div>
-                <strong style="color: var(--blanco);">{{ ultima_asistencia.fecha|date:"l j \d\e F"|upper }}</strong>
-                <p style="color: var(--gris-texto); margin: 3px 0 0 0; font-size: 12px;">Entrenamiento completado.</p>
+        {% if asistencias %}
+            {% with ultima=asistencias|first %}
+            <div class="actividad-item">
+                <div>
+                    <strong style="color: var(--blanco);">{{ ultima.fecha|date:"l j \d\e F"|upper }}</strong>
+                    <p style="color: var(--gris-texto); margin: 3px 0 0 0; font-size: 12px;">Completaste el {{ ultima.porcentaje_completado }}% de tu rutina.</p>
+                </div>
+                <span style="color: var(--verde-neon); font-size: 20px;">✅</span>
             </div>
-            <span style="color: var(--verde-neon); font-size: 20px;">✅</span>
-        </div>
+            {% endwith %}
         {% else %}
-        <p style="color: #444; text-align: center; font-size: 12px;">Sin actividad registrada.</p>
+            <p style="color: #444; text-align: center; font-size: 12px;">Sin actividad registrada esta semana.</p>
         {% endif %}
     </div>
 
-    <h3 class="seccion-titulo" style="width: 100%; max-width: 800px;">Estadísticas Mensuales</h3>
+    <h3 class="seccion-titulo">Estadísticas</h3>
     <div class="contenedor-graficos">
         <div class="grafico-card">
             <canvas id="graficoDias"></canvas>
@@ -144,7 +157,6 @@
     </div>
 
     <script>
-        // Configuración común para ambos gráficos (modo oscuro)
         const defaults = {
             color: '#888888',
             font: { family: "'Inter', sans-serif", size: 10 },
@@ -154,14 +166,13 @@
         Chart.defaults.font = defaults.font;
         Chart.defaults.scale.grid = defaults.grid;
 
-        // 1. Gráfico Días Entrenados
         new Chart(document.getElementById('graficoDias'), {
             type: 'bar',
             data: {
-                labels: ['ENE', 'FEB', 'MAR'], // Estos datos deberían venir del backend
+                labels: ['ENE', 'FEB', 'MAR'],
                 datasets: [{
-                    label: 'Días entrenados',
-                    data: [15, 18, 12], // Datos de prueba
+                    label: 'Días',
+                    data: [15, 18, 12],
                     backgroundColor: '#98cf2c',
                     borderRadius: 5
                 }]
@@ -173,14 +184,13 @@
             }
         });
 
-        // 2. Gráfico Intensidad de Rutina (%)
         new Chart(document.getElementById('graficoIntensidad'), {
             type: 'line',
             data: {
-                labels: ['1', '2', '3', '4', '5'], // Semanas o sesiones
+                labels: ['S1', 'S2', 'S3', 'S4'],
                 datasets: [{
                     label: 'Intensidad %',
-                    data: [70, 85, 80, 95, 90], // Datos de prueba
+                    data: [70, 85, 80, 95],
                     borderColor: '#98cf2c',
                     tension: 0.3,
                     fill: false
@@ -189,7 +199,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false }, title: { display: true, text: 'INTENSIDAD DE RUTINA (%)', color: '#fff' } },
+                plugins: { legend: { display: false }, title: { display: true, text: 'RENDIMIENTO (%)', color: '#fff' } },
                 scales: { y: { min: 0, max: 100 } }
             }
         });

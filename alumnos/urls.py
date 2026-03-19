@@ -6,7 +6,7 @@ urlpatterns = [
     path('', views.login_view, name='login'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    path('perfil/password/', views.cambiar_password, name='cambiar_password'), # <-- RUTA NUEVA
+    path('perfil/password/', views.cambiar_password, name='cambiar_password'),
     
     # --- RUTAS PARA EL ALUMNO (App Móvil) ---
     path('dashboard/', views.dashboard_alumno, name='dashboard_alumno'),
@@ -21,6 +21,9 @@ urlpatterns = [
     path('gestion/estado/<int:alumno_id>/', views.cambiar_estado_alumno, name='cambiar_estado_alumno'),
     path('gestion/asistencias/<int:alumno_id>/', views.historial_asistencias, name='historial_asistencias'),
     path('gestion/alta-socio/', views.alta_socio_rapida, name='alta_socio'),
+    
+    # --- GESTIÓN DE PAGOS (NUEVA) ---
+    path('marcar-pago/<int:alumno_id>/', views.marcar_pago, name='marcar_pago'), # <-- Agregada para el botón 💸
     
     # --- ACCIONES DE RUTINA (ADMIN) ---
     path('alumno/<int:alumno_id>/agregar/', views.agregar_ejercicio_rapido, name='agregar_ejercicio'),
