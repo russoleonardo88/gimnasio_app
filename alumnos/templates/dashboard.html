@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aquiles App - Dashboard</title>
+    <title>Dashboard - Aquiles Gym</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --negro-fondo: #0a0a0a;
@@ -15,187 +15,184 @@
             --blanco: #ffffff;
             --gris-texto: #888888;
             --gris-borde: #222222;
-            --rojo-logout: #ff4d4d;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--negro-fondo);
             color: var(--blanco);
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--gris-borde);
-        }
+        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .header h1 { font-size: 20px; font-weight: 900; text-transform: uppercase; margin: 0; }
+        .header p { color: var(--gris-texto); font-size: 13px; margin: 5px 0 0 0; }
+        .logo-casco { width: 40px; height: 40px; object-fit: contain; opacity: 0.8; }
 
-        .user-info h1 { font-size: 20px; font-weight: 900; margin: 0; text-transform: uppercase; }
-        .user-info p { color: var(--verde-neon); margin: 3px 0 0 0; font-size: 13px; font-weight: 600; }
-        .logo-aquiles { width: 45px; height: 45px; object-fit: contain; }
-
-        .card {
+        .card-seccion {
+            width: 100%; max-width: 800px;
             background: var(--negro-card);
             border: 1px solid var(--gris-borde);
             border-radius: 16px;
-            padding: 18px;
-            margin-bottom: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-sizing: border-box;
         }
 
-        .seccion-titulo {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--gris-texto);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
+        .seccion-titulo { font-size: 11px; font-weight: 700; color: var(--gris-texto); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
 
         /* --- PROGRESO SEMANAL --- */
-        .progreso-item { margin-bottom: 15px; display: block; text-decoration: none; color: inherit; }
-        .progreso-item:last-child { margin-bottom: 0; }
-        .barra-fondo { background: #222; height: 8px; border-radius: 10px; overflow: hidden; margin-top: 6px; position: relative; }
-        .barra-relleno { background: var(--verde-neon); height: 100%; transition: width 0.8s ease; border-radius: 10px; }
+        .progreso-item { margin-bottom: 15px; }
+        .progreso-info { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
+        .barra-fondo { background: #222; height: 6px; border-radius: 10px; overflow: hidden; }
+        .barra-relleno { background: var(--verde-neon); height: 100%; border-radius: 10px; transition: width 0.5s ease-in-out; }
 
-        /* --- EJERCICIOS DE HOY --- */
-        .ejercicio-card {
+        /* --- ACTIVIDAD RECIENTE --- */
+        .actividad-item {
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--gris-borde);
-            border-radius: 12px;
-            padding: 15px;
+            border-radius: 10px; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
-        .ejercicio-info h4 { margin: 0; font-size: 14px; text-transform: uppercase; color: var(--blanco); letter-spacing: 0.5px; }
-        .ejercicio-info p { margin: 5px 0 0 0; font-size: 12px; color: var(--verde-neon); font-weight: 700; }
+        /* --- ESTADÍSTICAS (GRÁFICOS) --- */
+        .contenedor-graficos { width: 100%; max-width: 800px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .grafico-card { background: var(--negro-card); border: 1px solid var(--gris-borde); border-radius: 16px; padding: 15px; height: 250px; }
+
+        /* --- FOOTER AJUSTADO A IMAGEN --- */
+        .footer-links { text-align: center; margin-top: auto; padding: 20px 0; width: 100%; max-width: 800px; }
         
-        .badge-tipo {
-            font-size: 9px;
-            background: rgba(152, 207, 44, 0.1);
-            color: var(--verde-neon);
-            padding: 3px 8px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            margin-bottom: 6px;
+        .link-perfil {
             display: inline-block;
-            font-weight: 800;
-        }
-
-        .check-status {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        /* --- BOTONES INFERIORES --- */
-        .footer-nav {
-            margin-top: auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            padding-top: 20px;
-        }
-
-        .btn-action {
-            text-align: center;
+            color: var(--verde-neon);
             text-decoration: none;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 14px;
-            border-radius: 12px;
+            font-size: 11px; font-weight: 700;
             text-transform: uppercase;
-            border: 1px solid var(--gris-borde);
+            padding: 10px;
+            background: rgba(152, 207, 44, 0.05);
+            border-radius: 8px;
+            margin-bottom: 15px;
         }
 
-        .btn-perfil { background: rgba(255,255,255,0.03); color: var(--blanco); }
-        .btn-logout { background: rgba(255, 77, 77, 0.05); color: var(--rojo-logout); border-color: rgba(255, 77, 77, 0.2); }
+        .link-logout {
+            display: block;
+            color: #444;
+            text-decoration: none;
+            font-size: 10px; font-weight: 600;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="user-info">
-            <h1>HOLA, {{ alumno.user.first_name|upper }}</h1>
-            <p>{{ mensaje_motivador }} 🔥</p>
+        <div>
+            <h1>HOLA, {{ user.first_name|upper }}</h1>
+            <p>Llevás {{ asistencias_semana }} días esta semana. ¡A darle! 🔥</p>
         </div>
-        {% if logo_url %}
-            <img src="{{ logo_url }}" alt="Logo Aquiles" class="logo-aquiles">
+        <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-casco">
+    </div>
+
+    <h3 class="seccion-titulo" style="width: 100%; max-width: 800px;">Mi Rutina Semanal</h3>
+    <div class="card-seccion">
+        {% for dia, prog in progreso_semanal.items %}
+        <div class="progreso-item">
+            <div class="progreso-info">
+                <span>{{ dia }}</span>
+                <span style="color: var(--verde-neon);">{{ prog }}%</span>
+            </div>
+            <div class="barra-fondo">
+                <div class="barra-relleno" style="width: {{ prog }}%;"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h3 class="seccion-titulo" style="width: 100%; max-width: 800px;">Actividad Reciente</h3>
+    <div class="card-seccion">
+        {% if ultima_asistencia %}
+        <div class="actividad-item">
+            <div>
+                <strong style="color: var(--blanco);">{{ ultima_asistencia.fecha|date:"l j \d\e F"|upper }}</strong>
+                <p style="color: var(--gris-texto); margin: 3px 0 0 0; font-size: 12px;">Entrenamiento completado.</p>
+            </div>
+            <span style="color: var(--verde-neon); font-size: 20px;">✅</span>
+        </div>
         {% else %}
-            <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-aquiles">
+        <p style="color: #444; text-align: center; font-size: 12px;">Sin actividad registrada.</p>
         {% endif %}
     </div>
 
-    <h3 class="seccion-titulo">Mi Rutina Semanal</h3>
-    <div class="card">
-        {% for dia in progreso_dias %}
-        <a href="{% url 'mi_rutina' %}?dia={{ dia.nombre }}" class="progreso-item">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase;">
-                <span>{{ dia.nombre }}</span>
-                <span style="color: var(--verde-neon);">{{ dia.porcentaje }}%</span>
-            </div>
-            <div class="barra-fondo">
-                <div class="barra-relleno" style="width: {{ dia.porcentaje }}%;"></div>
-            </div>
-        </a>
-        {% endfor %}
-    </div>
-
-    <h3 class="seccion-titulo">Ejercicios de Hoy</h3>
-    <div style="margin-bottom: 25px;">
-        {% for ej in ejercicios_hoy %}
-        <div class="ejercicio-card">
-            <div class="ejercicio-info">
-                <span class="badge-tipo">
-                    {% if ej.tipo == 'AERÓBICO' %}🏃‍♂️{% elif ej.tipo == 'FUERZA' %}💪{% else %}🧘{% endif %} 
-                    {{ ej.tipo }}
-                </span>
-                <h4>{{ ej.nombre }}</h4>
-                <p>
-                    {% if ej.tipo == 'AERÓBICO' %}
-                        {{ ej.repeticiones }} MINUTOS
-                    {% else %}
-                        {{ ej.series }}x{{ ej.repeticiones }} {% if ej.peso_sugerido %}| {{ ej.peso_sugerido }}kg{% endif %}
-                    {% endif %}
-                </p>
-            </div>
-            <div class="check-status">
-                {% if ej.completado %}
-                    <span style="color: var(--verde-neon);">✅</span>
-                {% else %}
-                    <span style="color: var(--gris-borde); filter: grayscale(1); opacity: 0.3;">✔️</span>
-                {% endif %}
-            </div>
+    <h3 class="seccion-titulo" style="width: 100%; max-width: 800px;">Estadísticas Mensuales</h3>
+    <div class="contenedor-graficos">
+        <div class="grafico-card">
+            <canvas id="graficoDias"></canvas>
         </div>
-        {% empty %}
-        <div class="card" style="text-align: center; border-style: dashed;">
-            <p style="color: var(--gris-texto); font-size: 13px; margin: 0;">Hoy toca descanso. ¡Disfrutalo! 💤</p>
+        <div class="grafico-card">
+            <canvas id="graficoIntensidad"></canvas>
         </div>
-        {% endfor %}
     </div>
 
-    <div class="footer-nav">
-        <a href="{% url 'cambiar_password' %}" class="btn-action btn-perfil">
-            ⚙️ Mi Perfil
+    <div class="footer-links">
+        <a href="{% url 'cambiar_password' %}" class="link-perfil">
+            ⚙️ CAMBIAR CLAVE
         </a>
-        <a href="{% url 'logout' %}" class="btn-action btn-logout">
-            🚪 Salir
+        <a href="{% url 'logout' %}" class="link-logout">
+            CERRAR SESIÓN DE {{ user.first_name|upper }}
         </a>
     </div>
 
+    <script>
+        // Configuración común para ambos gráficos (modo oscuro)
+        const defaults = {
+            color: '#888888',
+            font: { family: "'Inter', sans-serif", size: 10 },
+            grid: { color: '#222222' }
+        };
+        Chart.defaults.color = defaults.color;
+        Chart.defaults.font = defaults.font;
+        Chart.defaults.scale.grid = defaults.grid;
+
+        // 1. Gráfico Días Entrenados
+        new Chart(document.getElementById('graficoDias'), {
+            type: 'bar',
+            data: {
+                labels: ['ENE', 'FEB', 'MAR'], // Estos datos deberían venir del backend
+                datasets: [{
+                    label: 'Días entrenados',
+                    data: [15, 18, 12], // Datos de prueba
+                    backgroundColor: '#98cf2c',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, title: { display: true, text: 'DÍAS ENTRENADOS', color: '#fff' } }
+            }
+        });
+
+        // 2. Gráfico Intensidad de Rutina (%)
+        new Chart(document.getElementById('graficoIntensidad'), {
+            type: 'line',
+            data: {
+                labels: ['1', '2', '3', '4', '5'], // Semanas o sesiones
+                datasets: [{
+                    label: 'Intensidad %',
+                    data: [70, 85, 80, 95, 90], // Datos de prueba
+                    borderColor: '#98cf2c',
+                    tension: 0.3,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, title: { display: true, text: 'INTENSIDAD DE RUTINA (%)', color: '#fff' } },
+                scales: { y: { min: 0, max: 100 } }
+            }
+        });
+    </script>
 </body>
 </html>
