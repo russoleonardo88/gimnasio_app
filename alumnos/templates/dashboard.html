@@ -2,313 +2,109 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aquiles App - Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    
     <style>
-        :root {
-            --negro-fondo: #0a0a0a;
-            --negro-card: #141414;
-            --verde-neon: #98cf2c;
-            --blanco: #ffffff;
-            --gris-texto: #888888;
-            --gris-borde: #222222;
-            --alerta-pago: #ffbb33;
-            --vencido: #ff4444;
+        /* --- (Mantené tus estilos anteriores y AGREGÁ estos nuevos abajo) --- */
+        
+        .ejercicios-hoy-container {
+            margin-bottom: 25px;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--negro-fondo);
-            color: var(--blanco);
-            margin: 0;
-            padding: 15px;
-            padding-bottom: 40px;
-        }
-
-        /* --- HEADER --- */
-        .header {
+        .ejercicio-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--gris-borde);
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--gris-borde);
+            align-items: center;
         }
 
-        .user-info h1 {
-            font-size: 20px;
-            font-weight: 900;
+        .ejercicio-info h4 {
             margin: 0;
+            font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: -0.5px;
+            letter-spacing: 0.5px;
+            color: var(--blanco);
         }
 
-        .user-info p {
+        .ejercicio-info p {
+            margin: 4px 0 0 0;
+            font-size: 12px;
             color: var(--verde-neon);
-            margin: 3px 0 0 0;
-            font-size: 13px;
             font-weight: 600;
         }
 
-        .logo-aquiles {
-            width: 50px;
-            height: 50px;
-            object-fit: contain;
-            background: transparent;
-            flex-shrink: 0;
-            margin-left: 15px;
-        }
-
-        .alerta-cuota {
-            font-size: 11px;
-            font-weight: 800;
-            margin-top: 10px;
-            padding: 8px 14px;
-            border-radius: 20px;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* --- TARJETAS --- */
-        .card {
-            background: var(--negro-card);
-            border: 1px solid var(--gris-borde);
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-
-        .seccion-titulo {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--gris-texto);
-            margin-bottom: 12px;
-            margin-left: 5px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* --- RUTINA --- */
-        .progreso-item {
-            margin-bottom: 12px;
-            text-decoration: none;
-            display: block;
-            color: inherit;
-            padding: 5px;
-            border-radius: 8px;
-            transition: background 0.2s;
-        }
-        
-        .progreso-item:active { background: rgba(255,255,255,0.05); }
-
-        .progreso-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .barra-fondo {
-            background: #222;
-            height: 6px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .barra-relleno {
-            background: var(--verde-neon);
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.6s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            box-shadow: 0 0 10px rgba(152, 207, 44, 0.5);
-        }
-
-        /* --- ACTIVIDAD RECIENTE --- */
-        .asistencia-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 5px;
-            border-bottom: 1px solid var(--gris-borde);
-            font-size: 13px;
-        }
-
-        .asistencia-row:last-child { border: 0; }
-        .fecha-asistencia { font-weight: 700; color: #eee; text-transform: uppercase; }
-        .porcentaje-asistencia { color: var(--verde-neon); font-weight: 800; }
-
-        /* --- GRILLA DE ESTADÍSTICAS --- */
-        .stats-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 25px;
-            width: 100%;
-        }
-
-        .chart-box {
-            background: var(--negro-card);
-            border: 1px solid var(--gris-borde);
-            border-radius: 16px;
-            padding: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .chart-titulo {
-            font-size: 11px;
-            color: var(--gris-texto);
-            margin: 0 0 15px 0;
-            text-transform: uppercase;
-            font-weight: 700;
-            text-align: center;
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 200px;
-            width: 100%;
-        }
-
-        /* --- ACCIONES FINAL --- */
-        .acciones-footer {
-            margin-top: 30px;
-            padding: 0 5px;
-        }
-
-        .btn-perfil {
-            display: block;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.03);
+        .badge-tipo {
+            font-size: 9px;
+            background: rgba(152, 207, 44, 0.15);
             color: var(--verde-neon);
-            text-decoration: none;
-            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
             text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 1px;
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid rgba(152, 207, 44, 0.2);
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        .check-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--gris-borde);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: transparent;
             transition: all 0.2s;
-            margin-bottom: 10px;
-        }
-
-        .btn-perfil:active {
-            background: rgba(152, 207, 44, 0.1);
-            transform: scale(0.98);
-        }
-
-        .btn-logout {
-            display: block;
-            text-align: center;
-            color: #555;
+            cursor: pointer;
             text-decoration: none;
-            font-size: 10px;
-            text-transform: uppercase;
-            font-weight: 700;
-            padding: 10px;
-            letter-spacing: 0.5px;
         }
 
-        @media (min-width: 768px) {
-            body { padding: 30px; }
-            .stats-grid { flex-direction: row; }
-            .chart-box { width: 50%; }
-            .chart-container { height: 250px; }
+        .check-circle.completado {
+            background: var(--verde-neon);
+            border-color: var(--verde-neon);
+            color: var(--negro-fondo);
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="user-info">
-            <h1>HOLA, {{ alumno.user.first_name|upper }}</h1>
-            <p>{{ mensaje_motivador }}</p>
-            
-            {% with dias=alumno.dias_restantes_plan %}
-                {% if dias is not None %}
-                    {% if dias <= 0 %}
-                        <div class="alerta-cuota" style="background: rgba(255, 68, 68, 0.15); color: var(--vencido); border: 1px solid rgba(255,68,68,0.3);">
-                            ⚠️ PLAN VENCIDO - PASAR POR RECEPCIÓN
-                        </div>
-                    {% elif dias <= 5 %}
-                        <div class="alerta-cuota" style="background: rgba(255, 187, 51, 0.15); color: var(--alerta-pago); border: 1px solid rgba(255,187,51,0.3);">
-                            🗓️ TU PLAN VENCE EN {{ dias }} {% if dias == 1 %}DÍA{% else %}DÍAS{% endif %}
-                        </div>
-                    {% endif %}
-                {% endif %}
-            {% endwith %}
-        </div>
-        <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-aquiles">
+    <h3 class="seccion-titulo">Mi Rutina Semanal</h3>
+    <div class="card">
+        {% for dia in progreso_dias %}
+        {% endfor %}
     </div>
 
     <h3 class="seccion-titulo">
-        Mi Rutina Semanal
-        <span style="font-size: 11px; opacity: 0.6; letter-spacing: 2px;">🏃‍♂️ 🧘 💪</span>
+        Ejercicios de Hoy 
+        <span style="font-size: 10px; color: var(--verde-neon);">LISTO PARA ENTRENAR</span>
     </h3>
-    <div class="card">
-        {% for dia in progreso_dias %}
-        <a href="{% url 'mi_rutina' %}?dia={{ dia.nombre }}" class="progreso-item">
-            <div class="progreso-header">
-                <span>{{ dia.nombre|upper }}</span>
-                <span style="color: {% if dia.porcentaje == 100 %}var(--verde-neon){% else %}#fff{% endif %};">
-                    {{ dia.porcentaje }}%
-                </span>
+    <div class="ejercicios-hoy-container">
+        {% for ej in ejercicios_hoy %}
+        <div class="ejercicio-card">
+            <div class="ejercicio-info">
+                <span class="badge-tipo">{{ ej.tipo }}</span>
+                <h4>{{ ej.nombre }}</h4>
+                <p>
+                    {% if ej.tipo == 'AERÓBICO' %}
+                        {{ ej.repeticiones }} MINUTOS
+                    {% else %}
+                        {{ ej.series }}x{{ ej.repeticiones }} {% if ej.peso_sugerido %}| {{ ej.peso_sugerido }}kg{% endif %}
+                    {% endif %}
+                </p>
             </div>
-            <div class="barra-fondo">
-                <div class="barra-relleno" style="width: {{ dia.porcentaje }}%;"></div>
-            </div>
-        </a>
-        {% endfor %}
-    </div>
-
-    <h3 class="seccion-titulo">Actividad Reciente</h3>
-    <div class="card">
-        {% for asistencia in asistencias %}
-        <div class="asistencia-row">
-            <span class="fecha-asistencia">{{ asistencia.fecha|date:"D d M"|upper }}</span>
-            <span class="porcentaje-asistencia">{{ asistencia.porcentaje_completado|floatformat:0 }}% COMPLETO</span>
+            
+            <a href="{% url 'mi_rutina' %}" class="check-circle {% if ej.completado %}completado{% endif %}">
+                ✓
+            </a>
         </div>
         {% empty %}
-        <p style="color: var(--gris-texto); font-size: 13px; text-align: center; margin: 10px 0;">Sin actividad registrada.</p>
+        <div class="card" style="text-align: center; padding: 20px;">
+            <p style="color: var(--gris-texto); font-size: 13px; margin: 0;">Hoy es tu día de descanso. ¡Recuperá energías! 💤</p>
+        </div>
         {% endfor %}
     </div>
-
-    <h3 class="seccion-titulo">Estadísticas Mensuales</h3>
-    <div class="stats-grid">
-        <div class="chart-box">
-            <p class="chart-titulo">Días Entrenados</p>
-            <div class="chart-container">
-                <canvas id="graficoAsistencias"></canvas>
-            </div>
-        </div>
-
-        <div class="chart-box">
-            <p class="chart-titulo">Intensidad de Rutina (%)</p>
-            <div class="chart-container">
-                <canvas id="graficoRendimiento"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <div class="acciones-footer">
-        <a href="{% url 'cambiar_password' %}" class="btn-perfil">
-            ⚙️ MI PERFIL (CAMBIAR CLAVE)
-        </a>
-        <a href="{% url 'logout' %}" class="btn-logout">Cerrar Sesión de {{ alumno.user.first_name }}</a>
-    </div>
-
-    <script>
-        Chart.defaults.color = '#888';
-        Chart.defaults
+    <h3 class="seccion-titulo">Actividad Reciente</h3>
+    </body>
+</html>
