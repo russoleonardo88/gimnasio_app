@@ -49,7 +49,6 @@ def cambiar_password(request):
 @login_required
 def dashboard_alumno(request):
     try:
-        # Optimizado con select_related
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
         if request.user.is_staff:
@@ -60,7 +59,6 @@ def dashboard_alumno(request):
     progreso_dias = []
     
     for dia in dias_semana:
-        # Corregido con .distinct() para evitar duplicados en el conteo
         ejercicios_dia = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).distinct()
         total = ejercicios_dia.count()
         completados = ejercicios_dia.filter(completado=True).count()
@@ -88,7 +86,6 @@ def mi_rutina(request):
     dia_seleccionado = request.GET.get('dia', dia_default)
     alumno = get_object_or_404(Alumno, user=request.user)
     
-    # Corregido con .distinct() para que el alumno no vea ejercicios repetidos
     ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado).distinct()
     
     hoy = timezone.now().date()
@@ -109,7 +106,6 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
             ejercicio.ultima_vez_hecho = timezone.now()
             ejercicio.save()
             
-            # Recalcular progreso con distinct
             ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana).distinct()
             total = ejercicios_dia.count()
             hechos = ejercicios_dia.filter(completado=True).count()
@@ -165,7 +161,6 @@ def gestion_gym(request):
 def detalle_alumno(request, alumno_id):
     alumno = get_object_or_404(Alumno, id=alumno_id)
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    # Usamos distinct aquí también para la vista del administrador
     rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).distinct() for dia in dias}
     return render(request, 'detalle_alumno.html', {'alumno': alumno, 'rutina': rutina, 'dias': dias})
 
@@ -178,6 +173,11 @@ def editar_alumno(request, alumno_id):
         alumno.user.last_name = request.POST.get('apellido')
         alumno.user.save()
         alumno.plan_semanal = request.POST.get('plan')
+        # También permitimos editar los nuevos campos
+        alumno.dni = request.POST.get('dni')
+        alumno.domicilio = request.POST.get('domicilio')
+        alumno.celular = request.POST.get('celular')
+        alumno.contacto_emergencia = request.POST.get('emergencia')
         alumno.save()
         return redirect('gestion_gym')
     return render(request, 'editar_alumno.html', {'alumno': alumno})
@@ -222,9 +222,29 @@ def alta_socio_rapida(request):
         apellido = request.POST.get('apellido').strip()
         codigo = request.POST.get('codigo').upper().strip()
         plan = request.POST.get('plan')
-        genero = 'Hombre' if codigo.startswith('H') else 'Mujer'
+        
+        # --- CAPTURA DE NUEVOS CAMPOS ---
+        dni = request.POST.get('dni')
+        domicilio = request.POST.get('domicilio')
+        celular = request.POST.get('celular')
+        emergencia = request.POST.get('emergencia')
+        
+        genero = 'H' if codigo.startswith('H') else 'M'
+        
         user = User.objects.create_user(username=codigo, first_name=nombre, last_name=apellido, password=codigo)
-        Alumno.objects.create(user=user, codigo=codigo, genero=genero, plan_semanal=plan, activo=True, fecha_inicio_rutina=timezone.now().date())
+        
+        Alumno.objects.create(
+            user=user, 
+            codigo=codigo, 
+            genero=genero, 
+            plan_semanal=plan, 
+            dni=dni,
+            domicilio=domicilio,
+            celular=celular,
+            contacto_emergencia=emergencia,
+            activo=True, 
+            fecha_inicio_rutina=timezone.now().date()
+        )
         return redirect('gestion_gym')
     return render(request, 'alta_socio.html')
 

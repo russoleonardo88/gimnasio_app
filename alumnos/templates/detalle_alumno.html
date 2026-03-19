@@ -1,15 +1,35 @@
 <body style="background-color: #000; color: #fff; font-family: sans-serif; padding: 40px;">
     
     <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #98cf2c; padding-bottom: 20px;">
-        <h1>
-            FICHA: 
-            {% if alumno.user.get_full_name %}
-                {{ alumno.user.get_full_name|upper }}
-            {% else %}
-                SOCIO {{ alumno.codigo }}
-            {% endif %}
-            <span style="color: #666; font-size: 20px;">({{ alumno.codigo }})</span>
-        </h1>
+        <div>
+            <h1 style="margin-bottom: 5px;">
+                FICHA: 
+                {% if alumno.user.get_full_name %}
+                    {{ alumno.user.get_full_name|upper }}
+                {% else %}
+                    SOCIO {{ alumno.codigo }}
+                {% endif %}
+                <span style="color: #666; font-size: 20px;">({{ alumno.codigo }})</span>
+            </h1>
+            
+            <div style="display: flex; gap: 20px; font-size: 13px; color: #bbb; margin-top: 10px;">
+                {% if alumno.dni %}<span><strong>DNI:</strong> {{ alumno.dni }}</span>{% endif %}
+                {% if alumno.domicilio %}<span><strong>DOMICILIO:</strong> {{ alumno.domicilio }}</span>{% endif %}
+                
+                {% if alumno.celular %}
+                <span>
+                    <strong>CEL:</strong> 
+                    <a href="https://wa.me/{{ alumno.celular }}" target="_blank" style="color: #98cf2c; text-decoration: none;">
+                        {{ alumno.celular }} <span style="font-size: 10px;">(WhatsApp 📱)</span>
+                    </a>
+                </span>
+                {% endif %}
+                
+                {% if alumno.contacto_emergencia %}
+                <span style="color: #ff4d4d;"><strong>🚨 EMERGENCIA:</strong> {{ alumno.contacto_emergencia }}</span>
+                {% endif %}
+            </div>
+        </div>
         <a href="{% url 'gestion_gym' %}" style="color: #98cf2c; text-decoration: none; font-weight: bold; align-self: center; border: 1px solid #98cf2c; padding: 8px 15px; border-radius: 5px; transition: 0.3s;">← VOLVER AL PANEL</a>
     </div>
 
@@ -107,10 +127,10 @@
         const inputReps = document.getElementById('input_reps');
 
         if (tipo === 'AEROBICO') {
-            colSets.style.display = 'none';      // Ocultamos Sets
-            campoPeso.style.display = 'none';    // Ocultamos Kg
-            labelReps.innerText = 'TIEMPO';      // Cambiamos label a Tiempo
-            inputReps.placeholder = "20 min";    
+            colSets.style.display = 'none';
+            campoPeso.style.display = 'none';
+            labelReps.innerText = 'TIEMPO';
+            inputReps.placeholder = "20 min";
         } 
         else if (tipo === 'ZONA_MEDIA') {
             colSets.style.display = 'block';

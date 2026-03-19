@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <title>Nuevo Socio - Aquiles Gym</title>
 </head>
-<body style="background-color: #000; color: #fff; font-family: sans-serif; text-align: center; padding-top: 50px;">
+<body style="background-color: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 50px 0;">
     
     <h1 style="color: #98cf2c; font-size: 2.5em; margin-bottom: 10px;">REGISTRAR NUEVO SOCIO</h1>
     <p style="color: #666; margin-bottom: 30px;">Complete los datos para habilitar el acceso al gimnasio.</p>
 
-    <form method="POST" style="display: inline-block; text-align: left; background: #111; padding: 40px; border-radius: 20px; border: 1px solid #222; width: 350px; box-shadow: 0px 10px 30px rgba(0,0,0,0.5);">
+    <form method="POST" style="display: inline-block; text-align: left; background: #111; padding: 40px; border-radius: 20px; border: 1px solid #222; width: 450px; box-shadow: 0px 10px 30px rgba(0,0,0,0.5);">
         {% csrf_token %}
         
         <label style="color: #98cf2c; font-weight: bold; font-size: 14px;">NOMBRE:</label><br>
@@ -20,16 +20,33 @@
         <input type="text" name="apellido" placeholder="Ej: Perez" required 
                style="width: 100%; padding: 12px; margin: 8px 0 20px 0; background: #222; color: #fff; border: 1px solid #444; border-radius: 5px; box-sizing: border-box; outline: none;">
 
+        <label style="color: #98cf2c; font-weight: bold; font-size: 14px;">DNI:</label><br>
+        <input type="text" name="dni" placeholder="Sin puntos" 
+               style="width: 100%; padding: 12px; margin: 8px 0 20px 0; background: #222; color: #fff; border: 1px solid #444; border-radius: 5px; box-sizing: border-box; outline: none;">
+
         <label style="color: #98cf2c; font-weight: bold; font-size: 14px;">CÓDIGO (H o M + NÚMERO):</label><br>
         <input type="text" name="codigo" placeholder="Ej: H0250" required 
                style="width: 100%; padding: 12px; margin: 8px 0 20px 0; background: #222; color: #fff; border: 2px solid #98cf2c; border-radius: 5px; box-sizing: border-box; font-weight: bold; outline: none;">
+
+        <label style="color: #98cf2c; font-weight: bold; font-size: 14px;">DOMICILIO:</label><br>
+        <input type="text" name="domicilio" placeholder="Calle y número" 
+               style="width: 100%; padding: 12px; margin: 8px 0 20px 0; background: #222; color: #fff; border: 1px solid #444; border-radius: 5px; box-sizing: border-box; outline: none;">
+
+        <label style="color: #98cf2c; font-weight: bold; font-size: 14px;">NÚMERO CELULAR:</label><br>
+        <input type="text" name="celular" placeholder="Ej: 2266123456" 
+               style="width: 100%; padding: 12px; margin: 8px 0 20px 0; background: #222; color: #fff; border: 1px solid #444; border-radius: 5px; box-sizing: border-box; outline: none;">
+
+        <label style="color: #98cf2c; font-weight: bold; font-size: 14px;">CELULAR DE EMERGENCIA:</label><br>
+        <input type="text" name="emergencia" placeholder="Ej: 2266987654" 
+               style="width: 100%; padding: 12px; margin: 8px 0 20px 0; background: #222; color: #fff; border: 1px solid #444; border-radius: 5px; box-sizing: border-box; outline: none;">
 
         <label style="color: #98cf2c; font-weight: bold; font-size: 14px;">PLAN SEMANAL:</label><br>
         <select name="plan" style="width: 100%; padding: 12px; margin: 8px 0 30px 0; background: #222; color: #fff; border: 1px solid #444; border-radius: 5px; outline: none; cursor: pointer;">
             <option value="2">2 Días por semana</option>
             <option value="3" selected>3 Días por semana (Estándar)</option>
             <option value="4">4 Días por semana</option>
-            <option value="5">5 Días por semana (Full)</option>
+            <option value="5">5 Días por semana</option>
+            <option value="6">Full (6 Días)</option>
         </select>
 
         <button type="submit" style="width: 100%; padding: 18px; background: #98cf2c; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; font-size: 16px; transition: 0.3s; text-transform: uppercase;">
