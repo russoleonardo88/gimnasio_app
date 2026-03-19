@@ -64,8 +64,9 @@ def dashboard_alumno(request):
         ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).all().distinct()
         total = ejercicios_dia.count()
         completados = ejercicios_dia.filter(completado=True).count()
-        porcentaje = (completados / total * 100) if total > 0 else 0
-        progreso_dias.append({'nombre': dia, 'porcentaje': int(porcentaje)})
+        # Entero para el dashboard
+        porcentaje = int((completados / total * 100)) if total > 0 else 0
+        progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
@@ -119,13 +120,14 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
             ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana).all().distinct()
             total = ejercicios_dia.count()
             hechos = ejercicios_dia.filter(completado=True).count()
-            nuevo_progreso = (hechos / total * 100) if total > 0 else 0
+            # Forzamos entero para el progreso de la base de datos
+            nuevo_progreso = int((hechos / total * 100)) if total > 0 else 0
             
             asistencia, _ = Asistencia.objects.get_or_create(alumno=ejercicio.alumno, fecha=timezone.now().date())
             asistencia.porcentaje_completado = nuevo_progreso
             asistencia.save()
             
-            return JsonResponse({'status': 'ok', 'completado': ejercicio.completado, 'progreso': int(nuevo_progreso)})
+            return JsonResponse({'status': 'ok', 'completado': ejercicio.completado, 'progreso': nuevo_progreso})
         except Ejercicio.DoesNotExist:
             return JsonResponse({'status': 'error'}, status=404)
 
@@ -152,27 +154,45 @@ def control_acceso(request):
 @login_required
 def gestion_gym(request):
     if not request.user.is_staff: return redirect('dashboard_alumno')
-    alumnos_activos = Alumno.objects.filter(activo=True).select_related('user')
-    alumnos_baja = Alumno.objects.filter(activo=False).select_related('user')
-    stats_alumnos = []
+    
+    # PASO 1: Ordenar alfabéticamente por Apellido (last_name) como en la escuela
+    alumnos_activos = Alumno.objects.filter(activo=True).select_related('user').order_by('user__last_name', 'user__first_name')
+    alumnos_baja = Alumno.objects.filter(activo=False).select_related('user').order_by('user__last_name')
+    
+    # Listas para separar hombres y mujeres
+    stats_hombres = []
+    stats_mujeres = []
     hoy = timezone.now().date()
     
     for alu in alumnos_activos:
         conteo = Asistencia.objects.filter(alumno=alu, fecha__month=hoy.month).count()
         meta = int(alu.plan_semanal) * 4
         
-        # CAMBIO: Porcentaje de asistencia como número entero
-        porcentaje = int((conteo / meta * 100)) if meta > 0 else 0
+        # Porcentaje de asistencia mensual como entero
+        porcentaje_mes = int((conteo / meta * 100)) if meta > 0 else 0
         
         ultima = Asistencia.objects.filter(alumno=alu).order_by('-fecha').first()
+        # Progreso de hoy como entero
+        progreso_hoy = int(ultima.porcentaje_completado if ultima else 0)
         
-        stats_alumnos.append({
+        data_alumno = {
             'alumno': alu, 
             'asistencias': conteo, 
-            'porcentaje_asistencia': porcentaje,
-            'progreso_rutina': int(ultima.porcentaje_completado if ultima else 0)
-        })
-    return render(request, 'gestion.html', {'stats_alumnos': stats_alumnos, 'alumnos_baja': alumnos_baja})
+            'porcentaje_asistencia': porcentaje_mes,
+            'progreso_rutina': progreso_hoy
+        }
+
+        # PASO 2: Separar por género
+        if alu.genero == 'H':
+            stats_hombres.append(data_alumno)
+        else:
+            stats_mujeres.append(data_alumno)
+
+    return render(request, 'gestion.html', {
+        'stats_hombres': stats_hombres, 
+        'stats_mujeres': stats_mujeres, 
+        'alumnos_baja': alumnos_baja
+    })
 
 @login_required
 def detalle_alumno(request, alumno_id):
@@ -202,8 +222,6 @@ def editar_alumno(request, alumno_id):
 def agregar_ejercicio_rapido(request, alumno_id):
     if request.method == 'POST':
         alumno = get_object_or_404(Alumno, id=alumno_id)
-        
-        # Capturamos el nuevo campo TIMMER
         timmer_form = request.POST.get('timmer')
         
         Ejercicio.objects.create(
@@ -211,11 +229,10 @@ def agregar_ejercicio_rapido(request, alumno_id):
             nombre=request.POST.get('nombre'),
             tipo=request.POST.get('tipo'),
             dia_semana=request.POST.get('dia'),
-            # Si es aeróbico/zona media mandamos 1 serie por defecto
             series=request.POST.get('series') or 1,
             repeticiones=request.POST.get('reps'),
             peso_sugerido=request.POST.get('peso') or 0,
-            timmer=timmer_form # Guardamos P1, P2, etc.
+            timmer=timmer_form
         )
         return redirect('detalle_alumno', alumno_id=alumno.id)
     return redirect('gestion_gym')
@@ -281,4 +298,8 @@ def historial_asistencias(request, alumno_id):
     if not request.user.is_staff: return redirect('dashboard_alumno')
     alumno = get_object_or_404(Alumno, id=alumno_id)
     asistencias = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')
+    # Nos aseguramos de que el porcentaje sea entero antes de enviar al template
+    for asis in asistencias:
+        asis.porcentaje_completado = int(asis.porcentaje_completado)
+        
     return render(request, 'historial_asistencias.html', {'alumno': alumno, 'asistencias': asistencias})

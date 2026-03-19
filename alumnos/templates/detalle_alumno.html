@@ -5,7 +5,7 @@
             <h1 style="margin-bottom: 5px;">
                 FICHA: 
                 {% if alumno.user.get_full_name %}
-                    {{ alumno.user.get_full_name|upper }}
+                    {{ alumno.user.last_name|upper }}, {{ alumno.user.first_name|upper }}
                 {% else %}
                     SOCIO {{ alumno.codigo }}
                 {% endif %}
@@ -15,7 +15,6 @@
             <div style="display: flex; gap: 20px; font-size: 13px; color: #bbb; margin-top: 10px;">
                 {% if alumno.dni %}<span><strong>DNI:</strong> {{ alumno.dni }}</span>{% endif %}
                 {% if alumno.domicilio %}<span><strong>DOMICILIO:</strong> {{ alumno.domicilio }}</span>{% endif %}
-                
                 {% if alumno.celular %}
                 <span>
                     <strong>CEL:</strong> 
@@ -24,17 +23,15 @@
                     </a>
                 </span>
                 {% endif %}
-                
                 {% if alumno.contacto_emergencia %}
                 <span style="color: #ff4d4d;"><strong>🚨 EMERGENCIA:</strong> {{ alumno.contacto_emergencia }}</span>
                 {% endif %}
             </div>
         </div>
-        <a href="{% url 'gestion_gym' %}" style="color: #98cf2c; text-decoration: none; font-weight: bold; align-self: center; border: 1px solid #98cf2c; padding: 8px 15px; border-radius: 5px; transition: 0.3s;">← VOLVER AL PANEL</a>
+        <a href="{% url 'gestion_gym' %}" style="color: #98cf2c; text-decoration: none; font-weight: bold; align-self: center; border: 1px solid #98cf2c; padding: 8px 15px; border-radius: 5px;">← VOLVER AL PANEL</a>
     </div>
 
     <div style="display: flex; gap: 30px; margin-top: 30px;">
-        
         <div style="flex: 1; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #222; height: fit-content; position: sticky; top: 20px;">
             <h3 style="color: #98cf2c; margin-top: 0; text-transform: uppercase; font-size: 16px;">+ ASIGNAR EJERCICIO</h3>
             <form action="{% url 'agregar_ejercicio' alumno.id %}" method="POST">
@@ -63,7 +60,7 @@
                         <input type="number" name="series" value="3" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
                     <div style="flex: 1;">
-                        <label id="label_reps" style="font-size: 11px; color: #888; text-transform: uppercase;">Reps</label>
+                        <label id="label_reps" style="font-size: 11px; color: #888; text-transform: uppercase;">Reps / Min</label>
                         <input type="text" name="reps" id="input_reps" placeholder="12" required style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
                     <div style="flex: 1;" id="campo_peso">
@@ -86,31 +83,21 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                 {% for dia, ejercicios in rutina.items %}
                 <div style="background: #111; padding: 20px; border-radius: 12px; border: 1px solid #222;">
-                    <h4 style="color: #98cf2c; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; text-transform: uppercase;">
-                        {{ dia }}
-                    </h4>
-                    
+                    <h4 style="color: #98cf2c; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; text-transform: uppercase;">{{ dia }}</h4>
                     <div style="margin-top: 15px;">
                         {% for ej in ejercicios %}
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid 
-                            {% if ej.tipo == 'FUERZA' %}#98cf2c{% elif ej.tipo == 'AEROBICO' %}#44aaff{% else %}#ffbb33{% endif %};">
-                            
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid {% if ej.tipo == 'FUERZA' %}#98cf2c{% elif ej.tipo == 'AEROBICO' %}#44aaff{% else %}#ffbb33{% endif %};">
                             <div style="font-size: 14px;">
-                                <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 3px;">
-                                    <strong style="color: #fff;">{{ ej.nombre|upper }}</strong>
-                                    <span style="font-size: 8px; padding: 2px 4px; border-radius: 3px; background: #222; color: #888; border: 1px solid #333;">{{ ej.tipo }}</span>
-                                </div>
-
+                                <strong style="color: #fff; display: block; margin-bottom: 3px;">{{ ej.nombre|upper }}</strong>
                                 {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' %}
-                                    <span style="color: #ffbb33; font-weight: bold;">⏱️ {{ ej.repeticiones }} MIN {% if ej.timmer %}| {{ ej.timmer }}{% endif %}</span>
+                                    <span style="color: #ffbb33; font-weight: bold;">🧘 {{ ej.repeticiones }} MIN {% if ej.timmer %}| {{ ej.timmer }}{% endif %}</span>
                                 {% elif ej.tipo == 'AEROBICO' %}
                                     <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timmer %}| {{ ej.timmer }}{% endif %}</span>
                                 {% else %}
-                                    <span style="color: #98cf2c; font-weight: bold;">{{ ej.series }}x{{ ej.repeticiones }}</span> 
+                                    <span style="color: #98cf2c; font-weight: bold;">💪 {{ ej.series }}x{{ ej.repeticiones }}</span> 
                                     {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">{{ ej.peso_sugerido }}kg</small>{% endif %}
                                 {% endif %}
                             </div>
-                            
                             <a href="{% url 'eliminar_ejercicio' ej.id %}" onclick="return confirm('¿Eliminar?')" style="color: #ff4d4d; text-decoration: none; font-size: 12px; background: #222; padding: 6px 10px; border-radius: 6px; border: 1px solid #333;">🗑️</a>
                         </div>
                         {% endfor %}
@@ -137,7 +124,7 @@
             labelReps.innerText = 'MINUTOS';
             inputReps.placeholder = "20";
         } 
-        else { // FUERZA
+        else {
             colSets.style.display = 'block';
             campoPeso.style.display = 'block';
             campoTimmer.style.display = 'none';
@@ -145,7 +132,6 @@
             inputReps.placeholder = "12";
         }
     }
-    // Ejecutar al cargar para que inicie en el estado correcto
     document.addEventListener('DOMContentLoaded', adaptarFormulario);
     </script>
 </body>
