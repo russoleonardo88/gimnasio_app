@@ -86,19 +86,26 @@ SESSION_COOKIE_AGE = 31536000
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 
-# --- SEGURIDAD CSRF (CORREGIDO PARA RENDER) ---
+# --- SEGURIDAD CSRF (PARCHE FINAL) ---
 CSRF_TRUSTED_ORIGINS = [
     'https://gimnasio-app-ftq4.onrender.com',
     'https://*.onrender.com',
 ]
 
-# Ajustes de cookies para producción
+# Forzamos a Django a aceptar el origen de Render
+CSRF_ALLOWED_ORIGINS = [
+    'https://gimnasio-app-ftq4.onrender.com',
+]
+
+# Esto es vital si usas Gunicorn en Render
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
-    CSRF_COOKIE_SAMESITE = 'Lax'
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SAMESITE = 'None'  # Cambiamos 'Lax' por 'None' para probar compatibilidad absoluta
+    CSRF_COOKIE_SAMESITE = 'None'
     SECURE_SSL_REDIRECT = True 
 else:
     SESSION_COOKIE_SECURE = False
