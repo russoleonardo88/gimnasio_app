@@ -50,16 +50,19 @@ def cambiar_password(request):
 # --- VISTAS DEL ALUMNO ---
 @login_required
 def dashboard_alumno(request):
-    # Evitar que un superusuario sin perfil de Alumno rompa la vista
+    # Intentamos buscar el perfil de alumno
     try:
         alumno = Alumno.objects.get(user=request.user)
     except Alumno.DoesNotExist:
-        return redirect('gestion_gym')
+        # Si es superusuario y no tiene perfil de alumno, lo mandamos a gestión
+        if request.user.is_superuser:
+            return redirect('gestion_gym')
+        # Si es un usuario común sin perfil, le damos un error amigable
+        return render(request, 'login.html', {'error': 'Tu usuario no tiene un perfil de alumno asignado.'})
 
-    # Lógica para las barras de progreso L-V
+    # Lógica de progreso (se mantiene igual)
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
-    
     for dia in dias_semana:
         ejercicios = alumno.ejercicios.filter(dia_semana=dia)
         total = ejercicios.count()
@@ -67,17 +70,14 @@ def dashboard_alumno(request):
         porcentaje = int((hechos / total) * 100) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-    asistencias = alumno.asistencias.all().order_by('-fecha')[:5]
-    
     context = {
         'alumno': alumno,
         'mensaje_motivador': "¡Dale con todo hoy!",
         'progreso_dias': progreso_dias,
-        'asistencias': asistencias,
-        'grafico_dias_data':[], # Datos de ejemplo para el gráfico
-        'grafico_rendimiento_data':[], # Datos de ejemplo
+        'asistencias': alumno.asistencias.all().order_by('-fecha')[:5],
+        'grafico_dias_data':, 
+        'grafico_rendimiento_data':,
     }
-    
     return render(request, 'dashboard_alumno.html', context)
 
 @login_required
@@ -114,10 +114,14 @@ def control_acceso(request):
 
 @login_required
 def gestion_gym(request):
-    if not request.user.is_superuser: return redirect('dashboard_alumno')
-    alumnos = Alumno.objects.all()
-    return render(request, 'gestion_gym.html', {'alumnos': alumnos})
-
+    # Verificación de seguridad
+    if not request.user.is_superuser:
+        return redirect('dashboard_alumno')
+    
+    # Traemos los alumnos para la lista
+    alumnos_lista = Alumno.objects.all()
+    
+    return render(request, 'gestion_gym.html', {'alumnos': alumnos_lista})
 @login_required
 def detalle_alumno(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard_alumno')
