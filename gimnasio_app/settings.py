@@ -57,7 +57,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 
 # --- BASE DE DATOS (NEON / SQLITE) ---
-# Detecta automáticamente la URL de Neon en Render. Si no existe, usa SQLite local.
 DATABASES = {
     'default': dj_database_url.config(
         default=f'sqlite:///{os.path.join(BASE_DIR, "db.sqlite3")}',
@@ -82,7 +81,7 @@ LOGIN_URL = 'login'
 
 # --- CONFIGURACIÓN DE SESIONES ---
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 31536000  # 1 año
+SESSION_COOKIE_AGE = 31536000 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 
@@ -96,15 +95,14 @@ CSRF_TRUSTED_ORIGINS = [
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    
-    # Vital para que la sesión no se cierre en la APK o navegadores móviles
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
     
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True 
+    
+    # IMPORTANTE: Desactivado para evitar que la página se quede cargando infinito en Render
+    SECURE_SSL_REDIRECT = False 
 else:
-    # Desarrollo local
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
@@ -116,14 +114,13 @@ from django.dispatch import receiver
 
 @receiver(post_migrate)
 def crear_usuarios_iniciales(sender, **kwargs):
-    if sender.name == 'alumnos': # Solo ejecuta esto cuando termine de migrar tu app
+    # Verificamos por el nombre de la app para evitar duplicidad
+    if sender.name == 'alumnos': 
         from django.contrib.auth.models import User
         # Crear Superusuario (Mariano)
         if not User.objects.filter(username='Mariano').exists():
             User.objects.create_superuser('Mariano', 'admin@example.com', 'aquiles1234')
-            print("Superusuario Mariano creado con éxito.")
         
         # Crear Usuario Alumno (Leo_Russo)
         if not User.objects.filter(username='Leo_Russo').exists():
             User.objects.create_user('Leo_Russo', 'leo@example.com', 'aquiles1234')
-            print("Usuario Leo_Russo creado con éxito.")
