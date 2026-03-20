@@ -155,8 +155,25 @@ def editar_alumno(request, alumno_id):
 def nuevo_alumno(request):
     if not request.user.is_staff: return redirect('dashboard_alumno')
     if request.method == 'POST':
-        return redirect('gestion_gym') # Lógica simplificada para evitar errores
+        return redirect('gestion_gym')
     return render(request, 'nuevo_alumno.html')
+
+@login_required
+def historial_asistencias(request, alumno_id):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    asistencias = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')
+    return render(request, 'historial_asistencias.html', {'alumno': alumno, 'asistencias': asistencias})
+
+@login_required
+def eliminar_alumno(request, alumno_id):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    user = alumno.user
+    alumno.delete()
+    user.delete()
+    messages.success(request, "Alumno eliminado correctamente.")
+    return redirect('gestion_gym')
 
 def login_view(request):
     if request.user.is_authenticated:
