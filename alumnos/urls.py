@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     # --- AUTENTICACIÓN Y PERFIL ---
+    # La raíz ahora lleva al login para que sea lo primero que vea el usuario
     path('', views.login_view, name='login'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
@@ -11,9 +12,10 @@ urlpatterns = [
     # --- RUTAS PARA EL ALUMNO (App Móvil) ---
     path('dashboard/', views.dashboard_alumno, name='dashboard_alumno'),
     path('mi-rutina/', views.mi_rutina, name='mi_rutina'),
-    path('marcar-hecho/<int:ejercicio_id>/', views.marcar_ejercicio_hecho, name='marcar_ejercicio_hecho'),
+    # CORRECCIÓN: Nombre de función sincronizado con views.py
+    path('marcar-hecho/<int:ejercicio_id>/', views.marcar_hecho, name='marcar_hecho'),
     
-    # --- RUTAS PARA EL ADMIN/DUEÑO (PC Mostrador / Gestión) ---
+    # --- RUTAS PARA EL ADMIN/DUEÑO (Gestión) ---
     path('recepcion/', views.control_acceso, name='control_acceso'),
     path('gestion/', views.gestion_gym, name='gestion_gym'),
     path('gestion/alumno/<int:alumno_id>/', views.detalle_alumno, name='detalle_alumno'),
@@ -22,8 +24,8 @@ urlpatterns = [
     path('gestion/asistencias/<int:alumno_id>/', views.historial_asistencias, name='historial_asistencias'),
     path('gestion/alta-socio/', views.alta_socio_rapida, name='alta_socio'),
     
-    # --- GESTIÓN DE PAGOS (NUEVA) ---
-    path('marcar-pago/<int:alumno_id>/', views.marcar_pago, name='marcar_pago'), # <-- Agregada para el botón 💸
+    # --- GESTIÓN DE PAGOS ---
+    path('marcar-pago/<int:alumno_id>/', views.marcar_pago, name='marcar_pago'),
     
     # --- ACCIONES DE RUTINA (ADMIN) ---
     path('alumno/<int:alumno_id>/agregar/', views.agregar_ejercicio_rapido, name='agregar_ejercicio'),

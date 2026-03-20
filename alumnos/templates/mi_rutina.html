@@ -45,6 +45,8 @@
             margin-right: 20px;
             font-weight: 900;
             cursor: pointer;
+            background: none;
+            border: none;
         }
 
         .header h1 {
@@ -55,7 +57,7 @@
             font-weight: 900;
         }
 
-        .container { padding: 20px; }
+        .container { padding: 20px; padding-bottom: 60px; }
 
         .tipo-titulo {
             font-size: 11px;
@@ -80,99 +82,123 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            transition: transform 0.1s ease;
         }
 
         .ejercicio-info h3 { margin: 0; font-size: 1.1rem; color: var(--blanco); text-transform: uppercase; }
         .ejercicio-info p { margin: 5px 0 0 0; color: var(--gris-texto); font-size: 0.9rem; font-weight: 600; }
 
         .circulo {
-            width: 50px; height: 50px;
-            border: 3px solid #333;
+            width: 45px; height: 45px;
+            border: 2px solid #333;
             border-radius: 50%;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
+            position: relative;
         }
 
         .circulo.completado {
             background-color: var(--verde-aquiles);
             border-color: var(--verde-aquiles);
+            transform: scale(1.05);
         }
 
         .circulo::after {
             content: '✓';
             color: transparent;
             font-weight: 900;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
         }
 
         .circulo.completado::after { color: #000; }
+
+        /* Estado deshabilitado para evitar múltiples clicks */
+        .circulo.loading { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <a href="javascript:void(0);" onclick="irAlDashboard()" class="btn-atras">←</a>
+        <button onclick="irAlDashboard()" class="btn-atras">←</button>
         <h1>RUTINA: {{ dia }}</h1>
     </div>
 
     <div class="container">
         {% if ejercicios %}
-            {% with tiene_aero=0 %}{% endwith %}
-            <div class="seccion-tipo">
-                <span class="tipo-titulo">🏃‍♂️ Aeróbico</span>
-                {% for ejercicio in ejercicios %}
-                    {% if ejercicio.tipo == 'AERÓBICO' or ejercicio.tipo == 'AEROBICO' %}
-                        {% include "includes/card_ejercicio.html" with ej=ejercicio %}
+            
+            {% if ejercicios %}
+                {% for ej in ejercicios %}
+                    {% if ej.tipo == 'AERÓBICO' or ej.tipo == 'AEROBICO' %}
+                        {% if forloop.first %}<span class="tipo-titulo">🏃‍♂️ Aeróbico</span>{% endif %}
+                        <div class="ejercicio-card">
+                            <div class="ejercicio-info">
+                                <h3>{{ ej.nombre }}</h3>
+                                <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
+                            </div>
+                            <div id="check-{{ ej.id }}" 
+                                 class="circulo {% if ej.completado %}completado{% endif %}" 
+                                 onclick="toggleEjercicio('{{ ej.id }}')">
+                            </div>
+                        </div>
                     {% endif %}
                 {% endfor %}
-            </div>
+            {% endif %}
 
-            <div class="seccion-tipo">
-                <span class="tipo-titulo">🏋️ Fuerza</span>
-                {% for ejercicio in ejercicios %}
-                    {% if ejercicio.tipo == 'FUERZA' %}
-                        {% include "includes/card_ejercicio.html" with ej=ejercicio %}
-                    {% endif %}
-                {% endfor %}
-            </div>
+            {% for ej in ejercicios %}
+                {% if ej.tipo == 'FUERZA' %}
+                    {% if forloop.first %}<span class="tipo-titulo">🏋️ Fuerza</span>{% endif %}
+                    <div class="ejercicio-card">
+                        <div class="ejercicio-info">
+                            <h3>{{ ej.nombre }}</h3>
+                            <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
+                        </div>
+                        <div id="check-{{ ej.id }}" 
+                             class="circulo {% if ej.completado %}completado{% endif %}" 
+                             onclick="toggleEjercicio('{{ ej.id }}')">
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
 
-            <div class="seccion-tipo">
-                <span class="tipo-titulo">🧘 Zona Media</span>
-                {% for ejercicio in ejercicios %}
-                    {% if ejercicio.tipo == 'ZONA_MEDIA' or ejercicio.tipo == 'TABATA' or ejercicio.tipo == 'ZONA MEDIA' %}
-                        {% include "includes/card_ejercicio.html" with ej=ejercicio %}
-                    {% endif %}
-                {% endfor %}
-            </div>
+            {% for ej in ejercicios %}
+                {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'TABATA' or ej.tipo == 'ZONA MEDIA' %}
+                    {% if forloop.first %}<span class="tipo-titulo">🧘 Zona Media</span>{% endif %}
+                    <div class="ejercicio-card">
+                        <div class="ejercicio-info">
+                            <h3>{{ ej.nombre }}</h3>
+                            <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
+                        </div>
+                        <div id="check-{{ ej.id }}" 
+                             class="circulo {% if ej.completado %}completado{% endif %}" 
+                             onclick="toggleEjercicio('{{ ej.id }}')">
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
         {% else %}
-            <div style="text-align: center; margin-top: 50px;">
-                <p style="color: var(--gris-texto); font-weight: 600;">No hay ejercicios cargados para el {{ dia }}.</p>
+            <div style="text-align: center; margin-top: 80px; opacity: 0.4;">
+                <p style="font-weight: 800; font-size: 0.9rem; letter-spacing: 1px;">SIN RUTINA PARA EL {{ dia|upper }}</p>
             </div>
         {% endif %}
     </div>
 
     <script>
-    // SOLUCIÓN LENTITUD: Redirección forzada y limpia
     function irAlDashboard() {
-        document.body.style.opacity = '0.5';
-        // replace() evita que el botón atrás del navegador cause bucles, 
-        // pero aquí usamos href para asegurar que el servidor reciba la petición fresca
+        document.body.style.opacity = '0.4';
         window.location.href = "{% url 'dashboard_alumno' %}";
     }
 
     function toggleEjercicio(ejercicioId) {
         const elemento = document.getElementById(`check-${ejercicioId}`);
-        if (!elemento) return;
+        if (!elemento || elemento.classList.contains('loading')) return;
 
-        // INTERFAZ OPTIMISTA: Cambia el color ANTES de que el servidor responda
-        const yaCompletado = elemento.classList.contains('completado');
-        if (yaCompletado) {
-            elemento.classList.remove('completado');
-        } else {
-            elemento.classList.add('completado');
-        }
+        // UI Optimista
+        elemento.classList.add('loading');
+        const estadoActual = elemento.classList.contains('completado');
+        elemento.classList.toggle('completado');
 
         fetch(`/marcar-hecho/${ejercicioId}/`, {
             method: 'POST',
@@ -183,21 +209,27 @@
         })
         .then(response => response.json())
         .then(data => {
-            if (data.status !== 'ok') {
-                // Si el servidor falla, revertimos el cambio visual
-                elemento.classList.toggle('completado');
-                alert("Error al guardar el progreso.");
-            }
-            // Sincronizamos con el estado real del servidor por si acaso
-            if (data.completado) {
-                elemento.classList.add('completado');
+            elemento.classList.remove('loading');
+            if (data.status === 'ok') {
+                // Sincronizar con el estado real del servidor
+                if (data.completado) {
+                    elemento.classList.add('completado');
+                } else {
+                    elemento.classList.remove('completado');
+                }
             } else {
-                elemento.classList.remove('completado');
+                // Revertir en caso de error
+                if (estadoActual) elemento.classList.add('completado');
+                else elemento.classList.remove('completado');
+                alert("Error de conexión");
             }
         })
         .catch(error => {
+            elemento.classList.remove('loading');
+            // Revertir en caso de error de red
+            if (estadoActual) elemento.classList.add('completado');
+            else elemento.classList.remove('completado');
             console.error('Error:', error);
-            elemento.classList.toggle('completado');
         });
     }
     </script>

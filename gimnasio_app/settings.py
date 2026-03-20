@@ -8,10 +8,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- SEGURIDAD ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3*r893bw)ik7h=!fd$x7ky$hiigyx@dy+*772wv^&e2t#hn#f&')
 
-# IMPORTANTE: En Render, creá la Variable de Entorno DEBUG con valor False
+# IMPORTANTE: En Render, creá la Variable de Envorno DEBUG con valor False
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
+# Agregamos tu dominio específico de Render
+ALLOWED_HOSTS = ['gimnasio-app-ftq4.onrender.com', 'localhost', '127.0.0.1', '.onrender.com']
 
 # --- APLICACIONES ---
 INSTALLED_APPS = [
@@ -27,7 +28,7 @@ INSTALLED_APPS = [
 # --- MIDDLEWARE ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # DEBE IR AQUÍ para los estilos CSS
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -56,12 +57,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 
-# --- BASE DE DATOS (NEON) ---
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 # --- INTERNACIONALIZACIÓN ---
@@ -73,16 +73,16 @@ USE_TZ = True
 # --- ARCHIVOS ESTÁTICOS ---
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+# Usamos el almacenamiento de Whitenoise para producción
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# --- CONFIGURACIÓN DE LOGIN (CORREGIDO) ---
-# Usamos los nombres de las URLs definidos en tus urls.py
+# --- CONFIGURACIÓN DE LOGIN ---
 LOGIN_REDIRECT_URL = 'dashboard_alumno'
 LOGIN_URL = 'login'
 
-# --- CONFIGURACIÓN DE SESIONES (PARA MANTENER EL LOGIN) ---
+# --- CONFIGURACIÓN DE SESIONES ---
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 31536000  # 1 año en segundos
+SESSION_COOKIE_AGE = 31536000  # 1 año
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 
@@ -92,28 +92,23 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com'
 ]
 
-# --- EL BLOQUE MAESTRO PARA LA APK Y PRODUCCIÓN ---
+# --- BLOQUE PARA PRODUCCIÓN / APK ---
 if not DEBUG or os.environ.get('RENDER'):
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     
-    # SameSite=None permite que el WebView de Android reciba la cookie desde el dominio de Render
+    # Esto es vital para que la APK no pierda la sesión
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
     
-    # HttpOnly=True es más seguro, pero dejamos CSRF en False para evitar bloqueos en Android
     SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_HTTPONLY = False 
     
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = False 
-    
-    APPEND_SLASH = True 
+    SECURE_SSL_REDIRECT = True # Forzamos HTTPS en producción
 else:
     # Desarrollo local
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SAMESITE = 'Lax'
-    CSRF_COOKIE_SAMESITE = 'Lax'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

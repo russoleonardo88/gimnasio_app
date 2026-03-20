@@ -23,6 +23,7 @@
             color: var(--blanco);
             margin: 0; padding: 20px;
             display: flex; flex-direction: column; align-items: center;
+            transition: opacity 0.3s ease;
         }
 
         .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
@@ -40,14 +41,8 @@
             box-sizing: border-box;
         }
 
-        .progreso-link {
-            text-decoration: none;
-            color: inherit;
-            display: block;
-            transition: transform 0.2s ease, opacity 0.2s ease;
-        }
-        .progreso-link:active { transform: scale(0.97); }
-        .progreso-link:hover { opacity: 0.9; }
+        .progreso-link { text-decoration: none; color: inherit; display: block; transition: transform 0.1s ease; }
+        .progreso-link:active { transform: scale(0.98); }
 
         .seccion-titulo { font-size: 11px; font-weight: 700; color: var(--gris-texto); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; width: 100%; max-width: 800px; }
 
@@ -120,7 +115,9 @@
     <h3 class="seccion-titulo">Mi Rutina Semanal (L-V)</h3>
     <div class="card-seccion">
         {% for item in progreso_dias %}
-        <a href="{% url 'mi_rutina' %}?dia={{ item.nombre }}" class="progreso-link">
+        <a href="{% url 'mi_rutina' %}?dia={{ item.nombre }}" 
+           class="progreso-link" 
+           onclick="document.body.style.opacity='0.4';">
             <div class="progreso-item">
                 <div class="progreso-info">
                     <span>{{ item.nombre }}</span>
@@ -143,13 +140,13 @@
             <div class="actividad-item">
                 <div>
                     <strong style="color: var(--blanco);">{{ ultima.fecha|date:"l j \d\e F"|upper }}</strong>
-                    <p style="color: var(--gris-texto); margin: 3px 0 0 0; font-size: 12px;">Completaste el {{ ultima.porcentaje_completado }}% de tu rutina.</p>
+                    <p style="color: var(--gris-texto); margin: 3px 0 0 0; font-size: 12px;">Actividad registrada con éxito.</p>
                 </div>
                 <div class="check-estetico">✓</div>
             </div>
             {% endwith %}
         {% else %}
-            <p style="color: #444; text-align: center; font-size: 12px;">Sin actividad registrada esta semana.</p>
+            <p style="color: #444; text-align: center; font-size: 12px;">Sin actividad reciente.</p>
         {% endif %}
     </div>
 
@@ -164,25 +161,17 @@
     </div>
 
     <div class="footer-links">
-        <a href="{% url 'cambiar_password' %}" class="link-perfil">
-            ⚙️ CAMBIAR CLAVE
-        </a>
-        <a href="{% url 'logout' %}" class="link-logout">
-            CERRAR SESIÓN DE {{ user.first_name|upper }}
-        </a>
+        <a href="{% url 'cambiar_password' %}" class="link-perfil">⚙️ CAMBIAR CLAVE</a>
+        <a href="{% url 'logout' %}" class="link-logout">CERRAR SESIÓN DE {{ user.first_name|upper }}</a>
     </div>
 
     <script>
-        // --- RECARGA SI VIENE DE BOTÓN ATRÁS ---
-        window.addEventListener('pageshow', function(event) {
-            // Se usa el primer elemento de navigation para compatibilidad
-            const navigationType = performance.getEntriesByType("navigation")?.type;
-            if (event.persisted || navigationType === "back_forward") {
+        window.onpageshow = function(event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
                 window.location.reload();
             }
-        });
+        };
 
-        // Configuración Global de Chart.js
         const defaults = {
             color: '#888888',
             font: { family: "'Inter', sans-serif", size: 10 },
@@ -190,16 +179,13 @@
         };
         Chart.defaults.color = defaults.color;
         Chart.defaults.font = defaults.font;
-        Chart.defaults.scale.grid = defaults.grid;
 
-        // Gráfico de Barras: Días Entrenados
         new Chart(document.getElementById('graficoDias'), {
             type: 'bar',
             data: {
                 labels: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN'],
                 datasets: [{
                     label: 'Días',
-                    // CORRECCIÓN: Default a array vacío para evitar error de JS
                     data: {{ grafico_dias_data|safe|default:"[]" }},
                     backgroundColor: '#98cf2c',
                     borderRadius: 5
@@ -208,21 +194,16 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false }, 
-                    title: { display: true, text: 'DÍAS ENTRENADOS', color: '#fff' } 
-                }
+                plugins: { legend: { display: false }, title: { display: true, text: 'DÍAS ENTRENADOS', color: '#fff' } }
             }
         });
 
-        // Gráfico de Línea: Rendimiento Semanal
         new Chart(document.getElementById('graficoIntensidad'), {
             type: 'line',
             data: {
                 labels: ['S1', 'S2', 'S3', 'S4'],
                 datasets: [{
-                    label: 'Intensidad %',
-                    // CORRECCIÓN: Default a array vacío para evitar error de JS
+                    label: 'Rendimiento %',
                     data: {{ grafico_rendimiento_data|safe|default:"[]" }},
                     borderColor: '#98cf2c',
                     backgroundColor: 'rgba(152, 207, 44, 0.1)',
@@ -233,13 +214,8 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false }, 
-                    title: { display: true, text: 'RENDIMIENTO (%)', color: '#fff' } 
-                },
-                scales: { 
-                    y: { min: 0, max: 100, ticks: { stepSize: 20 } } 
-                }
+                plugins: { legend: { display: false }, title: { display: true, text: 'RENDIMIENTO (%)', color: '#fff' } },
+                scales: { y: { min: 0, max: 100 } }
             }
         });
     </script>
