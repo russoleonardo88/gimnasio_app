@@ -3,6 +3,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Aquí es donde conectamos tu app 'alumnos' con el proyecto principal
+    # Conectamos las urls de la app alumnos a la raíz del proyecto
     path('', include('alumnos.urls')), 
 ]

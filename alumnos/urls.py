@@ -3,13 +3,13 @@ from . import views
 
 urlpatterns = [
     # --- AUTENTICACIÓN Y PERFIL ---
-    # La raíz vacía ('') ahora apunta directamente a login_view
+    # La raíz vacía ahora es la ÚNICA que maneja el inicio
     path('', views.login_view, name='login'),
-    path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('perfil/password/', views.cambiar_password, name='cambiar_password'),
     
     # --- RUTAS PARA EL ALUMNO (App Móvil) ---
+    # Es vital que este nombre coincida con LOGIN_REDIRECT_URL en settings.py
     path('dashboard/', views.dashboard_alumno, name='dashboard_alumno'),
     path('mi-rutina/', views.mi_rutina, name='mi_rutina'),
     path('marcar-hecho/<int:ejercicio_id>/', views.marcar_hecho, name='marcar_hecho'),

@@ -75,9 +75,9 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# --- CONFIGURACIÓN DE LOGIN ---
-# Cambié esto a '/' para que si falla el nombre de la URL, te mande al inicio
-LOGIN_REDIRECT_URL = '/' 
+# --- CONFIGURACIÓN DE LOGIN (CORREGIDO) ---
+# Ahora te manda al dashboard al loguearte correctamente
+LOGIN_REDIRECT_URL = 'dashboard_alumno' 
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
 
