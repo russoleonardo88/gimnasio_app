@@ -25,9 +25,9 @@ def login_view(request):
                 return redirect('gestion_gym')
             return redirect('dashboard')
         else:
-            return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
+            return render(request, 'alumnos/login.html', {'error': 'Usuario o contraseña incorrectos'})
 
-    return render(request, 'login.html')
+    return render(request, 'alumnos/login.html')
 
 def logout_view(request):
     logout(request)
@@ -43,22 +43,19 @@ def cambiar_password(request):
             return redirect('dashboard')
     else:
         form = PasswordChangeForm(request.user)
-    return render(request, 'cambiar_password.html', {'form': form})
+    return render(request, 'alumnos/cambiar_password.html', {'form': form})
 
 # --- VISTAS DEL ALUMNO ---
 @login_required
 def dashboard(request):
     try:
-        # 1. Buscamos al alumno vinculado al usuario
         alumno = Alumno.objects.filter(user=request.user).first()
         
-        # 2. Si no es un alumno (es admin o usuario sin perfil creado)
         if not alumno:
             if request.user.is_superuser:
                 return redirect('gestion_gym')
-            return render(request, 'login.html', {'error': 'Tu usuario no tiene un perfil de alumno asignado.'})
+            return render(request, 'alumnos/login.html', {'error': 'Tu usuario no tiene un perfil de alumno asignado.'})
 
-        # 3. Cálculo de progreso por día
         dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
         progreso_dias = []
         for dia in dias_semana:
@@ -68,7 +65,6 @@ def dashboard(request):
             porcentaje = int((hechos / total) * 100) if total > 0 else 0
             progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-        # 4. Definición del context (AHORA SÍ, ANTES DEL RENDER)
         context = {
             'alumno': alumno,
             'mensaje_motivador': "¡Dale con todo hoy!",
@@ -78,10 +74,9 @@ def dashboard(request):
             'grafico_rendimiento_data': [],
         }
         
-        return render(request, 'dashboard.html', context)
+        return render(request, 'alumnos/dashboard.html', context)
 
     except Exception as e:
-        # Esto ayuda a ver el error real en los logs de Render
         print(f"Error en dashboard: {e}")
         return HttpResponse(f"Error interno: {e}", status=500)
 
@@ -97,7 +92,7 @@ def mi_rutina(request):
     dia_nombre = dia_url if dia_url else dias_map[timezone.now().weekday()]
     ejercicios = alumno.ejercicios.filter(dia_semana=dia_nombre)
     
-    return render(request, 'mi_rutina.html', {'ejercicios': ejercicios, 'dia': dia_nombre})
+    return render(request, 'alumnos/mi_rutina.html', {'ejercicios': ejercicios, 'dia': dia_nombre})
 
 @login_required
 def marcar_hecho(request, ejercicio_id):
@@ -114,27 +109,27 @@ def marcar_hecho(request, ejercicio_id):
 @login_required
 def control_acceso(request):
     if not request.user.is_superuser: return redirect('dashboard')
-    return render(request, 'control_acceso.html')
+    return render(request, 'alumnos/control_acceso.html')
 
 @login_required
-def gestion_gym(request):
+def gestion_gym(request):  # Mantenemos este nombre para que urls.py no explote
     if not request.user.is_superuser:
         return redirect('dashboard')
     
     alumnos_lista = Alumno.objects.all().order_by('user__last_name')
-    return render(request, 'gestion_gym.html', {'alumnos': alumnos_lista})
+    return render(request, 'alumnos/gestion.html', {'alumnos': alumnos_lista})
 
 @login_required
 def detalle_alumno(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard')
     alumno = get_object_or_404(Alumno, id=alumno_id)
-    return render(request, 'detalle_alumno.html', {'alumno': alumno})
+    return render(request, 'alumnos/detalle_alumno.html', {'alumno': alumno})
 
 @login_required
 def editar_alumno(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard')
     alumno = get_object_or_404(Alumno, id=alumno_id)
-    return render(request, 'editar_alumno.html', {'alumno': alumno})
+    return render(request, 'alumnos/editar_alumno.html', {'alumno': alumno})
 
 @login_required
 def cambiar_estado_alumno(request, alumno_id):
@@ -148,12 +143,12 @@ def cambiar_estado_alumno(request, alumno_id):
 def historial_asistencias(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard')
     alumno = get_object_or_404(Alumno, id=alumno_id)
-    return render(request, 'historial_asistencias.html', {'alumno': alumno})
+    return render(request, 'alumnos/historial_asistencias.html', {'alumno': alumno})
 
 @login_required
 def alta_socio_rapida(request):
     if not request.user.is_superuser: return redirect('dashboard')
-    return render(request, 'alta_socio.html')
+    return render(request, 'alumnos/alta_socio.html')
 
 @login_required
 def marcar_pago(request, alumno_id):
@@ -167,7 +162,6 @@ def marcar_pago(request, alumno_id):
 @login_required
 def agregar_ejercicio_rapido(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard')
-    # Esta vista usualmente redirige después de procesar un formulario POST
     return redirect('detalle_alumno', alumno_id=alumno_id)
 
 @login_required
