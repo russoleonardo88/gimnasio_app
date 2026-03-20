@@ -64,7 +64,6 @@
             margin-bottom: 10px;
         }
 
-        /* --- ESTILO PARA EL CHECKMARK ESTÉTICO --- */
         .check-estetico {
             width: 24px; height: 24px;
             background-color: var(--verde-neon);
@@ -175,6 +174,15 @@
     </div>
 
     <script>
+        // --- SOLUCIÓN AL BOTÓN ATRÁS DEL CELULAR ---
+        // Recarga la página si se detecta que se volvió atrás para actualizar porcentajes
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+
+        // Configuración de Gráficos
         const defaults = {
             color: '#888888',
             font: { family: "'Inter', sans-serif", size: 10 },
@@ -190,7 +198,7 @@
                 labels: ['ENE', 'FEB', 'MAR'],
                 datasets: [{
                     label: 'Días',
-                    data: [15, 18, 12],
+                    data:,
                     backgroundColor: '#98cf2c',
                     borderRadius: 5
                 }]
@@ -208,7 +216,7 @@
                 labels: ['S1', 'S2', 'S3', 'S4'],
                 datasets: [{
                     label: 'Intensidad %',
-                    data: [70, 85, 80, 95],
+                    data:,
                     borderColor: '#98cf2c',
                     tension: 0.3,
                     fill: false

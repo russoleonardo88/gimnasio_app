@@ -105,7 +105,7 @@
             border: 3px solid #333;
             border-radius: 50%;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease; /* Un poquito más rápido */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -179,8 +179,16 @@
         const elemento = document.getElementById(`check-${ejercicioId}`);
         if (!elemento) return;
 
-        elemento.style.pointerEvents = 'none';
+        // --- INTERFAZ OPTIMISTA: Cambiamos el color YA ---
+        const yaCompletado = elemento.classList.contains('completado');
+        
+        if (yaCompletado) {
+            elemento.classList.remove('completado');
+        } else {
+            elemento.classList.add('completado');
+        }
 
+        // Enviamos la info al servidor por detrás
         fetch(`/marcar-hecho/${ejercicioId}/`, {
             method: 'POST',
             headers: {
@@ -190,18 +198,24 @@
         })
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'ok') {
+            if (data.status !== 'ok') {
+                // Si el servidor falla, volvemos al estado anterior y avisamos
+                elemento.classList.toggle('completado');
+                alert("No se pudo guardar el progreso. Revisá tu conexión.");
+            }
+            // Si el estado que devuelve el servidor es distinto al que pusimos (raro pero posible), sincronizamos
+            if (data.completado !== undefined) {
                 if (data.completado) {
                     elemento.classList.add('completado');
                 } else {
                     elemento.classList.remove('completado');
                 }
             }
-            elemento.style.pointerEvents = 'auto';
         })
         .catch(error => {
             console.error('Error:', error);
-            elemento.style.pointerEvents = 'auto';
+            // Si hay error de red, volvemos atrás el cambio visual
+            elemento.classList.toggle('completado');
         });
     }
     </script>
