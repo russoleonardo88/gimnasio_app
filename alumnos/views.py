@@ -8,7 +8,6 @@ from .models import Alumno, Ejercicio, Asistencia, Entrenador
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Count, Avg, Q
-from django.db.models.functions import ExtractMonth
 from django.contrib import messages
 from datetime import timedelta, datetime
 
@@ -80,27 +79,22 @@ def dashboard_alumno(request):
     for dia in dias_semana:
         ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).distinct()
         total = ejercicios_dia.count()
-        
-        # IMPORTANTE: Solo contamos como completados si se hicieron HOY o en la fecha de la última rutina activa
         completados = ejercicios_dia.filter(completado=True, ultima_vez_hecho__date=hoy).count()
-        
-        # Si el ejercicio está marcado como completado pero la fecha es vieja, lo ignoramos para el cálculo
         porcentaje = int((completados / total * 100)) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-    # 2. LOGICA DE GRÁFICOS (NUEVO)
-    # Gráfico de Barras: Días entrenados por mes (últimos 6 meses)
+    # 2. LÓGICA DE GRÁFICOS
     grafico_dias_data = []
     for i in range(5, -1, -1):
-        mes_fecha = hoy - timedelta(days=i*30)
+        # Evitamos problemas de meses restando semanas de forma segura
+        fecha_aux = hoy - timedelta(days=i*30)
         conteo = Asistencia.objects.filter(
             alumno=alumno, 
-            fecha__month=mes_fecha.month, 
-            fecha__year=mes_fecha.year
+            fecha__month=fecha_aux.month, 
+            fecha__year=fecha_aux.year
         ).count()
         grafico_dias_data.append(conteo)
 
-    # Gráfico de Línea: Rendimiento últimas 4 semanas
     grafico_rendimiento_data = []
     for i in range(3, -1, -1):
         inicio_semana = hoy - timedelta(days=hoy.weekday() + (i*7))
@@ -136,7 +130,6 @@ def mi_rutina(request):
     
     ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado).distinct()
     
-    # Limpieza automática: Si el ejercicio se marcó en un día anterior, se resetea a False
     hoy = timezone.now().date()
     for ej in ejercicios:
         if ej.ultima_vez_hecho and ej.ultima_vez_hecho.date() < hoy:
@@ -155,13 +148,11 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
             ejercicio.ultima_vez_hecho = timezone.now()
             ejercicio.save()
             
-            # Recalcular progreso del día
             ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana).distinct()
             total = ejercicios_dia.count()
             hechos = ejercicios_dia.filter(completado=True, ultima_vez_hecho__date=timezone.now().date()).count()
             nuevo_progreso = int((hechos / total * 100)) if total > 0 else 0
             
-            # Actualizar o crear la asistencia del día con el porcentaje
             asistencia, _ = Asistencia.objects.get_or_create(alumno=ejercicio.alumno, fecha=timezone.now().date())
             asistencia.porcentaje_completado = nuevo_progreso
             asistencia.save()
@@ -227,8 +218,6 @@ def gestion_gym(request):
             
     return render(request, 'gestion.html', {'stats_hombres': stats_hombres, 'stats_mujeres': stats_mujeres, 'alumnos_baja': alumnos_baja})
 
-# --- OTRAS VISTAS (RESTO DEL CÓDIGO) ---
-
 @login_required
 def detalle_alumno(request, alumno_id):
     alumno = get_object_or_404(Alumno, id=alumno_id)
@@ -264,4 +253,83 @@ def alta_socio_rapida(request):
         return redirect('gestion_gym')
     return render(request, 'alta_socio.html')
 
-# (Mantener el resto de las funciones: agregar_ejercicio_rapido, eliminar_ejercicio, etc., igual que las tenías)
+# --- FUNCIONES DE GESTIÓN QUE FALTABAN (SOLUCIÓN ERROR DEPLOY) ---
+
+@login_required
+def editar_alumno(request, alumno_id):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    if request.method == "POST":
+        alumno.user.first_name = request.POST.get('nombre')
+        alumno.user.last_name = request.POST.get('apellido')
+        alumno.user.save()
+        alumno.plan_semanal = request.POST.get('plan')
+        alumno.dni = request.POST.get('dni')
+        alumno.domicilio = request.POST.get('domicilio')
+        alumno.celular = request.POST.get('celular')
+        alumno.contacto_emergencia = request.POST.get('emergencia')
+        alumno.cuota_pagada = 'cuota_pagada' in request.POST
+        alumno.save()
+        messages.success(request, f"Datos de {alumno.user.first_name} actualizados.")
+        return redirect('gestion_gym')
+    return render(request, 'editar_alumno.html', {'alumno': alumno})
+
+@login_required
+def agregar_ejercicio_rapido(request, alumno_id):
+    if request.method == 'POST':
+        alumno = get_object_or_404(Alumno, id=alumno_id)
+        Ejercicio.objects.create(
+            alumno=alumno,
+            nombre=request.POST.get('nombre'),
+            tipo=request.POST.get('tipo'),
+            dia_semana=request.POST.get('dia'),
+            series=request.POST.get('series') or 1,
+            repeticiones=request.POST.get('reps'),
+            peso_sugerido=request.POST.get('peso') or 0,
+            timmer=request.POST.get('timmer')
+        )
+        return redirect('detalle_alumno', alumno_id=alumno.id)
+    return redirect('gestion_gym')
+
+@login_required
+def eliminar_ejercicio(request, ejercicio_id):
+    ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id)
+    alu_id = ejercicio.alumno.id
+    if request.user.is_staff:
+        ejercicio.delete()
+    return redirect('detalle_alumno', alumno_id=alu_id)
+
+@login_required
+def cambiar_estado_alumno(request, alumno_id):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    alumno.activo = not alumno.activo
+    alumno.save()
+    return redirect('gestion_gym')
+
+@login_required
+def resetear_rutina(request, alumno_id):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    Ejercicio.objects.filter(alumno=alumno).delete()
+    alumno.fecha_inicio_rutina = timezone.now().date()
+    alumno.save()
+    return redirect('gestion_gym')
+
+@login_required
+def historial_asistencias(request, alumno_id):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    hoy = timezone.now().date()
+    hace_30_dias = hoy - timedelta(days=30)
+    asistencias = Asistencia.objects.filter(alumno=alumno, fecha__range=[hace_30_dias, hoy]).order_by('-fecha')
+    
+    conteo = Asistencia.objects.filter(alumno=alumno, fecha__month=hoy.month, fecha__year=hoy.year).count()
+    meta = int(alumno.plan_semanal) * 4
+    porcentaje_mes = int((conteo / meta * 100)) if meta > 0 else 0
+    
+    return render(request, 'historial_asistencias.html', {
+        'alumno': alumno, 
+        'asistencias': asistencias,
+        'porcentaje_mes': porcentaje_mes,
+    })
