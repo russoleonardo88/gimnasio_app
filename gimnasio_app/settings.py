@@ -6,7 +6,6 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SEGURIDAD ---
-# Intenta leer la clave de Render, si no usa una por defecto (Inseguro para producción, pero funciona)
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3*r893bw)ik7h=!fd$x7ky$hiigyx@dy+*772wv^&e2t#hn#f&')
 
 # IMPORTANTE: En Render, creá la Variable de Entorno DEBUG con valor False
@@ -58,7 +57,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 
 # --- BASE DE DATOS (NEON) ---
-# Lee la DATABASE_URL que configuraste en Render
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
@@ -77,11 +75,12 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# --- CONFIGURACIÓN DE LOGIN ---
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGIN_URL = '/login/'
+# --- CONFIGURACIÓN DE LOGIN (CORREGIDO) ---
+# Usamos los nombres de las URLs definidos en tus urls.py
+LOGIN_REDIRECT_URL = 'dashboard_alumno'
+LOGIN_URL = 'login'
 
-# --- CONFIGURACIÓN DE SESIONES (ESTO MANTIENE EL LOGIN) ---
+# --- CONFIGURACIÓN DE SESIONES (PARA MANTENER EL LOGIN) ---
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 31536000  # 1 año en segundos
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
@@ -95,26 +94,23 @@ CSRF_TRUSTED_ORIGINS = [
 
 # --- EL BLOQUE MAESTRO PARA LA APK Y PRODUCCIÓN ---
 if not DEBUG or os.environ.get('RENDER'):
-    # Cookies seguras para HTTPS
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     
-    # SameSite=None es obligatorio para que el WebView de Android no borre la sesión
+    # SameSite=None permite que el WebView de Android reciba la cookie desde el dominio de Render
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
     
-    # Permitimos que la cookie sea accesible (ayuda a evitar rebotes en Android)
+    # HttpOnly=True es más seguro, pero dejamos CSRF en False para evitar bloqueos en Android
     SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_HTTPONLY = False 
     
-    # Configuración de Proxy para Render
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = False  # Evita bucles de redirección infinitos
+    SECURE_SSL_REDIRECT = False 
     
-    # Forzamos barras al final de las URLs para evitar re-procesamientos
     APPEND_SLASH = True 
 else:
-    # Configuración para desarrollo local (cuando DEBUG=True)
+    # Desarrollo local
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SAMESITE = 'Lax'

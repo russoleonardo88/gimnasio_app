@@ -142,7 +142,13 @@
         
         <h1>Aquiles App</h1>
 
-        {% if form.errors %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="error-msg">{{ message|upper }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.errors and not messages %}
             <div class="error-msg">USUARIO O CONTRASEÑA INCORRECTOS</div>
         {% endif %}
 
@@ -156,7 +162,7 @@
             </div>
 
             <div class="remember-group">
-                <input type="checkbox" name="remember_me" id="remember_me" checked>
+                <input type="checkbox" name="remember_me" id="remember_me" value="on" checked>
                 <label for="remember_me">Mantener sesión iniciada</label>
             </div>
 

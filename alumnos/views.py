@@ -15,24 +15,39 @@ from datetime import timedelta
 # --- VISTAS DE AUTENTICACIÓN ---
 
 def login_view(request):
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect('gestion_gym')
+        return redirect('dashboard_alumno')
+
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
             
-            # --- LÓGICA DE SESIÓN PERSISTENTE (RECORDARME) ---
-            # Si el checkbox 'remember_me' está marcado, la sesión dura 1 año.
-            if request.POST.get('remember_me'):
-                request.session.set_expiry(31536000) # 1 año en segundos
+            # --- CORRECCIÓN CRÍTICA DE SESIÓN ---
+            # Leemos directamente del POST para que Django no lo ignore
+            recordarme = request.POST.get('remember_me')
+            
+            if recordarme:
+                # Si marcó el checkbox: 1 año (31.536.000 segundos)
+                request.session.set_expiry(31536000)
+                print(f"SESIÓN PERSISTENTE: Usuario {user.username} por 1 año.")
             else:
-                request.session.set_expiry(0) # Expira al cerrar la app
+                # Si no lo marcó: 24 horas (para evitar que Android la borre al instante)
+                request.session.set_expiry(86400) 
+                print(f"SESIÓN TEMPORAL: Usuario {user.username} por 24hs.")
                 
             if user.is_staff:
                 return redirect('gestion_gym')
             return redirect('dashboard_alumno')
+        else:
+            messages.error(request, "Usuario o contraseña incorrectos.")
     else:
         form = AuthenticationForm()
+    
+    # Asegurate que en tu login.html el input tenga name="remember_me"
     return render(request, 'login.html', {'form': form})
 
 def logout_view(request):
@@ -69,7 +84,7 @@ def dashboard_alumno(request):
     todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
 
     for dia in dias_semana:
-        ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).all().distinct()
+        ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).distinct()
         total = ejercicios_dia.count()
         completados = ejercicios_dia.filter(completado=True).count()
         porcentaje = int((completados / total * 100)) if total > 0 else 0
@@ -81,7 +96,7 @@ def dashboard_alumno(request):
         'Saturday': 'Lunes', 'Sunday': 'Lunes'
     }
     dia_hoy_esp = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
-    ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).all().distinct()
+    ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
 
     asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
@@ -107,7 +122,7 @@ def mi_rutina(request):
     dia_seleccionado = request.GET.get('dia', dia_default)
     alumno = get_object_or_404(Alumno, user=request.user)
     
-    ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado).all().distinct()
+    ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado).distinct()
     
     hoy = timezone.now().date()
     for ej in ejercicios:
@@ -127,7 +142,7 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
             ejercicio.ultima_vez_hecho = timezone.now()
             ejercicio.save()
             
-            ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana).all().distinct()
+            ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana).distinct()
             total = ejercicios_dia.count()
             hechos = ejercicios_dia.filter(completado=True).count()
             nuevo_progreso = int((hechos / total * 100)) if total > 0 else 0
@@ -213,7 +228,7 @@ def gestion_gym(request):
 def detalle_alumno(request, alumno_id):
     alumno = get_object_or_404(Alumno, id=alumno_id)
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
-    rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).all().distinct() for dia in dias}
+    rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).distinct() for dia in dias}
     return render(request, 'detalle_alumno.html', {'alumno': alumno, 'rutina': rutina, 'dias': dias})
 
 @login_required
