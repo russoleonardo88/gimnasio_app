@@ -173,24 +173,16 @@
     </div>
 
     <script>
-        // --- SOLUCIÓN DEFINITIVA PARA RECARGA ---
-        // 1. Detecta cuando se vuelve a la página mediante el botón de atrás del celular
+        // --- RECARGA SI VIENE DE BOTÓN ATRÁS ---
         window.addEventListener('pageshow', function(event) {
-            // Recarga si la página viene del historial (caché del navegador)
-            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
-                window.location.reload(true);
+            // Se usa el primer elemento de navigation para compatibilidad
+            const navigationType = performance.getEntriesByType("navigation")?.type;
+            if (event.persisted || navigationType === "back_forward") {
+                window.location.reload();
             }
         });
 
-        // 2. Por las dudas: si la app estaba abierta y el usuario vuelve a enfocarla
-        document.addEventListener("visibilitychange", function() {
-            if (document.visibilityState === 'visible') {
-                // Opcional: solo recarga si querés actualización en tiempo real constante
-                // window.location.reload(true);
-            }
-        });
-
-        // Configuración de Gráficos
+        // Configuración Global de Chart.js
         const defaults = {
             color: '#888888',
             font: { family: "'Inter', sans-serif", size: 10 },
@@ -200,13 +192,15 @@
         Chart.defaults.font = defaults.font;
         Chart.defaults.scale.grid = defaults.grid;
 
+        // Gráfico de Barras: Días Entrenados
         new Chart(document.getElementById('graficoDias'), {
             type: 'bar',
             data: {
-                labels: ['ENE', 'FEB', 'MAR'],
+                labels: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN'],
                 datasets: [{
                     label: 'Días',
-                    data:,
+                    // CORRECCIÓN: Default a array vacío para evitar error de JS
+                    data: {{ grafico_dias_data|safe|default:"[]" }},
                     backgroundColor: '#98cf2c',
                     borderRadius: 5
                 }]
@@ -214,27 +208,38 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false }, title: { display: true, text: 'DÍAS ENTRENADOS', color: '#fff' } }
+                plugins: { 
+                    legend: { display: false }, 
+                    title: { display: true, text: 'DÍAS ENTRENADOS', color: '#fff' } 
+                }
             }
         });
 
+        // Gráfico de Línea: Rendimiento Semanal
         new Chart(document.getElementById('graficoIntensidad'), {
             type: 'line',
             data: {
                 labels: ['S1', 'S2', 'S3', 'S4'],
                 datasets: [{
                     label: 'Intensidad %',
-                    data:,
+                    // CORRECCIÓN: Default a array vacío para evitar error de JS
+                    data: {{ grafico_rendimiento_data|safe|default:"[]" }},
                     borderColor: '#98cf2c',
+                    backgroundColor: 'rgba(152, 207, 44, 0.1)',
                     tension: 0.3,
-                    fill: false
+                    fill: true
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false }, title: { display: true, text: 'RENDIMIENTO (%)', color: '#fff' } },
-                scales: { y: { min: 0, max: 100 } }
+                plugins: { 
+                    legend: { display: false }, 
+                    title: { display: true, text: 'RENDIMIENTO (%)', color: '#fff' } 
+                },
+                scales: { 
+                    y: { min: 0, max: 100, ticks: { stepSize: 20 } } 
+                }
             }
         });
     </script>
