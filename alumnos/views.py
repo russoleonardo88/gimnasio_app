@@ -178,3 +178,11 @@ def resetear_rutina(request, alumno_id):
     alumno = get_object_or_404(Alumno, id=alumno_id)
     alumno.ejercicios.all().update(completado=False)
     return redirect('detalle_alumno', alumno_id=alumno_id)
+
+from django.contrib.auth.models import User
+
+def crear_admin_temporal(request):
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@test.com', 'admin1234')
+        return HttpResponse("Admin creado: usuario 'admin', clave 'admin1234'. ¡BORRÁ ESTO LUEGO!")
+    return HttpResponse("El admin ya existe.")
