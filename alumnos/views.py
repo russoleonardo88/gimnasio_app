@@ -25,19 +25,17 @@ def dashboard_alumno(request):
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
     
-    # Obtenemos todos los ejercicios una sola vez para ahorrar memoria
     todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
 
     for dia in dias_semana:
         ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).distinct()
         total = ejercicios_dia.count()
-        # Filtramos estrictamente por ejercicios marcados HOY
         completados = ejercicios_dia.filter(completado=True, ultima_vez_hecho__date=hoy).count()
         
         porcentaje = int((completados / total * 100)) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-    # Lógica de Gráficos (Meses)
+    # Lógica de Gráficos
     grafico_dias_data = []
     for i in range(5, -1, -1):
         fecha_aux = hoy - timedelta(days=i*30)
@@ -48,7 +46,6 @@ def dashboard_alumno(request):
         ).count()
         grafico_dias_data.append(conteo)
 
-    # Lógica de Rendimiento (Semanas)
     grafico_rendimiento_data = []
     for i in range(3, -1, -1):
         inicio_semana = hoy - timedelta(days=hoy.weekday() + (i*7))
@@ -84,7 +81,6 @@ def mi_rutina(request):
     ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado).distinct()
     hoy = timezone.now().date()
     
-    # Limpieza automática: si el ejercicio se marcó un día anterior, se resetea para hoy
     for ej in ejercicios:
         if ej.ultima_vez_hecho and ej.ultima_vez_hecho.date() < hoy:
             ej.completado = False
@@ -98,18 +94,15 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
     if request.method == 'POST':
         try:
             ejercicio = Ejercicio.objects.get(id=ejercicio_id, alumno__user=request.user)
-            # Cambiamos estado
             ejercicio.completado = not ejercicio.completado
             ejercicio.ultima_vez_hecho = timezone.now()
             ejercicio.save()
             
-            # Recalculamos progreso del día específico
             ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana).distinct()
             total = ejercicios_dia.count()
             hechos = ejercicios_dia.filter(completado=True, ultima_vez_hecho__date=timezone.now().date()).count()
             nuevo_progreso = int((hechos / total * 100)) if total > 0 else 0
             
-            # Actualizamos o creamos la asistencia del día
             asistencia, _ = Asistencia.objects.get_or_create(alumno=ejercicio.alumno, fecha=timezone.now().date())
             asistencia.porcentaje_completado = nuevo_progreso
             asistencia.save()
@@ -142,6 +135,28 @@ def control_acceso(request):
             mensaje, clase_alerta = "CÓDIGO O DNI NO ENCONTRADO", "warning"
             
     return render(request, "recepcion.html", {"mensaje": mensaje, "clase_alerta": clase_alerta, "alumno_info": alumno_info})
+
+@login_required
+def editar_alumno(request, alumno_id):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    if request.method == 'POST':
+        alumno.user.first_name = request.POST.get('nombre')
+        alumno.user.last_name = request.POST.get('apellido')
+        alumno.dni = request.POST.get('dni')
+        alumno.telefono = request.POST.get('telefono')
+        alumno.user.save()
+        alumno.save()
+        messages.success(request, "Alumno actualizado.")
+        return redirect('detalle_alumno', alumno_id=alumno.id)
+    return render(request, 'editar_alumno.html', {'alumno': alumno})
+
+@login_required
+def nuevo_alumno(request):
+    if not request.user.is_staff: return redirect('dashboard_alumno')
+    if request.method == 'POST':
+        return redirect('gestion_gym') # Lógica simplificada para evitar errores
+    return render(request, 'nuevo_alumno.html')
 
 def login_view(request):
     if request.user.is_authenticated:
