@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- SEGURIDAD ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3*r893bw)ik7h=!fd$x7ky$hiigyx@dy+*772wv^&e2t#hn#f&')
 
-# DEBUG debe ser False en Render. Configuralo en el Dashboard de Render como Variable de Entorno.
+# DEBUG debe ser False en Render.
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['gimnasio-app-ftq4.onrender.com', 'localhost', '127.0.0.1', '.onrender.com']
@@ -85,42 +85,34 @@ SESSION_COOKIE_AGE = 31536000
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 
-# --- SEGURIDAD CSRF PARA RENDER ---
+# --- SEGURIDAD CSRF (CRÍTICO PARA QUE EL BOTÓN RESPONDA) ---
 CSRF_TRUSTED_ORIGINS = [
     'https://gimnasio-app-ftq4.onrender.com',
-    'https://*.onrender.com'
 ]
 
-# --- BLOQUE PARA PRODUCCIÓN (RENDER / APK) ---
 if not DEBUG:
+    # Configuraciones para Render/Producción
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
-    
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    
-    # IMPORTANTE: Desactivado para evitar que la página se quede cargando infinito en Render
-    SECURE_SSL_REDIRECT = False 
+    SECURE_SSL_REDIRECT = False # Evita bucles de carga
 else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- LÓGICA DE AUTO-CREACIÓN DE USUARIOS EN EL DEPLOY ---
+# --- CREACIÓN AUTOMÁTICA DE USUARIOS ---
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 
 @receiver(post_migrate)
 def crear_usuarios_iniciales(sender, **kwargs):
-    # Verificamos por el nombre de la app para evitar duplicidad
     if sender.name == 'alumnos': 
         from django.contrib.auth.models import User
-        # Crear Superusuario (Mariano)
         if not User.objects.filter(username='Mariano').exists():
             User.objects.create_superuser('Mariano', 'admin@example.com', 'aquiles1234')
-        
-        # Crear Usuario Alumno (Leo_Russo)
         if not User.objects.filter(username='Leo_Russo').exists():
             User.objects.create_user('Leo_Russo', 'leo@example.com', 'aquiles1234')
