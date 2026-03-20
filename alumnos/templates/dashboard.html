@@ -40,7 +40,6 @@
             box-sizing: border-box;
         }
 
-        /* --- CLASE PARA QUE LOS LINKS SEAN INTERACTIVOS --- */
         .progreso-link {
             text-decoration: none;
             color: inherit;
@@ -174,11 +173,20 @@
     </div>
 
     <script>
-        // --- SOLUCIÓN AL BOTÓN ATRÁS DEL CELULAR ---
-        // Recarga la página si se detecta que se volvió atrás para actualizar porcentajes
+        // --- SOLUCIÓN DEFINITIVA PARA RECARGA ---
+        // 1. Detecta cuando se vuelve a la página mediante el botón de atrás del celular
         window.addEventListener('pageshow', function(event) {
+            // Recarga si la página viene del historial (caché del navegador)
             if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
-                window.location.reload();
+                window.location.reload(true);
+            }
+        });
+
+        // 2. Por las dudas: si la app estaba abierta y el usuario vuelve a enfocarla
+        document.addEventListener("visibilitychange", function() {
+            if (document.visibilityState === 'visible') {
+                // Opcional: solo recarga si querés actualización en tiempo real constante
+                // window.location.reload(true);
             }
         });
 

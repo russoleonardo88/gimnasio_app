@@ -46,6 +46,7 @@
             font-size: 1.5rem;
             margin-right: 20px;
             font-weight: 900;
+            cursor: pointer;
         }
 
         .header h1 {
@@ -105,7 +106,7 @@
             border: 3px solid #333;
             border-radius: 50%;
             cursor: pointer;
-            transition: all 0.2s ease; /* Un poquito más rápido */
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -132,7 +133,7 @@
 <body>
 
     <div class="header">
-        <a href="{% url 'dashboard_alumno' %}" class="btn-atras">←</a>
+        <a href="javascript:void(0);" onclick="irAlDashboard()" class="btn-atras">←</a>
         <h1>RUTINA: {{ dia }}</h1>
     </div>
 
@@ -175,11 +176,16 @@
     </div>
 
     <script>
+    // Función para que la flecha verde sea instantánea
+    function irAlDashboard() {
+        window.location.replace("{% url 'dashboard_alumno' %}");
+    }
+
     function toggleEjercicio(ejercicioId) {
         const elemento = document.getElementById(`check-${ejercicioId}`);
         if (!elemento) return;
 
-        // --- INTERFAZ OPTIMISTA: Cambiamos el color YA ---
+        // INTERFAZ OPTIMISTA
         const yaCompletado = elemento.classList.contains('completado');
         
         if (yaCompletado) {
@@ -188,7 +194,6 @@
             elemento.classList.add('completado');
         }
 
-        // Enviamos la info al servidor por detrás
         fetch(`/marcar-hecho/${ejercicioId}/`, {
             method: 'POST',
             headers: {
@@ -199,11 +204,9 @@
         .then(response => response.json())
         .then(data => {
             if (data.status !== 'ok') {
-                // Si el servidor falla, volvemos al estado anterior y avisamos
                 elemento.classList.toggle('completado');
-                alert("No se pudo guardar el progreso. Revisá tu conexión.");
+                alert("Error de conexión al guardar.");
             }
-            // Si el estado que devuelve el servidor es distinto al que pusimos (raro pero posible), sincronizamos
             if (data.completado !== undefined) {
                 if (data.completado) {
                     elemento.classList.add('completado');
@@ -214,7 +217,6 @@
         })
         .catch(error => {
             console.error('Error:', error);
-            // Si hay error de red, volvemos atrás el cambio visual
             elemento.classList.toggle('completado');
         });
     }
