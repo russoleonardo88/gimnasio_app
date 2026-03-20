@@ -43,8 +43,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'alumnos', 'templates'), # Ruta específica según tus fotos
             os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, 'alumnos', 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {

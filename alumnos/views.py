@@ -55,7 +55,8 @@ def dashboard(request):
         if not alumno:
             if request.user.is_superuser:
                 return redirect('gestion_gym')
-            return render(request, 'login.html', {'error': 'Tu usuario no tiene un perfil de alumno asignado.'})
+            # Intenta esto para asegurar que Django lo encuentre dentro de la carpeta de la app
+            return render(request, 'dashboard.html', context)
 
         # Lógica de progreso protegida
         dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
