@@ -78,7 +78,6 @@
             box-shadow: 0 0 10px rgba(152, 207, 44, 0.1);
         }
 
-        /* --- ESTILO NEÓN PARA EL CHECKBOX --- */
         .remember-group {
             display: flex;
             align-items: center;
@@ -142,17 +141,17 @@
         
         <h1>Aquiles App</h1>
 
+        {% if error %}
+            <div class="error-msg">{{ error|upper }}</div>
+        {% endif %}
+
         {% if messages %}
             {% for message in messages %}
                 <div class="error-msg">{{ message|upper }}</div>
             {% endfor %}
         {% endif %}
 
-        {% if form.errors and not messages %}
-            <div class="error-msg">USUARIO O CONTRASEÑA INCORRECTOS</div>
-        {% endif %}
-
-        <form method="POST">
+        <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}
             <div class="form-group">
                 <input type="text" name="username" placeholder="USUARIO" required autocomplete="username">
