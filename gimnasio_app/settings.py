@@ -87,20 +87,26 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGIN_URL = '/login/'
 
-# --- CONFIGURACIÓN DE SESIONES PRO (PARA LA APK) ---
-SESSION_ENGINE = 'django.contrib.sessions.backends.db' # Forzamos uso de BD para sesiones
+# --- CONFIGURACIÓN DE SESIONES DEFINITIVA PARA APK ---
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 31536000 # 1 año
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 
-# Configuraciones de Seguridad para Render (HTTPS)
+# Origen confiable para evitar errores CSRF en la App
+CSRF_TRUSTED_ORIGINS = ['https://gimnasio-app-ftq4.onrender.com']
+
 if not DEBUG:
+    # Ajuste Maestro: Samesite en None permite que la App mantenga la cookie
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SAMESITE = 'None'
 else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
