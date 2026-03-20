@@ -56,10 +56,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 
-# --- BASE DE DATOS (LA SOLUCIÓN AL RESETEO) ---
+# --- BASE DE DATOS ---
 DATABASES = {
     'default': dj_database_url.config(
-        # Si no hay DATABASE_URL configurada en Render, usa SQLite localmente
         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
         conn_max_age=600
     )
@@ -88,5 +87,17 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # --- CONFIGURACIÓN DE LOGIN ---
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGIN_URL = '/login/'
+
+# --- CONFIGURACIÓN DE SESIONES PRO (PARA LA APK) ---
+# La sesión dura 1 año (365 días)
+SESSION_COOKIE_AGE = 31536000 
+# No expira al cerrar la App/Navegador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+# Guarda la sesión en cada cambio para que no se pierda nada
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Si usas HTTPS en Render (que deberías), esto ayuda a la seguridad:
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
