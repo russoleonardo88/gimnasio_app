@@ -20,6 +20,14 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            
+            # --- LÓGICA DE SESIÓN PERSISTENTE (RECORDARME) ---
+            # Si el checkbox 'remember_me' está marcado, la sesión dura 1 año.
+            if request.POST.get('remember_me'):
+                request.session.set_expiry(31536000) # 1 año en segundos
+            else:
+                request.session.set_expiry(0) # Expira al cerrar la app
+                
             if user.is_staff:
                 return redirect('gestion_gym')
             return redirect('dashboard_alumno')

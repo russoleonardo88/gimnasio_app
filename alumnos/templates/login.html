@@ -39,10 +39,9 @@
         }
 
         .logo-login {
-            width: 100px; /* Ajustado para que no ocupe tanto espacio en móvil */
+            width: 100px;
             height: auto;
             margin-bottom: 10px;
-            /* Filtro para que resalte el logo neón */
             filter: drop-shadow(0 0 15px rgba(152, 207, 44, 0.4));
         }
 
@@ -60,12 +59,12 @@
             margin-bottom: 15px;
         }
 
-        input {
+        input[type="text"], input[type="password"] {
             width: 100%;
             padding: 15px;
-            background-color: #111; /* Un gris muy oscuro para los campos */
+            background-color: #111;
             border: 1px solid #222;
-            border-radius: 12px; /* Bordes más redondeados estilo app moderna */
+            border-radius: 12px;
             color: white;
             box-sizing: border-box;
             font-size: 1rem;
@@ -77,6 +76,30 @@
             border-color: var(--verde-aquiles);
             background-color: #161616;
             box-shadow: 0 0 10px rgba(152, 207, 44, 0.1);
+        }
+
+        /* --- ESTILO NEÓN PARA EL CHECKBOX --- */
+        .remember-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .remember-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--verde-aquiles);
+            cursor: pointer;
+        }
+
+        .remember-group label {
+            font-size: 0.9rem;
+            color: #bbb;
+            cursor: pointer;
         }
 
         button {
@@ -92,7 +115,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             cursor: pointer;
-            margin-top: 10px;
             transition: all 0.2s ease;
         }
 
@@ -132,6 +154,12 @@
             <div class="form-group">
                 <input type="password" name="password" placeholder="CONTRASEÑA" required autocomplete="current-password">
             </div>
+
+            <div class="remember-group">
+                <input type="checkbox" name="remember_me" id="remember_me" checked>
+                <label for="remember_me">Mantener sesión iniciada</label>
+            </div>
+
             <button type="submit">Entrar</button>
         </form>
     </div>
