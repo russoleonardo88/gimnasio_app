@@ -75,8 +75,8 @@ def dashboard_alumno(request):
         'mensaje_motivador': "¡Dale con todo hoy!",
         'progreso_dias': progreso_dias,
         'asistencias': alumno.asistencias.all().order_by('-fecha')[:5],
-        'grafico_dias_data':, 
-        'grafico_rendimiento_data':,
+        'grafico_dias_data':[], 
+        'grafico_rendimiento_data':[],
     }
     return render(request, 'dashboard_alumno.html', context)
 
@@ -122,6 +122,7 @@ def gestion_gym(request):
     alumnos_lista = Alumno.objects.all()
     
     return render(request, 'gestion_gym.html', {'alumnos': alumnos_lista})
+
 @login_required
 def detalle_alumno(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard_alumno')
