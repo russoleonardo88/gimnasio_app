@@ -8,10 +8,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- SEGURIDAD ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3*r893bw)ik7h=!fd$x7ky$hiigyx@dy+*772wv^&e2t#hn#f&')
 
-# IMPORTANTE: En Render, creá la Variable de Envorno DEBUG con valor False
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# DEBUG debe ser False en Render. Configuralo en el Dashboard de Render como Variable de Entorno.
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-# Agregamos tu dominio específico de Render
 ALLOWED_HOSTS = ['gimnasio-app-ftq4.onrender.com', 'localhost', '127.0.0.1', '.onrender.com']
 
 # --- APLICACIONES ---
@@ -22,13 +21,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'alumnos',  # Tu app
+    'alumnos',
 ]
 
 # --- MIDDLEWARE ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # DEBE IR AQUÍ para los estilos CSS
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -57,15 +56,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 
+# --- BASE DE DATOS (NEON / SQLITE) ---
+# Detecta automáticamente la URL de Neon en Render. Si no existe, usa SQLite local.
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{os.path.join(BASE_DIR, "db.sqlite3")}',
+        conn_max_age=600
+    )
 }
 
 # --- INTERNACIONALIZACIÓN ---
-LANGUAGE_CODE = 'es-es'
+LANGUAGE_CODE = 'es-ar'
 TIME_ZONE = 'America/Argentina/Buenos_Aires'
 USE_I18N = True
 USE_TZ = True
@@ -73,7 +74,6 @@ USE_TZ = True
 # --- ARCHIVOS ESTÁTICOS ---
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-# Usamos el almacenamiento de Whitenoise para producción
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # --- CONFIGURACIÓN DE LOGIN ---
@@ -92,23 +92,38 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com'
 ]
 
-# --- BLOQUE PARA PRODUCCIÓN / APK ---
-if not DEBUG or os.environ.get('RENDER'):
+# --- BLOQUE PARA PRODUCCIÓN (RENDER / APK) ---
+if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     
-    # Esto es vital para que la APK no pierda la sesión
+    # Vital para que la sesión no se cierre en la APK o navegadores móviles
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
     
-    SESSION_COOKIE_HTTPONLY = True
-    CSRF_COOKIE_HTTPONLY = False 
-    
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True # Forzamos HTTPS en producción
+    SECURE_SSL_REDIRECT = True 
 else:
     # Desarrollo local
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- LÓGICA DE AUTO-CREACIÓN DE USUARIOS EN EL DEPLOY ---
+from django.db.models.signals import post_migrate
+from django.dispatch import receiver
+
+@receiver(post_migrate)
+def crear_usuarios_iniciales(sender, **kwargs):
+    if sender.name == 'alumnos': # Solo ejecuta esto cuando termine de migrar tu app
+        from django.contrib.auth.models import User
+        # Crear Superusuario (Mariano)
+        if not User.objects.filter(username='Mariano').exists():
+            User.objects.create_superuser('Mariano', 'admin@example.com', 'aquiles1234')
+            print("Superusuario Mariano creado con éxito.")
+        
+        # Crear Usuario Alumno (Leo_Russo)
+        if not User.objects.filter(username='Leo_Russo').exists():
+            User.objects.create_user('Leo_Russo', 'leo@example.com', 'aquiles1234')
+            print("Usuario Leo_Russo creado con éxito.")
