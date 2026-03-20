@@ -118,7 +118,30 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
         except Ejercicio.DoesNotExist:
             return JsonResponse({'status': 'error'}, status=404)
 
-# --- VISTAS DE GESTIÓN (RESTAURADAS) ---
+# --- VISTAS DE GESTIÓN Y ADMINISTRACIÓN ---
+
+@login_required
+def control_acceso(request):
+    if not request.user.is_staff:
+        return redirect('dashboard_alumno')
+        
+    mensaje, clase_alerta, alumno_info = "", "", None
+    if request.method == "POST":
+        dato_ingresado = request.POST.get("codigo", "").upper().strip()
+        try:
+            alumno = Alumno.objects.get(Q(codigo=dato_ingresado) | Q(dni=dato_ingresado))
+            if not alumno.activo:
+                mensaje = f"ACCESO DENEGADO: {alumno.user.first_name.upper()} ESTÁ DE BAJA"
+                clase_alerta = "danger"
+            else:
+                Asistencia.objects.get_or_create(alumno=alumno, fecha=timezone.now().date())
+                mensaje = f"BIENVENIDO/A {alumno.user.first_name.upper()}!"
+                clase_alerta = "success"
+                alumno_info = alumno
+        except Alumno.DoesNotExist:
+            mensaje, clase_alerta = "CÓDIGO O DNI NO ENCONTRADO", "warning"
+            
+    return render(request, "recepcion.html", {"mensaje": mensaje, "clase_alerta": clase_alerta, "alumno_info": alumno_info})
 
 def login_view(request):
     if request.user.is_authenticated:
