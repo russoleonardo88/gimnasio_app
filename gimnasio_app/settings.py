@@ -76,8 +76,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # --- CONFIGURACIÓN DE LOGIN ---
-LOGIN_REDIRECT_URL = 'dashboard_alumno'
+# Cambié esto a '/' para que si falla el nombre de la URL, te mande al inicio
+LOGIN_REDIRECT_URL = '/' 
 LOGIN_URL = 'login'
+LOGOUT_REDIRECT_URL = 'login'
 
 # --- CONFIGURACIÓN DE SESIONES ---
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
@@ -85,19 +87,18 @@ SESSION_COOKIE_AGE = 31536000
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 
-# --- SEGURIDAD CSRF (CRÍTICO PARA QUE EL BOTÓN RESPONDA) ---
+# --- SEGURIDAD CSRF ---
 CSRF_TRUSTED_ORIGINS = [
     'https://gimnasio-app-ftq4.onrender.com',
 ]
 
 if not DEBUG:
-    # Configuraciones para Render/Producción
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = False # Evita bucles de carga
+    SECURE_SSL_REDIRECT = False 
 else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
