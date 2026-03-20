@@ -49,16 +49,16 @@ def cambiar_password(request):
 @login_required
 def dashboard(request):
     try:
-        # Usamos filter().first() para evitar que el error DoesNotExist rompa la ejecución
+        # 1. Buscamos al alumno vinculado al usuario
         alumno = Alumno.objects.filter(user=request.user).first()
         
+        # 2. Si no es un alumno (es admin o usuario sin perfil creado)
         if not alumno:
             if request.user.is_superuser:
                 return redirect('gestion_gym')
-            # Intenta esto para asegurar que Django lo encuentre dentro de la carpeta de la app
-            return render(request, 'dashboard.html', context)
+            return render(request, 'login.html', {'error': 'Tu usuario no tiene un perfil de alumno asignado.'})
 
-        # Lógica de progreso protegida
+        # 3. Cálculo de progreso por día
         dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
         progreso_dias = []
         for dia in dias_semana:
@@ -68,7 +68,7 @@ def dashboard(request):
             porcentaje = int((hechos / total) * 100) if total > 0 else 0
             progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-        # Datos para los gráficos (inicializados en vacío para evitar errores de sintaxis)
+        # 4. Definición del context (AHORA SÍ, ANTES DEL RENDER)
         context = {
             'alumno': alumno,
             'mensaje_motivador': "¡Dale con todo hoy!",
@@ -77,10 +77,13 @@ def dashboard(request):
             'grafico_dias_data': [], 
             'grafico_rendimiento_data': [],
         }
+        
         return render(request, 'dashboard.html', context)
+
     except Exception as e:
+        # Esto ayuda a ver el error real en los logs de Render
         print(f"Error en dashboard: {e}")
-        return HttpResponse("Error interno al cargar el dashboard.", status=500)
+        return HttpResponse(f"Error interno: {e}", status=500)
 
 @login_required
 def mi_rutina(request):
@@ -118,7 +121,6 @@ def gestion_gym(request):
     if not request.user.is_superuser:
         return redirect('dashboard')
     
-    # Ordenamos por apellido para que sea más fácil de usar
     alumnos_lista = Alumno.objects.all().order_by('user__last_name')
     return render(request, 'gestion_gym.html', {'alumnos': alumnos_lista})
 
@@ -165,6 +167,7 @@ def marcar_pago(request, alumno_id):
 @login_required
 def agregar_ejercicio_rapido(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard')
+    # Esta vista usualmente redirige después de procesar un formulario POST
     return redirect('detalle_alumno', alumno_id=alumno_id)
 
 @login_required

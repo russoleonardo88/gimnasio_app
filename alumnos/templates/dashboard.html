@@ -181,15 +181,15 @@
         Chart.defaults.color = defaults.color;
         Chart.defaults.font = defaults.font;
 
-        // Gráfico de Barras - Protección contra datos vacíos
-        const dataDias = {{ grafico_dias_data|safe|default:"" }};
+        // Gráfico de Barras - Corrección de datos
+        const dataDias = {{ grafico_dias_data|safe|default:"[]" }};
         new Chart(document.getElementById('graficoDias'), {
             type: 'bar',
             data: {
                 labels: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN'],
                 datasets: [{
                     label: 'Días',
-                    data: dataDias,
+                    data: dataDias.length ? dataDias :,
                     backgroundColor: '#98cf2c',
                     borderRadius: 5
                 }]
@@ -204,15 +204,15 @@
             }
         });
 
-        // Gráfico de Línea - Protección contra datos vacíos
-        const dataRendimiento = {{ grafico_rendimiento_data|safe|default:"" }};
+        // Gráfico de Línea - Corrección de datos
+        const dataRendimiento = {{ grafico_rendimiento_data|safe|default:"[]" }};
         new Chart(document.getElementById('graficoIntensidad'), {
             type: 'line',
             data: {
                 labels: ['S1', 'S2', 'S3', 'S4'],
                 datasets: [{
                     label: 'Rendimiento %',
-                    data: dataRendimiento,
+                    data: dataRendimiento.length ? dataRendimiento :,
                     borderColor: '#98cf2c',
                     backgroundColor: 'rgba(152, 207, 44, 0.1)',
                     tension: 0.3,

@@ -9,7 +9,7 @@ urlpatterns = [
     path('perfil/password/', views.cambiar_password, name='cambiar_password'),
     
     # --- RUTAS PARA EL ALUMNO (App Móvil) ---
-    # Actualizado: Ahora apunta a la función 'dashboard' y tiene el name 'dashboard'
+    # Importante: El name debe ser 'dashboard' para que coincida con views.py y settings.py
     path('dashboard/', views.dashboard, name='dashboard'),
     path('mi-rutina/', views.mi_rutina, name='mi_rutina'),
     path('marcar-hecho/<int:ejercicio_id>/', views.marcar_hecho, name='marcar_hecho'),
