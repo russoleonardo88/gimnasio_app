@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Alumno, Ejercicio, Asistencia, Entrenador
 from django.contrib.auth.models import User
 from django.utils import timezone
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Q  # <--- Agregado Q para búsquedas complejas
 from django.db.models.functions import ExtractMonth
 from django.contrib import messages
 from datetime import timedelta
@@ -27,15 +27,14 @@ def login_view(request):
             login(request, user)
             
             # --- CORRECCIÓN CRÍTICA DE SESIÓN ---
-            # Leemos directamente del POST para que Django no lo ignore
             recordarme = request.POST.get('remember_me')
             
             if recordarme:
-                # Si marcó el checkbox: 1 año (31.536.000 segundos)
+                # Si marcó el checkbox: 1 año
                 request.session.set_expiry(31536000)
                 print(f"SESIÓN PERSISTENTE: Usuario {user.username} por 1 año.")
             else:
-                # Si no lo marcó: 24 horas (para evitar que Android la borre al instante)
+                # Si no lo marcó: 24 horas
                 request.session.set_expiry(86400) 
                 print(f"SESIÓN TEMPORAL: Usuario {user.username} por 24hs.")
                 
@@ -47,7 +46,6 @@ def login_view(request):
     else:
         form = AuthenticationForm()
     
-    # Asegurate que en tu login.html el input tenga name="remember_me"
     return render(request, 'login.html', {'form': form})
 
 def logout_view(request):
@@ -160,9 +158,12 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
 def control_acceso(request):
     mensaje, clase_alerta, alumno_info = "", "", None
     if request.method == "POST":
-        codigo_ingresado = request.POST.get("codigo", "").upper().strip()
+        # Capturamos el dato (puede ser código H0249 o DNI 33670345)
+        dato_ingresado = request.POST.get("codigo", "").upper().strip()
         try:
-            alumno = Alumno.objects.get(codigo=codigo_ingresado)
+            # Busqueda por Código O por DNI
+            alumno = Alumno.objects.get(Q(codigo=dato_ingresado) | Q(dni=dato_ingresado))
+            
             if not alumno.activo:
                 mensaje = f"ACCESO DENEGADO: {alumno.user.first_name.upper()} ESTÁ DE BAJA"
                 clase_alerta = "danger"
@@ -172,7 +173,10 @@ def control_acceso(request):
                 clase_alerta = "success"
                 alumno_info = alumno
         except Alumno.DoesNotExist:
-            mensaje, clase_alerta = "CÓDIGO NO ENCONTRADO", "warning"
+            mensaje, clase_alerta = "CÓDIGO O DNI NO ENCONTRADO", "warning"
+        except Alumno.MultipleObjectsReturned:
+            mensaje, clase_alerta = "ERROR: DNI DUPLICADO EN SISTEMA", "danger"
+            
     return render(request, "recepcion.html", {"mensaje": mensaje, "clase_alerta": clase_alerta, "alumno_info": alumno_info})
 
 @login_required

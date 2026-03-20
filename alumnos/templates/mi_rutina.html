@@ -158,7 +158,7 @@
             </div>
 
             <div class="seccion-tipo">
-                <span class="tipo-titulo">🧘 Zona Media / Tabata</span>
+                <span class="tipo-titulo">🧘 Zona Media</span>
                 {% for ejercicio in ejercicios %}
                     {% if ejercicio.tipo == 'ZONA_MEDIA' or ejercicio.tipo == 'TABATA' or ejercicio.tipo == 'ZONA MEDIA' %}
                         {% include "includes/card_ejercicio.html" with ej=ejercicio %}
