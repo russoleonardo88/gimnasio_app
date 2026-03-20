@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     # --- AUTENTICACIÓN Y PERFIL ---
-    # La raíz ahora lleva al login para que sea lo primero que vea el usuario
+    # La raíz vacía ('') ahora apunta directamente a login_view
     path('', views.login_view, name='login'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
@@ -12,7 +12,6 @@ urlpatterns = [
     # --- RUTAS PARA EL ALUMNO (App Móvil) ---
     path('dashboard/', views.dashboard_alumno, name='dashboard_alumno'),
     path('mi-rutina/', views.mi_rutina, name='mi_rutina'),
-    # CORRECCIÓN: Nombre de función sincronizado con views.py
     path('marcar-hecho/<int:ejercicio_id>/', views.marcar_hecho, name='marcar_hecho'),
     
     # --- RUTAS PARA EL ADMIN/DUEÑO (Gestión) ---

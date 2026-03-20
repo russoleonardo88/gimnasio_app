@@ -166,6 +166,7 @@
     </div>
 
     <script>
+        // SOLUCIÓN AL BOTÓN ATRÁS: Fuerza la recarga si volvemos desde el historial (celular)
         window.onpageshow = function(event) {
             if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
                 window.location.reload();
