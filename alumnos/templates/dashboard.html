@@ -106,7 +106,7 @@
 
     <div class="header">
         <div>
-            <h1>HOLA, {{ user.first_name|upper }}</h1>
+            <h1>HOLA, {{ user.first_name|default:user.username|upper }}</h1>
             <p>{{ mensaje_motivador }}</p>
         </div>
         <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-casco">
@@ -162,11 +162,11 @@
 
     <div class="footer-links">
         <a href="{% url 'cambiar_password' %}" class="link-perfil">⚙️ CAMBIAR CLAVE</a>
-        <a href="{% url 'logout' %}" class="link-logout">CERRAR SESIÓN DE {{ user.first_name|upper }}</a>
+        <a href="{% url 'logout' %}" class="link-logout">CERRAR SESIÓN</a>
     </div>
 
     <script>
-        // SOLUCIÓN AL BOTÓN ATRÁS: Fuerza la recarga si volvemos desde el historial (celular)
+        // SOLUCIÓN AL BOTÓN ATRÁS
         window.onpageshow = function(event) {
             if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
                 window.location.reload();
@@ -181,13 +181,15 @@
         Chart.defaults.color = defaults.color;
         Chart.defaults.font = defaults.font;
 
+        // Gráfico de Barras - Protección contra datos vacíos
+        const dataDias = {{ grafico_dias_data|safe|default:"" }};
         new Chart(document.getElementById('graficoDias'), {
             type: 'bar',
             data: {
                 labels: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN'],
                 datasets: [{
                     label: 'Días',
-                    data: {{ grafico_dias_data|safe|default:"[]" }},
+                    data: dataDias,
                     backgroundColor: '#98cf2c',
                     borderRadius: 5
                 }]
@@ -195,17 +197,22 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false }, title: { display: true, text: 'DÍAS ENTRENADOS', color: '#fff' } }
+                plugins: { 
+                    legend: { display: false }, 
+                    title: { display: true, text: 'DÍAS ENTRENADOS', color: '#fff' } 
+                }
             }
         });
 
+        // Gráfico de Línea - Protección contra datos vacíos
+        const dataRendimiento = {{ grafico_rendimiento_data|safe|default:"" }};
         new Chart(document.getElementById('graficoIntensidad'), {
             type: 'line',
             data: {
                 labels: ['S1', 'S2', 'S3', 'S4'],
                 datasets: [{
                     label: 'Rendimiento %',
-                    data: {{ grafico_rendimiento_data|safe|default:"[]" }},
+                    data: dataRendimiento,
                     borderColor: '#98cf2c',
                     backgroundColor: 'rgba(152, 207, 44, 0.1)',
                     tension: 0.3,
@@ -215,8 +222,14 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false }, title: { display: true, text: 'RENDIMIENTO (%)', color: '#fff' } },
-                scales: { y: { min: 0, max: 100 } }
+                plugins: { 
+                    legend: { display: false }, 
+                    title: { display: true, text: 'RENDIMIENTO (%)', color: '#fff' } 
+                },
+                scales: { 
+                    y: { min: 0, max: 100, grid: { color: '#222' } },
+                    x: { grid: { display: false } }
+                }
             }
         });
     </script>

@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',  # Ayuda a whitenoise en desarrollo
     'django.contrib.staticfiles',
     'alumnos',
 ]
@@ -27,7 +28,7 @@ INSTALLED_APPS = [
 # --- MIDDLEWARE ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Debe ir justo debajo de SecurityMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -41,7 +42,7 @@ ROOT_URLCONF = 'gimnasio_app.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], # Asegura que encuentre la carpeta templates general
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -70,13 +71,19 @@ TIME_ZONE = 'America/Argentina/Buenos_Aires'
 USE_I18N = True
 USE_TZ = True
 
-# --- ARCHIVOS ESTÁTICOS ---
+# --- ARCHIVOS ESTÁTICOS (WHITENOISE) ---
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Configuración para que las imágenes y CSS carguen rápido en Render
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # --- CONFIGURACIÓN DE LOGIN ---
-LOGIN_REDIRECT_URL = 'dashboard_alumno' 
+# CORREGIDO: Ahora apunta al nuevo nombre de la URL
+LOGIN_REDIRECT_URL = 'dashboard' 
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
 
@@ -86,26 +93,22 @@ SESSION_COOKIE_AGE = 31536000
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 
-# --- SEGURIDAD CSRF (PARCHE FINAL) ---
+# --- SEGURIDAD CSRF Y PROXY ---
 CSRF_TRUSTED_ORIGINS = [
     'https://gimnasio-app-ftq4.onrender.com',
     'https://*.onrender.com',
 ]
 
-# Forzamos a Django a aceptar el origen de Render
-CSRF_ALLOWED_ORIGINS = [
-    'https://gimnasio-app-ftq4.onrender.com',
-]
-
-# Esto es vital si usas Gunicorn en Render
+# Parámetros necesarios para el proxy de Render
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SAMESITE = 'None'  # Cambiamos 'Lax' por 'None' para probar compatibilidad absoluta
-    CSRF_COOKIE_SAMESITE = 'None'
+    # 'Lax' es más compatible que 'None' para la mayoría de navegadores si estamos en el mismo dominio
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
     SECURE_SSL_REDIRECT = True 
 else:
     SESSION_COOKIE_SECURE = False
@@ -119,9 +122,13 @@ from django.dispatch import receiver
 
 @receiver(post_migrate)
 def crear_usuarios_iniciales(sender, **kwargs):
+    # Evita que se ejecute múltiples veces si no es la app principal
     if sender.name == 'alumnos': 
         from django.contrib.auth.models import User
         if not User.objects.filter(username='Mariano').exists():
             User.objects.create_superuser('Mariano', 'admin@example.com', 'aquiles1234')
         if not User.objects.filter(username='Leo_Russo').exists():
-            User.objects.create_user('Leo_Russo', 'leo@example.com', 'aquiles1234')
+            # Creamos a Leo_Russo con nombre para que el Dashboard diga "HOLA, LEO"
+            user = User.objects.create_user('Leo_Russo', 'leo@example.com', 'aquiles1234')
+            user.first_name = "Leo"
+            user.save()
