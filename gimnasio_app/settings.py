@@ -20,7 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic',  # Ayuda a whitenoise en desarrollo
+    'whitenoise.runserver_nostatic', 
     'django.contrib.staticfiles',
     'alumnos',
 ]
@@ -28,7 +28,7 @@ INSTALLED_APPS = [
 # --- MIDDLEWARE ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Debe ir justo debajo de SecurityMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -42,7 +42,10 @@ ROOT_URLCONF = 'gimnasio_app.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')], # Asegura que encuentre la carpeta templates general
+        'DIRS': [
+            os.path.join(BASE_DIR, 'alumnos', 'templates'), # Ruta específica según tus fotos
+            os.path.join(BASE_DIR, 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -75,14 +78,13 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Configuración para que las imágenes y CSS carguen rápido en Render
+# CORRECCIÓN CRUCIAL: Apunta a la carpeta static que está dentro de alumnos
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'alumnos', 'static'),
 ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # --- CONFIGURACIÓN DE LOGIN ---
-# CORREGIDO: Ahora apunta al nuevo nombre de la URL
 LOGIN_REDIRECT_URL = 'dashboard' 
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
@@ -99,14 +101,12 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',
 ]
 
-# Parámetros necesarios para el proxy de Render
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # 'Lax' es más compatible que 'None' para la mayoría de navegadores si estamos en el mismo dominio
     SESSION_COOKIE_SAMESITE = 'Lax'
     CSRF_COOKIE_SAMESITE = 'Lax'
     SECURE_SSL_REDIRECT = True 
@@ -122,13 +122,11 @@ from django.dispatch import receiver
 
 @receiver(post_migrate)
 def crear_usuarios_iniciales(sender, **kwargs):
-    # Evita que se ejecute múltiples veces si no es la app principal
     if sender.name == 'alumnos': 
         from django.contrib.auth.models import User
         if not User.objects.filter(username='Mariano').exists():
             User.objects.create_superuser('Mariano', 'admin@example.com', 'aquiles1234')
         if not User.objects.filter(username='Leo_Russo').exists():
-            # Creamos a Leo_Russo con nombre para que el Dashboard diga "HOLA, LEO"
             user = User.objects.create_user('Leo_Russo', 'leo@example.com', 'aquiles1234')
             user.first_name = "Leo"
             user.save()
