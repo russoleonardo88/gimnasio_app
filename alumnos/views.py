@@ -74,8 +74,8 @@ def dashboard_alumno(request):
         'mensaje_motivador': "¡Dale con todo hoy!",
         'progreso_dias': progreso_dias,
         'asistencias': asistencias,
-        'grafico_dias_data':, # Datos de ejemplo para el gráfico
-        'grafico_rendimiento_data':, # Datos de ejemplo
+        'grafico_dias_data':[], # Datos de ejemplo para el gráfico
+        'grafico_rendimiento_data':[], # Datos de ejemplo
     }
     
     return render(request, 'dashboard_alumno.html', context)
