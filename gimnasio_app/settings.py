@@ -6,9 +6,10 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SEGURIDAD ---
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-tu-clave-aqui')
+# Intenta leer la clave de Render, si no usa una por defecto (Inseguro para producción, pero funciona)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3*r893bw)ik7h=!fd$x7ky$hiigyx@dy+*772wv^&e2t#hn#f&')
 
-# IMPORTANTE: En Render, la Variable de Entorno DEBUG debe ser False
+# IMPORTANTE: En Render, creá la Variable de Entorno DEBUG con valor False
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*']
@@ -21,7 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'alumnos',
+    'alumnos',  # Tu app
 ]
 
 # --- MIDDLEWARE ---
@@ -57,6 +58,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 
 # --- BASE DE DATOS (NEON) ---
+# Lee la DATABASE_URL que configuraste en Render
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
@@ -79,34 +81,40 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGIN_URL = '/login/'
 
-# --- CONFIGURACIÓN DE SESIONES (LO QUE MANTIENE EL LOGIN) ---
+# --- CONFIGURACIÓN DE SESIONES (ESTO MANTIENE EL LOGIN) ---
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 31536000  # 1 año
+SESSION_COOKIE_AGE = 31536000  # 1 año en segundos
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 
-# CSRF Y SEGURIDAD PARA RENDER
+# --- SEGURIDAD CSRF PARA RENDER ---
 CSRF_TRUSTED_ORIGINS = [
     'https://gimnasio-app-ftq4.onrender.com',
     'https://*.onrender.com'
 ]
 
-# --- CONFIGURACIÓN DE COOKIES PARA LA APK ---
+# --- EL BLOQUE MAESTRO PARA LA APK Y PRODUCCIÓN ---
 if not DEBUG or os.environ.get('RENDER'):
+    # Cookies seguras para HTTPS
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_HTTPONLY = True
     
-    # 'None' es vital para que Android WebView acepte la cookie de Render
+    # SameSite=None es obligatorio para que el WebView de Android no borre la sesión
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
     
-    # Le indica a Django que el Proxy de Render ya maneja el HTTPS
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # Permitimos que la cookie sea accesible (ayuda a evitar rebotes en Android)
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = False 
     
-    # Desactivamos el redirect interno para evitar bucles en la App
-    SECURE_SSL_REDIRECT = False 
+    # Configuración de Proxy para Render
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = False  # Evita bucles de redirección infinitos
+    
+    # Forzamos barras al final de las URLs para evitar re-procesamientos
+    APPEND_SLASH = True 
 else:
+    # Configuración para desarrollo local (cuando DEBUG=True)
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SAMESITE = 'Lax'
