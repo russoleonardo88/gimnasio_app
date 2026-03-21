@@ -28,29 +28,30 @@
             </div>
         </div>
         <div style="display: flex; gap: 10px;">
-            <a href="{% url 'gestion' %}" style="color: #fff; text-decoration: none; font-size: 12px; font-weight: bold; border: 1px solid #333; padding: 10px 20px; border-radius: 8px; background: #111;">← VOLVER</a>
+            <a href="{% url 'dashboard' %}" style="color: #fff; text-decoration: none; font-size: 12px; font-weight: bold; border: 1px solid #333; padding: 10px 20px; border-radius: 8px; background: #111;">← VOLVER</a>
         </div>
     </div>
 
     <div style="display: flex; gap: 15px; margin-top: 20px; padding: 15px; background: #111; border-radius: 12px; border: 1px solid #222;">
-        <form action="{% url 'renovar_cuota' alumno.id %}" method="POST" style="margin: 0;">
+        <form action="#" method="POST" style="margin: 0;">
             {% csrf_token %}
             <button type="submit" style="background: #98cf2c; color: #000; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 900; cursor: pointer; font-size: 12px;">💸 COBRAR CUOTA (+30 días)</button>
         </form>
 
-        <form action="{% url 'resetear_rutina' alumno.id %}" method="POST" style="margin: 0;">
+        <form action="#" method="POST" style="margin: 0;">
             {% csrf_token %}
             <button type="submit" onclick="return confirm('¿Limpiar todos los checks del alumno?')" style="background: #222; color: #fff; border: 1px solid #444; padding: 8px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px;">🔄 RESETEAR SEMANA</button>
         </form>
 
-        <a href="{% url 'editar_alumno' alumno.id %}" style="background: #222; color: #fff; border: 1px solid #444; padding: 8px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; text-decoration: none;">✏️ EDITAR PERFIL</a>
+        <a href="#" style="background: #222; color: #fff; border: 1px solid #444; padding: 8px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; text-decoration: none;">✏️ EDITAR PERFIL</a>
     </div>
 
     <div style="display: flex; gap: 30px; margin-top: 30px;">
         
         <div style="flex: 1; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #222; height: fit-content; position: sticky; top: 20px;">
             <h3 style="color: #98cf2c; margin: 0 0 20px 0; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">+ NUEVO EJERCICIO</h3>
-            <form action="{% url 'agregar_ejercicio' alumno.id %}" method="POST">
+            
+            <form action="{% url 'detalle_alumno' alumno.id %}" method="POST">
                 {% csrf_token %}
                 
                 <label style="font-size: 11px; color: #888; text-transform: uppercase;">Nombre del ejercicio:</label>
@@ -115,7 +116,7 @@
                             {% endif %}
                         </div>
                         
-                        <a href="{% url 'eliminar_ejercicio' ej.id %}" onclick="return confirm('¿Eliminar {{ ej.nombre }}?')" style="color: #ff4d4d; text-decoration: none; font-size: 14px; padding: 5px 10px;">✕</a>
+                        <a href="#" style="color: #ff4d4d; text-decoration: none; font-size: 14px; padding: 5px 10px;">✕</a>
                     </div>
                     {% empty %}
                     <p style="color: #444; font-size: 11px; text-align: center; margin: 20px 0;">Sin ejercicios asignados.</p>
@@ -157,7 +158,6 @@
             inputReps.placeholder = "12";
         }
     }
-    // Ejecutar al cargar para asegurar el estado inicial
     window.onload = adaptarFormulario;
     </script>
 </body>

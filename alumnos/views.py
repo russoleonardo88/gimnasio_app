@@ -57,7 +57,6 @@ def dashboard(request):
                 return redirect('gestion')
             return render(request, 'alumnos/login.html', {'error': 'Perfil no encontrado.'})
 
-        # 1. Progreso por día
         dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
         progreso_dias = []
         for dia in dias_semana:
@@ -67,16 +66,13 @@ def dashboard(request):
             porcentaje = int((hechos / total) * 100) if total > 0 else 0
             progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-        # 2. Datos para Gráficos
         ultimas_asistencias = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
-        # Cambiamos la lógica para evitar que total_asistencias sea indefinida
         total_asistencias_cuenta = Asistencia.objects.filter(alumno=alumno).count()
         
         grafico_rendimiento_data = [int(a.porcentaje_completado if hasattr(a, 'porcentaje_completado') else 0) for a in reversed(ultimas_asistencias)]
         
         if not grafico_rendimiento_data:
-            # Ponemos datos de respaldo basados en la cuenta real
-            grafico_rendimiento_data = [total_asistencias_cuenta, 0]
+            grafico_rendimiento_data =
 
         context = {
             'alumno': alumno,
@@ -154,7 +150,6 @@ def gestion(request):
         'alumnos_baja': alumnos_baja,
     })
 
-# --- ESTA ES LA FUNCIÓN QUE RENDER NO ENCONTRABA ---
 @login_required
 def recepcion(request):
     if not request.user.is_superuser:
@@ -195,37 +190,32 @@ def detalle_alumno(request, alumno_id):
     
     alumno = get_object_or_404(Alumno, id=alumno_id)
     
-    # 1. PROCESAR EL FORMULARIO (POST)
-    # Ajustado para recibir 'series' del HTML y guardarlo como 'sets' en la DB
     if request.method == 'POST':
         Ejercicio.objects.create(
             alumno=alumno,
             nombre=request.POST.get('nombre'),
-            dia_semana=request.POST.get('dia'), # Tu HTML usa name="dia"
+            dia_semana=request.POST.get('dia'),
             tipo=request.POST.get('tipo', 'FUERZA'),
-            sets=request.POST.get('series', '3'), # Tu HTML usa name="series"
-            reps=request.POST.get('reps', '12'),   # Tu HTML usa name="reps"
-            peso=request.POST.get('peso', '0')     # Tu HTML usa name="peso"
+            sets=request.POST.get('series', '3'), 
+            reps=request.POST.get('reps', '12'),   
+            peso=request.POST.get('peso', '0')     
         )
         return redirect('detalle_alumno', alumno_id=alumno.id)
 
-    # 2. PREPARAR DATOS PARA EL HTML
     ejercicios_lista = alumno.ejercicios.all()
     
-    # Mapeo de campos para que el bucle del HTML no falle
+    # IMPORTANTE: Traducción para el HTML
     for ej in ejercicios_lista:
         ej.series = ej.sets           
         ej.repeticiones = ej.reps     
         ej.peso_sugerido = ej.peso    
 
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    
-    # IMPORTANTE: La variable DEBE llamarse 'rutina' porque así está en tu HTML
     rutina = {dia: ejercicios_lista.filter(dia_semana=dia) for dia in dias}
 
     context = {
         'alumno': alumno,
-        'rutina': rutina, # Antes se llamaba rutina_por_dia, ahora 'rutina'
+        'rutina': rutina,
     }
     
     return render(request, 'alumnos/detalle_alumno.html', context)
@@ -238,7 +228,29 @@ def alta_socio_rapida(request):
 @login_required
 def editar_alumno(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard')
+    
     alumno = get_object_or_404(Alumno, id=alumno_id)
+    
+    if request.method == 'POST':
+        # 1. Actualizamos datos del usuario (Auth User)
+        alumno.user.first_name = request.POST.get('nombre')
+        alumno.user.last_name = request.POST.get('apellido')
+        alumno.user.save()
+        
+        # 2. Actualizamos datos del perfil (Alumno)
+        alumno.dni = request.POST.get('dni')
+        alumno.celular = request.POST.get('celular')
+        alumno.plan_semanal = request.POST.get('plan')
+        
+        # Manejo del checkbox de cuota
+        if request.POST.get('cuota_pagada'):
+            # Si marcamos el check, le damos 30 días desde hoy o desde su vencimiento
+            base = max(alumno.fecha_vencimiento or date.today(), date.today())
+            alumno.fecha_vencimiento = base + timedelta(days=30)
+        
+        alumno.save()
+        return redirect('detalle_alumno', alumno_id=alumno.id)
+    
     return render(request, 'alumnos/editar_alumno.html', {'alumno': alumno})
 
 @login_required
@@ -253,7 +265,9 @@ def cambiar_estado_alumno(request, alumno_id):
 def renovar_cuota(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard')
     alumno = get_object_or_404(Alumno, id=alumno_id)
-    base_fecha = max(alumno.fecha_vencimiento or date.today(), date.today())
+    base_fecha = alumno.fecha_vencimiento if alumno.fecha_vencimiento else date.today()
+    if base_fecha < date.today():
+        base_fecha = date.today()
     alumno.fecha_vencimiento = base_fecha + timedelta(days=30)
     alumno.save()
     return redirect('detalle_alumno', alumno_id=alumno.id)
