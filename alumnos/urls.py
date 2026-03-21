@@ -20,7 +20,7 @@ urlpatterns = [
     path('gestion/alta-socio/', views.alta_socio_rapida, name='alta_socio_rapida'),
     
     # Acciones
-    path('renovar-cuota/<int:alumno_id>/', views.renovar_cuota, name='renovar_cuota'),
+    path('renovar-cuota/<int:alumno_id>/', views.renovar_cuota, name='renovar_cuota'), # <--- Esta es la que arreglamos ahora
     path('resetear-rutina/<int:alumno_id>/', views.resetear_rutina, name='resetear_rutina'),
     path('eliminar-ejercicio/<int:ejercicio_id>/', views.eliminar_ejercicio, name='eliminar_ejercicio'),
     path('marcar-pago/<int:alumno_id>/', views.renovar_cuota, name='marcar_pago'),

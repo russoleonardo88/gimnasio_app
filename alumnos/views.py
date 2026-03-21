@@ -347,3 +347,15 @@ def historial_asistencias(request, alumno_id):
         'asistencias': asistencias,
         'porcentaje_mes': porcentaje_mes,
     })
+
+def renovar_cuota(request, alumno_id):
+    if not request.user.is_staff:
+        return redirect('dashboard_alumno')
+        
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    alumno.cuota_pagada = True
+    alumno.fecha_pago = timezone.now().date()
+    alumno.save()
+    
+    # Redirigimos de vuelta a la pantalla de gestión
+    return redirect('gestion')
