@@ -176,6 +176,7 @@ def gestion_gym(request):
     hoy = timezone.now().date()
     es_fecha_cobro = 1 <= hoy.day <= 15
     
+    # Traemos los alumnos con select_related para que no sea lento
     alumnos_activos = Alumno.objects.filter(activo=True).select_related('user').order_by('user__last_name', 'user__first_name')
     alumnos_baja = Alumno.objects.filter(activo=False).select_related('user')
     
@@ -183,19 +184,25 @@ def gestion_gym(request):
     stats_mujeres = []
     
     for alu in alumnos_activos:
+        # 1. Contar asistencias del mes actual
         conteo = Asistencia.objects.filter(alumno=alu, fecha__month=hoy.month, fecha__year=hoy.year).count()
         
-        # ESCUDO: Evitar división por cero o errores con planes vacíos
+        # 2. ESCUDO ANTICRASH: Cálculo de porcentaje de asistencia
         try:
-            meta = int(alu.plan_semanal or 0) * 4
+            # Si plan_semanal es None o vacío, usamos 1 para no dividir por cero
+            plan_valido = int(alu.plan_semanal) if alu.plan_semanal and str(alu.plan_semanal).isdigit() else 0
+            meta = plan_valido * 4
             porcentaje_asistencia = int((conteo / meta * 100)) if meta > 0 else 0
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, ZeroDivisionError):
             porcentaje_asistencia = 0
         
-        # ESCUDO: Evitar errores si no hay asistencias para el progreso
+        # 3. ESCUDO ANTICRASH: Progreso de rutina
         ultima = Asistencia.objects.filter(alumno=alu).order_by('-fecha').first()
-        progreso_rutina = int(getattr(ultima, 'porcentaje_completado', 0) or 0)
+        progreso_rutina = 0
+        if ultima and ultima.porcentaje_completado:
+            progreso_rutina = int(ultima.porcentaje_completado)
         
+        # 4. Lógica de Cuota
         if alu.cuota_pagada:
             cuota_estado, cuota_color = 'PAGADO', '#98cf2c'
         elif es_fecha_cobro:
@@ -203,10 +210,11 @@ def gestion_gym(request):
         else:
             cuota_estado, cuota_color = 'MOROSO', '#ff4d4d'
 
+        # Armamos el diccionario que espera el gestion.html que corregimos antes
         data = {
             'alumno': alu,
             'asistencias': conteo,
-            'porcentaje_asistencia': porcentaje_asistencia,
+            'porcentaje_asistencia': min(porcentaje_asistencia, 100), # Máximo 100%
             'progreso_rutina': progreso_rutina,
             'cuota_estado': cuota_estado,
             'cuota_color': cuota_color,
