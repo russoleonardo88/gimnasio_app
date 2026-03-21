@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Alumno, Ejercicio, Asistencia, Entrenador
 from django.contrib.auth.models import User
 from django.utils import timezone
-from django.db.models import Count, Avg, Q  # <--- Agregado Q para búsquedas complejas
+from django.db.models import Count, Avg, Q
 from django.db.models.functions import ExtractMonth
 from django.contrib import messages
 from datetime import timedelta
@@ -26,17 +26,11 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             
-            # --- CORRECCIÓN CRÍTICA DE SESIÓN ---
             recordarme = request.POST.get('remember_me')
-            
             if recordarme:
-                # Si marcó el checkbox: 1 año
-                request.session.set_expiry(31536000)
-                print(f"SESIÓN PERSISTENTE: Usuario {user.username} por 1 año.")
+                request.session.set_expiry(31536000) # 1 año
             else:
-                # Si no lo marcó: 24 horas
-                request.session.set_expiry(86400) 
-                print(f"SESIÓN TEMPORAL: Usuario {user.username} por 24hs.")
+                request.session.set_expiry(86400) # 24 horas
                 
             if user.is_staff:
                 return redirect('gestion_gym')
@@ -46,7 +40,7 @@ def login_view(request):
     else:
         form = AuthenticationForm()
     
-    return render(request, 'login.html', {'form': form})
+    return render(request, 'alumnos/login.html', {'form': form})
 
 def logout_view(request):
     logout(request)
@@ -63,7 +57,7 @@ def cambiar_password(request):
             return redirect('dashboard_alumno')
     else:
         form = PasswordChangeForm(request.user)
-    return render(request, 'cambiar_password.html', {'form': form})
+    return render(request, 'alumnos/cambiar_password.html', {'form': form})
 
 # --- VISTAS DEL ALUMNO ---
 
@@ -74,7 +68,7 @@ def dashboard(request):
     except Alumno.DoesNotExist:
         if request.user.is_staff:
             return redirect('gestion_gym')
-        return render(request, 'dashboard.html', {'error': 'No tienes un perfil de alumno asignado.'})
+        return render(request, 'alumnos/dashboard.html', {'error': 'No tienes un perfil de alumno asignado.'})
 
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
@@ -100,7 +94,7 @@ def dashboard(request):
     hace_una_semana = timezone.now().date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
     
-    return render(request, 'dashboard.html', {
+    return render(request, 'alumnos/dashboard.html', {
         'alumno': alumno, 
         'progreso_dias': progreso_dias, 
         'asistencias': asistencias_recientes,
@@ -128,7 +122,7 @@ def mi_rutina(request):
             ej.completado = False
             ej.save()
 
-    return render(request, 'mi_rutina.html', {'ejercicios': ejercicios, 'dia': dia_seleccionado, 'alumno': alumno})
+    return render(request, 'alumnos/mi_rutina.html', {'ejercicios': ejercicios, 'dia': dia_seleccionado, 'alumno': alumno})
 
 @csrf_exempt
 @login_required
@@ -158,10 +152,8 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
 def control_acceso(request):
     mensaje, clase_alerta, alumno_info = "", "", None
     if request.method == "POST":
-        # Capturamos el dato (puede ser código H0249 o DNI 33670345)
         dato_ingresado = request.POST.get("codigo", "").upper().strip()
         try:
-            # Busqueda por Código O por DNI
             alumno = Alumno.objects.get(Q(codigo=dato_ingresado) | Q(dni=dato_ingresado))
             
             if not alumno.activo:
@@ -177,7 +169,7 @@ def control_acceso(request):
         except Alumno.MultipleObjectsReturned:
             mensaje, clase_alerta = "ERROR: DNI DUPLICADO EN SISTEMA", "danger"
             
-    return render(request, "recepcion.html", {"mensaje": mensaje, "clase_alerta": clase_alerta, "alumno_info": alumno_info})
+    return render(request, "alumnos/recepcion.html", {"mensaje": mensaje, "clase_alerta": clase_alerta, "alumno_info": alumno_info})
 
 @login_required
 def gestion_gym(request):
@@ -222,7 +214,7 @@ def gestion_gym(request):
         else:
             stats_mujeres.append(data)
             
-    return render(request, 'gestion.html', {
+    return render(request, 'alumnos/gestion.html', {
         'stats_hombres': stats_hombres,
         'stats_mujeres': stats_mujeres,
         'alumnos_baja': alumnos_baja
@@ -233,7 +225,7 @@ def detalle_alumno(request, alumno_id):
     alumno = get_object_or_404(Alumno, id=alumno_id)
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).distinct() for dia in dias}
-    return render(request, 'detalle_alumno.html', {'alumno': alumno, 'rutina': rutina, 'dias': dias})
+    return render(request, 'alumnos/detalle_alumno.html', {'alumno': alumno, 'rutina': rutina, 'dias': dias})
 
 @login_required
 def editar_alumno(request, alumno_id):
@@ -252,7 +244,7 @@ def editar_alumno(request, alumno_id):
         alumno.save()
         messages.success(request, f"Datos de {alumno.user.first_name} actualizados.")
         return redirect('gestion_gym')
-    return render(request, 'editar_alumno.html', {'alumno': alumno})
+    return render(request, 'alumnos/editar_alumno.html', {'alumno': alumno})
 
 @login_required
 def marcar_pago(request, alumno_id):
@@ -319,7 +311,7 @@ def alta_socio_rapida(request):
             fecha_inicio_rutina=timezone.now().date()
         )
         return redirect('gestion_gym')
-    return render(request, 'alta_socio.html')
+    return render(request, 'alumnos/alta_socio.html')
 
 @login_required
 def resetear_rutina(request, alumno_id):
@@ -342,12 +334,13 @@ def historial_asistencias(request, alumno_id):
     meta = int(alumno.plan_semanal) * 4
     porcentaje_mes = int((conteo / meta * 100)) if meta > 0 else 0
     
-    return render(request, 'historial_asistencias.html', {
+    return render(request, 'alumnos/historial_asistencias.html', {
         'alumno': alumno, 
         'asistencias': asistencias,
         'porcentaje_mes': porcentaje_mes,
     })
 
+@login_required
 def renovar_cuota(request, alumno_id):
     if not request.user.is_staff:
         return redirect('dashboard_alumno')
@@ -357,5 +350,4 @@ def renovar_cuota(request, alumno_id):
     alumno.fecha_pago = timezone.now().date()
     alumno.save()
     
-    # Redirigimos de vuelta a la pantalla de gestión
-    return redirect('gestion')
+    return redirect('gestion_gym') # Corregido para que coincida con tu url 'gestion_gym'
