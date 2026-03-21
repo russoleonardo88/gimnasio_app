@@ -48,7 +48,7 @@ def dashboard(request):
     
     # Corregido: Generación de datos para el gráfico
     grafico_data = [int(a.porcentaje_completado) for a in reversed(asistencias)]
-    if not grafico_data: grafico_data =
+    if not grafico_data: grafico_data =0
 
     context = {
         'alumno': alumno,
