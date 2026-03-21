@@ -30,5 +30,5 @@ urlpatterns = [
     path('alumno/<int:alumno_id>/agregar/', views.agregar_ejercicio_rapido, name='agregar_ejercicio'),
     path('eliminar-ejercicio/<int:ejercicio_id>/', views.eliminar_ejercicio, name='eliminar_ejercicio'),
     path('resetear-rutina/<int:alumno_id>/', views.resetear_rutina, name='resetear_rutina'),
-    path('crear-admin-secreto/', views.crear_admin_temporal),
+   
 ]
