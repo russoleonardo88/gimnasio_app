@@ -354,19 +354,17 @@ def renovar_cuota(request, alumno_id):
 @login_required
 def agregar_ejercicio(request, alumno_id):
     if request.method == 'POST':
-        alumno = Alumno.objects.get(id=alumno_id)
-        nombre = request.POST.get('nombre')
-        tipo = request.POST.get('tipo')
-        dia = request.POST.get('dia')
-        series = request.POST.get('series')
-        repeticiones = request.POST.get('repeticiones')
+        alumno = get_object_or_404(Alumno, id=alumno_id)
         
+        # Corregimos 'dia' por 'dia_semana' para que coincida con tu modelo
         Ejercicio.objects.create(
             alumno=alumno,
-            nombre=nombre,
-            tipo=tipo,
-            dia=dia,
-            series=series,
-            repeticiones=repeticiones
+            nombre=request.POST.get('nombre'),
+            tipo=request.POST.get('tipo'),
+            dia_semana=request.POST.get('dia'), # <--- Aquí estaba el error
+            series=request.POST.get('series') or 0,
+            repeticiones=request.POST.get('reps') or "0", # Usamos 'reps' que es lo que manda tu HTML
+            peso_sugerido=request.POST.get('peso') or 0
         )
+        messages.success(request, "Ejercicio agregado correctamente.")
     return redirect('detalle_alumno', alumno_id=alumno_id)
