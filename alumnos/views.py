@@ -129,7 +129,7 @@ def dashboard(request):
         )
 
         asignados = ejercicios_semana.count()
-        realizados = ejercicios_semana.filter(realizado=True).count()
+        realizados = ejercicios_semana.filter(completado=True).count()
 
         if asignados > 0:
             porcentaje = round((realizados / asignados) * 100)
