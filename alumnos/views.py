@@ -349,3 +349,24 @@ def renovar_cuota(request, alumno_id):
     alumno.fecha_pago = timezone.now().date()
     alumno.save()
     return redirect('gestion_gym')
+
+# Agregá esto al final de alumnos/views.py si no existe
+@login_required
+def agregar_ejercicio(request, alumno_id):
+    if request.method == 'POST':
+        alumno = Alumno.objects.get(id=alumno_id)
+        nombre = request.POST.get('nombre')
+        tipo = request.POST.get('tipo')
+        dia = request.POST.get('dia')
+        series = request.POST.get('series')
+        repeticiones = request.POST.get('repeticiones')
+        
+        Ejercicio.objects.create(
+            alumno=alumno,
+            nombre=nombre,
+            tipo=tipo,
+            dia=dia,
+            series=series,
+            repeticiones=repeticiones
+        )
+    return redirect('detalle_alumno', alumno_id=alumno_id)
