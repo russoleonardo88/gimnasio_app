@@ -222,5 +222,13 @@
             }
         });
     </script>
+    <script>
+    // Este código es un agregado para solucionar el botón "atrás" del celular
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+</script>
 </body>
 </html>
