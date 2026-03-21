@@ -73,7 +73,7 @@ def dashboard(request):
     if asistencias_qs.exists():
         grafico_data = [int(a.porcentaje_completado or 0) for a in reversed(asistencias_qs)]
     else:
-        grafico_data = # <--- ESTO corrige el error de sintaxis y evita el crash
+        grafico_data = [0]# <--- ESTO corrige el error de sintaxis y evita el crash
 
     # 3. Datos para el gráfico de barras (Días por mes - Ejemplo real)
     # Por ahora, para el build, podés dejarlo estático o calcularlo con Count
