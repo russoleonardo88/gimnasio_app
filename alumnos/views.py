@@ -46,11 +46,12 @@ def cambiar_password(request):
         form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
             user = form.save()
-            update_session_auth_hash(request, user)
-            messages.success(request, '¡Contraseña actualizada con éxito!')
-            return redirect('dashboard_alumno')
+            update_session_auth_hash(request, user)  # Importante para no cerrar sesión
+            messages.success(request, '¡Tu contraseña fue actualizada con éxito!')
+            return redirect('dashboard_alumno') # <--- ASEGURATE QUE DIGA ESTO
     else:
         form = PasswordChangeForm(request.user)
+    
     return render(request, 'alumnos/cambiar_password.html', {'form': form})
 
 # --- VISTAS DEL ALUMNO ---
