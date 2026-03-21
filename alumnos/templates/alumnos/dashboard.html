@@ -187,12 +187,10 @@
         new Chart(document.getElementById('graficoDias'), {
             type: 'bar',
             data: {
-                // He expandido las etiquetas a los 12 meses
                 labels: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'],
                 datasets: [{
                     label: 'Días',
-                    // Aquí cargamos los datos reales que vienen de views.py
-                    data: {{ asistencias_por_mes|safe }},
+                    data: {{ asistencias_por_mes|safe }}, // Verifica que diga |safe
                     backgroundColor: '#98cf2c',
                     borderRadius: 5
                 }]
@@ -200,7 +198,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false }, title: { display: true, text: 'DÍAS ENTRENADOS', color: '#fff' } }
+                plugins: { legend: { display: false } }
             }
         });
 
