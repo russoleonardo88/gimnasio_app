@@ -118,6 +118,12 @@
                                 </td>
                             </tr>
                             {% endif %}
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: var(--gris-texto); padding: 20px;">
+                                    No hay alumnos registrados.
+                                </td>
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>
