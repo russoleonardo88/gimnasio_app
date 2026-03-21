@@ -175,22 +175,32 @@
     </div>
 
     <script>
-        const defaults = {
-            color: '#888888',
-            font: { family: "'Inter', sans-serif", size: 10 },
-            grid: { color: '#222222' }
-        };
-        Chart.defaults.color = defaults.color;
-        Chart.defaults.font = defaults.font;
-        Chart.defaults.scale.grid = defaults.grid;
+document.addEventListener('DOMContentLoaded', function () {
 
-        new Chart(document.getElementById('graficoDias'), {
+    const defaults = {
+        color: '#888888',
+        font: { family: "'Inter', sans-serif", size: 10 },
+        grid: { color: '#222222' }
+    };
+
+    Chart.defaults.color = defaults.color;
+    Chart.defaults.font = defaults.font;
+    Chart.defaults.scale.grid = defaults.grid;
+
+    // Datos seguros desde Django
+    const datosAsistencias = {{ asistencias_por_mes|default:"[]"|safe }};
+    const datosRendimiento = {{ rendimiento|default:"[0,0,0,0]"|safe }};
+
+    // Gráfico de Días
+    const ctxDias = document.getElementById('graficoDias');
+    if (ctxDias) {
+        new Chart(ctxDias, {
             type: 'bar',
             data: {
                 labels: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'],
                 datasets: [{
                     label: 'Días',
-                    data: {{ asistencias_por_mes|safe }}, // Verifica que diga |safe
+                    data: datosAsistencias,
                     backgroundColor: '#98cf2c',
                     borderRadius: 5
                 }]
@@ -198,18 +208,25 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
+                plugins: { 
+                    legend: { display: false } 
+                }
             }
         });
+    }
 
-        new Chart(document.getElementById('graficoIntensidad'), {
+    // Gráfico de Intensidad / Rendimiento
+    const ctxInt = document.getElementById('graficoIntensidad');
+    if (ctxInt) {
+        new Chart(ctxInt, {
             type: 'line',
             data: {
                 labels: ['S1', 'S2', 'S3', 'S4'],
                 datasets: [{
                     label: 'Intensidad %',
-                    data:,
+                    data: datosRendimiento,
                     borderColor: '#98cf2c',
+                    backgroundColor: '#98cf2c',
                     tension: 0.3,
                     fill: false
                 }]
@@ -217,12 +234,20 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false }, title: { display: true, text: 'RENDIMIENTO (%)', color: '#fff' } },
-                scales: { y: { min: 0, max: 100 } }
+                plugins: { 
+                    legend: { display: false },
+                    title: { 
+                        display: true, 
+                        text: 'RENDIMIENTO (%)', 
+                        color: '#fff' 
+                    } 
+                },
+                scales: { 
+                    y: { min: 0, max: 100 } 
+                }
             }
         });
-    </script>
-   <script>
+  </script> 
     (function () {
         // 1. Detecta si la página se carga desde la caché (botón atrás del celular)
         window.addEventListener('pageshow', function (event) {
