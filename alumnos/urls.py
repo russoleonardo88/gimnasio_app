@@ -19,5 +19,5 @@ urlpatterns = [
     path('marcar-pago/<int:alumno_id>/', views.marcar_pago, name='marcar_pago'),
     path('cambiar-estado/<int:alumno_id>/', views.cambiar_estado_alumno, name='cambiar_estado_alumno'),
     path('historial/<int:alumno_id>/', views.historial_asistencias, name='historial_asistencias'),
-    ]path('gestion/alumno/<int:alumno_id>/agregar/', views.agregar_ejercicio, name='agregar_ejercicio'),
+    path('gestion/alumno/<int:alumno_id>/agregar/', views.agregar_ejercicio, name='agregar_ejercicio'),
 ]
