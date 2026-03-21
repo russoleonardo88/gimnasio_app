@@ -222,13 +222,19 @@
             }
         });
     </script>
-    <script>
-    // Este código es un agregado para solucionar el botón "atrás" del celular
-    window.addEventListener('pageshow', function(event) {
-        if (event.persisted) {
-            window.location.reload();
-        }
-    });
+   <script>
+    (function () {
+        // 1. Detecta si la página se carga desde la caché (botón atrás del celular)
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+
+        // 2. Truco extra para navegadores de Android/iOS:
+        // Forzamos a que no guarde esta página en la caché "congelada"
+        window.onunload = function () {};
+    })();
 </script>
 </body>
 </html>
