@@ -9,12 +9,14 @@
     <style>
         :root {
             --negro-fondo: #0a0a0a;
-            --negro-card: #141414;
+            --negro-card: #111111;
             --verde-neon: #98cf2c;
             --blanco: #ffffff;
-            --gris-texto: #888888;
-            --gris-borde: #222222;
-            --moroso: #dc3545;
+            --gris-texto: #666666;
+            --gris-borde: #1f1f1f;
+            --moroso: #ff4d4d;
+            --azul-h: #0084ff;
+            --rosa-m: #ff007a;
         }
 
         body {
@@ -22,53 +24,58 @@
             background-color: var(--negro-fondo);
             color: var(--blanco);
             margin: 0;
-            padding: 20px 40px 100px 40px; /* Padding inferior para el menú */
+            padding: 30px 40px 120px 40px;
         }
 
-        /* HEADER */
+        /* HEADER ESTRATÉGICO */
         .header-principal {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--gris-borde);
+            margin-bottom: 40px;
         }
 
         .titulo-container h1 {
-            color: var(--verde-neon);
+            color: var(--blanco);
             margin: 0;
             text-transform: uppercase;
             font-weight: 900;
-            font-size: 24px;
+            font-size: 26px;
+            letter-spacing: -1px;
         }
 
+        .search-container { position: relative; }
         .search-bar {
-            background: #111;
-            border: 1px solid #333;
-            padding: 10px 20px;
-            border-radius: 12px;
+            background: #181818;
+            border: 1px solid var(--gris-borde);
+            padding: 12px 20px;
+            border-radius: 14px;
             color: #fff;
-            width: 300px;
+            width: 350px;
+            font-family: inherit;
+            transition: border-color 0.3s;
         }
+        .search-bar:focus { border-color: var(--verde-neon); outline: none; }
 
-        /* BOTONES */
         .btn-registrar {
             background-color: var(--verde-neon);
             color: #000;
             text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 12px;
+            padding: 14px 28px;
+            border-radius: 14px;
             font-weight: 900;
             text-transform: uppercase;
             font-size: 13px;
+            transition: transform 0.2s;
         }
+        .btn-registrar:hover { transform: translateY(-2px); }
 
-        /* ESTRUCTURA DE COLUMNAS */
+        /* GRID DE GESTIÓN */
         .container-gestion {
             display: grid;
-            grid-template-columns: 3fr 1fr;
-            gap: 30px;
+            grid-template-columns: 1fr 1fr 300px;
+            gap: 25px;
+            align-items: start;
         }
 
         .seccion-card {
@@ -76,180 +83,221 @@
             border: 1px solid var(--gris-borde);
             border-radius: 24px;
             padding: 25px;
-            margin-bottom: 25px;
+            height: fit-content;
         }
 
         .seccion-titulo {
             font-size: 12px;
             font-weight: 900;
-            color: var(--gris-texto);
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             text-transform: uppercase;
+            letter-spacing: 1px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        /* TABLAS */
+        /* TABLAS ESTILO AQUILES */
         .tabla-aquiles { width: 100%; border-collapse: collapse; }
         .tabla-aquiles th {
             text-align: left;
-            color: var(--verde-neon);
+            color: var(--gris-texto);
             font-size: 10px;
             padding: 10px 15px;
             text-transform: uppercase;
             border-bottom: 1px solid var(--gris-borde);
         }
         .tabla-aquiles td {
-            padding: 15px;
+            padding: 16px 15px;
             border-bottom: 1px solid rgba(255,255,255,0.02);
             font-size: 13px;
         }
 
-        .nombre-socio { color: #fff; text-decoration: none; font-weight: 700; }
+        .nombre-socio { 
+            color: #fff; 
+            text-decoration: none; 
+            font-weight: 600; 
+            transition: color 0.2s;
+        }
+        .nombre-socio:hover { color: var(--verde-neon); }
+
         .codigo-tag {
-            background: rgba(152,207,44,0.1);
-            color: var(--verde-neon);
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: 800;
+            background: #1a1a1a;
+            color: var(--gris-texto);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-weight: 700;
             font-size: 11px;
+            border: 1px solid var(--gris-borde);
         }
 
-        /* BADGES */
+        /* ESTADOS DE CUOTA */
         .badge-cuota {
-            padding: 4px 10px;
-            border-radius: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
             font-size: 10px;
-            font-weight: 800;
+            font-weight: 900;
             text-transform: uppercase;
-            border: 1px solid;
         }
-        .cuota-pago { border-color: var(--verde-neon); color: var(--verde-neon); background: rgba(152,207,44,0.1); }
-        .cuota-moroso { border-color: var(--moroso); color: var(--moroso); background: rgba(220,53,69,0.1); }
+        .cuota-pago { background: rgba(152, 207, 44, 0.1); color: var(--verde-neon); }
+        .cuota-moroso { background: rgba(255, 77, 77, 0.1); color: var(--moroso); }
 
-        /* NAVEGACIÓN INFERIOR (Como la captura) */
+        /* COLUMNA DE BAJAS */
+        .baja-item {
+            background: #181818;
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--moroso);
+        }
+
+        .btn-reactivar {
+            color: var(--verde-neon);
+            text-decoration: none;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 5px 10px;
+            background: rgba(152, 207, 44, 0.05);
+            border-radius: 6px;
+        }
+
+        /* NAV BOTTOM (FLOTANTE) */
         .nav-bottom {
             position: fixed;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(20,20,20,0.95);
-            backdrop-filter: blur(10px);
-            padding: 15px 40px;
-            border-radius: 25px;
-            border: 1px solid #333;
+            background: rgba(20,20,20,0.8);
+            backdrop-filter: blur(20px);
+            padding: 15px 50px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
             display: flex;
-            gap: 50px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            gap: 60px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
             z-index: 1000;
         }
-        .nav-item { text-decoration: none; font-size: 24px; color: #555; transition: 0.3s; }
-        .nav-item.active { color: var(--verde-neon); }
+        .nav-item { text-decoration: none; font-size: 22px; filter: grayscale(1); transition: 0.3s; opacity: 0.5; }
+        .nav-item.active { filter: grayscale(0); opacity: 1; transform: scale(1.2); }
 
+        @media (max-width: 1200px) {
+            .container-gestion { grid-template-columns: 1fr; }
+            .columna-bajas { order: -1; }
+        }
     </style>
 </head>
 <body>
 
     <div class="header-principal">
         <div class="titulo-container">
-            <h1>GESTIÓN DE SOCIOS</h1>
+            <h1>Gestión <span style="color: var(--verde-neon);">Aquiles</span></h1>
         </div>
-        <form action="{% url 'gestion' %}" method="GET">
-            <input type="text" name="q" class="search-bar" placeholder="BUSCAR POR NOMBRE O CÓDIGO...">
+        
+        <form action="{% url 'gestion' %}" method="GET" class="search-container">
+            <input type="text" name="q" class="search-bar" placeholder="Buscar socio o código..." value="{{ request.GET.q }}">
         </form>
-        <a href="{% url 'alta_socio_rapida' %}" class="btn-registrar">+ NUEVO SOCIO</a>
+
+        <a href="{% url 'alta_socio_rapida' %}" class="btn-registrar">＋ Nuevo Alumno</a>
     </div>
 
     <div class="container-gestion">
-        <div class="columna-tablas">
-            
-            <div class="seccion-card">
-                <h3 class="seccion-titulo" style="color: #0084ff;">┃ SOCIOS HOMBRES</h3>
-                <table class="tabla-aquiles">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Código</th>
-                            <th>Estado Cuota</th>
-                            <th style="text-align:center;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for alumno in alumnos_h %}
-                        <tr>
-                            <td><a href="{% url 'detalle_alumno' alumno.id %}" class="nombre-socio">{{ alumno.user.first_name|upper }} {{ alumno.user.last_name|upper }}</a></td>
-                            <td><span class="codigo-tag">#{{ alumno.codigo }}</span></td>
-                            <td>
-                                {% if alumno.cuota_pagada %}
-                                    <span class="badge-cuota cuota-pago">AL DÍA</span>
-                                {% else %}
-                                    <span class="badge-cuota cuota-moroso">MOROSO</span>
-                                {% endif %}
-                            </td>
-                            <td style="text-align:center;">
-                                <a href="{% url 'editar_alumno' alumno.id %}" style="text-decoration:none; margin-right:10px;">✏️</a>
-                                <a href="{% url 'cambiar_estado_alumno' alumno.id %}" style="text-decoration:none;">🚫</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        
+        <div class="seccion-card">
+            <h3 class="seccion-titulo" style="color: var(--azul-h);">┃ Alumnos Masculinos</h3>
+            <table class="tabla-aquiles">
+                <thead>
+                    <tr>
+                        <th>Socio</th>
+                        <th>ID</th>
+                        <th>Cuota</th>
+                        <th style="text-align:right;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alumno in alumnos_h %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'detalle_alumno' alumno.id %}" class="nombre-socio">
+                                {{ alumno.user.first_name|upper }} {{ alumno.user.last_name|upper }}
+                            </a>
+                        </td>
+                        <td><span class="codigo-tag">#{{ alumno.codigo }}</span></td>
+                        <td>
+                            <span class="badge-cuota {% if alumno.cuota_pagada %}cuota-pago{% else %}cuota-moroso{% endif %}">
+                                {% if alumno.cuota_pagada %}AL DÍA{% else %}MOROSO{% endif %}
+                            </span>
+                        </td>
+                        <td style="text-align:right;">
+                            <a href="{% url 'editar_alumno' alumno.id %}" style="text-decoration:none;">✏️</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-            <div class="seccion-card">
-                <h3 class="seccion-titulo" style="color: #ff007a;">┃ SOCIAS MUJERES</h3>
-                <table class="tabla-aquiles">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Código</th>
-                            <th>Estado Cuota</th>
-                            <th style="text-align:center;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for alumno in alumnos_m %}
-                        <tr>
-                            <td><a href="{% url 'detalle_alumno' alumno.id %}" class="nombre-socio">{{ alumno.user.first_name|upper }} {{ alumno.user.last_name|upper }}</a></td>
-                            <td><span class="codigo-tag">#{{ alumno.codigo }}</span></td>
-                            <td>
-                                {% if alumno.cuota_pagada %}
-                                    <span class="badge-cuota cuota-pago">AL DÍA</span>
-                                {% else %}
-                                    <span class="badge-cuota cuota-moroso">MOROSO</span>
-                                {% endif %}
-                            </td>
-                            <td style="text-align:center;">
-                                <a href="{% url 'editar_alumno' alumno.id %}" style="text-decoration:none; margin-right:10px;">✏️</a>
-                                <a href="{% url 'cambiar_estado_alumno' alumno.id %}" style="text-decoration:none;">🚫</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <div class="seccion-card">
+            <h3 class="seccion-titulo" style="color: var(--rosa-m);">┃ Alumnas Femeninas</h3>
+            <table class="tabla-aquiles">
+                <thead>
+                    <tr>
+                        <th>Socia</th>
+                        <th>ID</th>
+                        <th>Cuota</th>
+                        <th style="text-align:right;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alumno in alumnos_m %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'detalle_alumno' alumno.id %}" class="nombre-socio">
+                                {{ alumno.user.first_name|upper }} {{ alumno.user.last_name|upper }}
+                            </a>
+                        </td>
+                        <td><span class="codigo-tag">#{{ alumno.codigo }}</span></td>
+                        <td>
+                            <span class="badge-cuota {% if alumno.cuota_pagada %}cuota-pago{% else %}cuota-moroso{% endif %}">
+                                {% if alumno.cuota_pagada %}AL DÍA{% else %}MOROSO{% endif %}
+                            </span>
+                        </td>
+                        <td style="text-align:right;">
+                            <a href="{% url 'editar_alumno' alumno.id %}" style="text-decoration:none;">✏️</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
         <div class="columna-bajas">
-            <div class="seccion-card" style="border-color: #ff4d4d;">
-                <h3 class="seccion-titulo" style="color: #ff4d4d;">┃ BAJAS</h3>
+            <div class="seccion-card" style="border-color: #331111;">
+                <h3 class="seccion-titulo" style="color: var(--moroso);">┃ Inactivos / Bajas</h3>
                 {% for alumno in alumnos_baja %}
-                <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #333;">
-                    <span style="display:block; font-size: 12px; font-weight: 700;">{{ alumno.user.first_name|upper }}</span>
-                    <a href="{% url 'cambiar_estado_alumno' alumno.id %}" style="color: var(--verde-neon); font-size: 10px; text-decoration: none; font-weight: 800;">REACTIVAR</a>
+                <div class="baja-item">
+                    <div>
+                        <span style="display:block; font-size: 13px; font-weight: 700; color: #eee;">{{ alumno.user.first_name|upper }}</span>
+                        <span style="font-size: 10px; color: var(--gris-texto);">ID: {{ alumno.codigo }}</span>
+                    </div>
+                    <a href="{% url 'cambiar_estado_alumno' alumno.id %}" class="btn-reactivar">Activar</a>
                 </div>
                 {% empty %}
-                <p style="color: #444; font-size: 11px; text-align:center;">Sin bajas.</p>
+                <p style="color: #444; font-size: 12px; text-align:center; padding: 20px;">Sin registros.</p>
                 {% endfor %}
             </div>
         </div>
+
     </div>
 
     <div class="nav-bottom">
         <a href="{% url 'dashboard' %}" class="nav-item">🏠</a>
         <a href="{% url 'gestion' %}" class="nav-item active">👥</a>
-        <a href="{% url 'login' %}" class="nav-item">🚪</a>
+        <a href="{% url 'control_acceso' %}" class="nav-item">🛂</a>
+        <a href="{% url 'logout' %}" class="nav-item">🚪</a>
     </div>
 
 </body>

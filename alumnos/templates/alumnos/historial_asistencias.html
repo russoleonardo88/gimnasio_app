@@ -4,153 +4,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aquiles App - Mi Actividad</title>
+    <title>Mi Actividad - Aquiles Gym</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --negro-puro: #000000;
-            --negro-card: #121212;
+            --negro-card: #111111;
             --verde-aquiles: #98cf2c;
-            --gris-texto: #a0a0a0;
-            --blanco: #ffffff;
+            --gris-texto: #888888;
+            --gris-borde: #1f1f1f;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--negro-puro);
-            color: var(--blanco);
+            color: #fff;
             margin: 0; padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
+        /* HEADER APP STYLE */
         .header {
-            padding: 20px;
+            padding: 25px 20px;
             display: flex;
             align-items: center;
-            border-bottom: 1px solid #222;
-            position: sticky; top: 0; background: var(--negro-puro); z-index: 100;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--gris-borde);
+            position: sticky; top: 0; z-index: 100;
         }
 
         .btn-atras {
+            background: none;
+            border: none;
             color: var(--verde-aquiles);
-            text-decoration: none;
-            font-size: 1.5rem;
-            margin-right: 20px;
+            font-size: 24px;
             font-weight: 900;
-            background: none; border: none; cursor: pointer;
+            cursor: pointer;
+            padding: 0;
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
         }
 
-        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+        .header h1 {
+            margin: 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 900;
+        }
 
-        /* Widget de Resumen */
+        .container { 
+            padding: 25px 20px 100px 20px; 
+            max-width: 500px; 
+            margin: 0 auto; 
+        }
+
+        /* BANNER DE STATS */
         .stats-banner {
-            background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+            background: linear-gradient(145deg, #111 0%, #000 100%);
             border: 1px solid var(--verde-aquiles);
-            border-radius: 20px;
-            padding: 25px;
+            border-radius: 24px;
+            padding: 30px;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(152, 207, 44, 0.1);
         }
 
         .stats-number {
-            font-size: 3rem;
+            font-size: 4rem;
             font-weight: 900;
             color: var(--verde-aquiles);
             display: block;
-            line-height: 1;
+            line-height: 0.9;
         }
 
         .stats-label {
-            font-size: 0.8rem;
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 2px;
             color: var(--gris-texto);
-            margin-top: 5px;
-            display: block;
+            margin-top: 10px;
+            font-weight: 700;
         }
 
-        /* Lista de Asistencias */
+        /* LISTADO POR MESES */
         .mes-titulo {
-            font-size: 0.75rem;
+            font-size: 12px;
             color: var(--verde-aquiles);
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin: 25px 0 15px 5px;
+            margin: 30px 0 15px 5px;
             font-weight: 900;
-            opacity: 0.8;
         }
 
         .asistencia-card {
             background: var(--negro-card);
-            border: 1px solid #222;
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin-bottom: 10px;
+            border: 1px solid var(--gris-borde);
+            border-radius: 16px;
+            padding: 18px 22px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: transform 0.2s;
         }
 
         .fecha-info strong {
             display: block;
-            font-size: 1.1rem;
+            font-size: 16px;
             text-transform: capitalize;
+            margin-bottom: 4px;
         }
 
         .fecha-info span {
-            font-size: 0.85rem;
+            font-size: 13px;
             color: var(--gris-texto);
         }
 
-        .check-icon {
-            color: var(--verde-aquiles);
+        .check-badge {
             background: rgba(152, 207, 44, 0.1);
-            width: 35px; height: 35px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
+            color: var(--verde-aquiles);
+            width: 40px; 
+            height: 40px;
+            border-radius: 12px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-size: 18px;
             font-weight: 900;
         }
 
+        /* EMPTY STATE */
         .empty-state {
             text-align: center;
-            padding: 50px 20px;
-            color: #444;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            color: var(--gris-texto);
+            font-size: 14px;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <button onclick="window.location.href='{% url 'dashboard' %}'" class="btn-atras">←</button>
-        <h1 style="margin:0; font-size:1.1rem; text-transform:uppercase; letter-spacing:2px; font-weight:900;">MI ACTIVIDAD</h1>
+        <a href="{% url 'dashboard' %}" class="btn-atras">←</a>
+        <h1>Mi Actividad</h1>
     </div>
 
     <div class="container">
         <div class="stats-banner">
             <span class="stats-number">{{ asistencias.count }}</span>
-            <span class="stats-label">Entrenamientos Totales</span>
+            <span class="stats-label">Días de Entrenamiento</span>
         </div>
 
         {% if asistencias %}
             {% regroup asistencias by fecha|date:"F Y" as asistencias_por_mes %}
             
             {% for mes in asistencias_por_mes %}
-                <div class="mes-titulo">{{ mes.grouper }}</div>
+                <div class="mes-titulo">┃ {{ mes.grouper|upper }}</div>
                 
                 {% for asistencia in mes.list %}
                 <div class="asistencia-card">
                     <div class="fecha-info">
                         <strong>{{ asistencia.fecha|date:"l d" }}</strong>
-                        <span>{{ asistencia.fecha|date:"H:i" }} hs</span>
+                        <span>Entrada a las {{ asistencia.fecha|date:"H:i" }} hs</span>
                     </div>
-                    <div class="check-icon">✓</div>
+                    <div class="check-badge">✓</div>
                 </div>
                 {% endfor %}
             {% endfor %}
 
         {% else %}
             <div class="empty-state">
-                <p style="font-size: 1.2rem; font-weight: 800;">AÚN NO HAY REGISTROS</p>
-                <p>¡Vení al gym para marcar tu primera entrada!</p>
+                <div class="empty-icon">🏋️‍♂️</div>
+                <p style="font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 5px;">HISTORIAL VACÍO</p>
+                <p>Tu constancia se verá reflejada aquí.<br>¡Vení a entrenar hoy!</p>
             </div>
         {% endif %}
     </div>

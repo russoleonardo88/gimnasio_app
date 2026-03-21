@@ -1,54 +1,154 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Aquiles Gym - Recepción</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recepción - Aquiles Gym</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #000000; color: #ffffff; font-family: 'Arial Black', sans-serif; text-align: center; padding-top: 50px; overflow: hidden; }
-        .logo { width: 150px; margin-bottom: 20px; }
-        .titulo { color: #98cf2c; font-size: 3em; margin-bottom: 30px; }
+        :root {
+            --verde-aquiles: #98cf2c;
+            --rojo-error: #ff4d4d;
+            --amarillo-alerta: #ffc107;
+            --negro-fondo: #000000;
+        }
+
+        body { 
+            background-color: var(--negro-fondo); 
+            color: #ffffff; 
+            font-family: 'Inter', sans-serif; 
+            text-align: center; 
+            padding-top: 8vh; 
+            margin: 0;
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .logo-gym {
+            font-size: 80px;
+            font-weight: 900;
+            color: var(--verde-aquiles);
+            letter-spacing: -3px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .subtitulo {
+            font-size: 20px;
+            color: #444;
+            letter-spacing: 10px;
+            margin-bottom: 50px;
+            font-weight: 400;
+            text-transform: uppercase;
+        }
+
+        /* INPUT DE CÓDIGO GIGANTE */
+        .form-recepcion { margin-bottom: 40px; }
         
-        input { 
-            background: #111; color: #98cf2c; border: 3px solid #98cf2c; 
-            padding: 25px; font-size: 40px; text-align: center; width: 400px; 
-            border-radius: 15px; outline: none; transition: 0.3s;
+        .input-codigo { 
+            background: #0a0a0a; 
+            color: var(--verde-aquiles); 
+            border: 4px solid #1a1a1a; 
+            padding: 30px; 
+            font-size: 60px; 
+            text-align: center; 
+            width: 500px; 
+            border-radius: 25px; 
+            outline: none; 
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
         
-        /* Colores de alerta */
-        .alerta { margin-top: 50px; padding: 30px; border-radius: 20px; display: inline-block; min-width: 500px; }
-        .success { background-color: #28a745; font-size: 35px; }
-        .danger { background-color: #dc3545; font-size: 30px; }
-        .warning { background-color: #ffc107; color: #000; font-size: 30px; }
+        .input-codigo:focus {
+            border-color: var(--verde-aquiles);
+            background: #111;
+            box-shadow: 0 0 30px rgba(152, 207, 44, 0.2);
+        }
+
+        /* ALERTAS DE PANTALLA COMPLETA O BOX GRANDE */
+        .alerta-contenedor {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 50px;
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .mensaje-alerta { 
+            padding: 40px; 
+            border-radius: 30px; 
+            display: inline-block; 
+            min-width: 700px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        /* ESTADOS */
+        .success { background-color: var(--verde-aquiles); color: #000; font-size: 45px; }
+        .danger { background-color: var(--rojo-error); color: #fff; font-size: 40px; }
+        .warning { background-color: var(--amarillo-alerta); color: #000; font-size: 40px; }
+
+        .instruccion {
+            position: fixed;
+            bottom: 30px;
+            color: #333;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
     </style>
 </head>
 <body>
 
-    <h1 class="titulo">AQUILES GYM</h1>
-    <h2>CONTROL DE ACCESO</h2>
+    <div class="logo-gym">AQUILES</div>
+    <div class="subtitulo">RECEPCIÓN</div>
 
-    <form method="POST">
+    <form method="POST" class="form-recepcion" id="form_recepcion">
         {% csrf_token %}
-        <input type="text" name="codigo" id="codigo_input" placeholder="INGRESE CÓDIGO" autocomplete="off">
+        <input type="text" name="codigo" id="codigo_input" 
+               class="input-codigo" placeholder="ID SOCIO" 
+               autocomplete="off" autofocus>
     </form>
 
     {% if mensaje %}
-    <div class="alerta {{ clase_alerta }}">
-        {{ mensaje }}
+    <div class="alerta-contenedor">
+        <div class="mensaje-alerta {{ clase_alerta }}">
+            {{ mensaje }}
+        </div>
     </div>
     {% endif %}
 
+    <div class="instruccion">Esperando lectura de código...</div>
+
     <script>
-        // Siempre mantiene el foco en el input para el teclado de la PC
         const input = document.getElementById('codigo_input');
+
+        // Mantiene el foco pase lo que pase
         input.focus();
         document.addEventListener('click', () => input.focus());
         
-        // Limpia el mensaje después de 4 segundos para que la pantalla quede limpia
+        // Bloquea el pegado para forzar escritura/escaneo
+        input.onpaste = e => e.preventDefault();
+
+        // Si hay un mensaje, lo mostramos y reiniciamos después de 3.5 segundos
         {% if mensaje %}
         setTimeout(() => {
-            window.location.href = window.location.pathname;
-        }, 4000);
+            window.location.href = "{% url 'recepcion' %}";
+        }, 3500);
         {% endif %}
+
+        // Si el usuario escribe y presiona Enter, el formulario se envía solo (por defecto)
     </script>
 </body>
 </html>

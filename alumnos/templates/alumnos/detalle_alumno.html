@@ -1,71 +1,240 @@
-<body style="background-color: #000; color: #fff; font-family: 'Inter', sans-serif; padding: 40px; margin: 0;">
-    
-    <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #98cf2c; padding-bottom: 20px; align-items: flex-start;">
-        <div>
-            <h1 style="margin: 0 0 5px 0; font-size: 28px; font-weight: 900;">
-                FICHA: 
-                {% if alumno.user.get_full_name %}
-                    {{ alumno.user.last_name|upper }}, {{ alumno.user.first_name|upper }}
-                {% else %}
-                    SOCIO {{ alumno.codigo }}
-                {% endif %}
-                <span style="color: #666; font-size: 20px; font-weight: 400;">#{{ alumno.codigo }}</span>
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha: {{ alumno.user.first_name }} - Aquiles Gym</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --verde-aquiles: #98cf2c;
+            --negro-puro: #000000;
+            --negro-card: #111111;
+            --gris-borde: #222222;
+            --gris-texto: #888888;
+        }
+
+        body {
+            background-color: var(--negro-puro);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            padding: 40px;
+            margin: 0;
+        }
+
+        /* HEADER DE FICHA */
+        .ficha-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--verde-aquiles);
+            padding-bottom: 25px;
+            align-items: flex-start;
+        }
+
+        .ficha-titulo h1 {
+            margin: 0 0 5px 0;
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .info-tags {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            color: var(--gris-texto);
+            margin-top: 12px;
+        }
+
+        .btn-volver {
+            color: #fff;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid var(--gris-borde);
+            padding: 10px 20px;
+            border-radius: 10px;
+            background: #111;
+            transition: 0.3s;
+        }
+
+        /* BARRA DE ACCIONES */
+        .acciones-bar {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            padding: 15px;
+            background: var(--negro-card);
+            border-radius: 14px;
+            border: 1px solid var(--gris-borde);
+        }
+
+        .btn-accion {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .btn-cobrar { background: var(--verde-aquiles); color: #000; }
+        .btn-secundario { background: #222; color: #fff; border: 1px solid #333; }
+
+        /* LAYOUT PRINCIPAL */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        /* FORMULARIO ASIGNAR */
+        .form-asignar {
+            background: var(--negro-card);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid var(--gris-borde);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .form-asignar h3 {
+            color: var(--verde-aquiles);
+            margin: 0 0 20px 0;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .label-f { font-size: 11px; color: var(--gris-texto); text-transform: uppercase; display: block; margin-bottom: 5px; }
+        .input-f {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid #333;
+            border-radius: 10px;
+            box-sizing: border-box;
+        }
+
+        /* COLUMNA RUTINA SEMANAL */
+        .rutina-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .dia-card {
+            background: var(--negro-card);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--gris-borde);
+        }
+
+        .dia-card h4 {
+            color: var(--verde-aquiles);
+            border-bottom: 1px solid #222;
+            padding-bottom: 12px;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        .ej-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #181818;
+            padding: 14px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            border-left: 4px solid #333;
+        }
+
+        .ej-item.fuerza { border-left-color: var(--verde-aquiles); }
+        .ej-item.aerobico { border-left-color: #44aaff; }
+        .ej-item.zona_media { border-left-color: #ffbb33; }
+
+        .ej-info strong { display: block; font-size: 13px; text-transform: uppercase; }
+        .ej-info span { font-size: 11px; color: var(--gris-texto); font-weight: 600; }
+
+        .btn-delete {
+            color: #ff4d4d;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 5px;
+            opacity: 0.5;
+            transition: 0.3s;
+        }
+        .btn-delete:hover { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="ficha-header">
+        <div class="ficha-titulo">
+            <h1>
+                FICHA: {{ alumno.user.last_name|upper }}, {{ alumno.user.first_name|upper }}
+                <span style="color: #444; font-weight: 400; margin-left: 10px;">#{{ alumno.codigo }}</span>
             </h1>
             
-            <div style="display: flex; gap: 20px; font-size: 13px; color: #bbb; margin-top: 10px;">
-                {% if alumno.dni %}<span><strong>DNI:</strong> {{ alumno.dni }}</span>{% endif %}
+            <div class="info-tags">
+                <span><strong>DNI:</strong> {{ alumno.dni|default:"---" }}</span>
                 {% if alumno.celular %}
                 <span>
                     <strong>CEL:</strong> 
-                    <a href="https://wa.me/{{ alumno.celular }}" target="_blank" style="color: #98cf2c; text-decoration: none;">
-                        {{ alumno.celular }} <span style="font-size: 10px; opacity: 0.7;">(WHATSAPP)</span>
+                    <a href="https://wa.me/{{ alumno.celular }}" target="_blank" style="color: var(--verde-aquiles); text-decoration: none;">
+                        {{ alumno.celular }}
                     </a>
                 </span>
                 {% endif %}
-                <span style="color: {% if alumno.esta_al_dia %}#98cf2c{% else %}#ff4d4d{% endif %};">
-                    <strong>VENCE:</strong> {{ alumno.fecha_vencimiento|date:"d/m/Y" }}
+                <span style="color: {% if alumno.cuota_pagada %}var(--verde-aquiles){% else %}#ff4d4d{% endif %};">
+                    <strong>VENCIMIENTO:</strong> {{ alumno.fecha_vencimiento|date:"d/m/Y" }}
                 </span>
             </div>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <a href="{% url 'dashboard' %}" style="color: #fff; text-decoration: none; font-size: 12px; font-weight: bold; border: 1px solid #333; padding: 10px 20px; border-radius: 8px; background: #111;">← VOLVER</a>
-        </div>
+        <a href="{% url 'gestion' %}" class="btn-volver">← VOLVER AL PANEL</a>
     </div>
 
-    <div style="display: flex; gap: 15px; margin-top: 20px; padding: 15px; background: #111; border-radius: 12px; border: 1px solid #222;">
-        <form action="#" method="POST" style="margin: 0;">
+    <div class="acciones-bar">
+        <form action="{% url 'cobrar_cuota' alumno.id %}" method="POST" style="margin: 0;">
             {% csrf_token %}
-            <button type="submit" style="background: #98cf2c; color: #000; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 900; cursor: pointer; font-size: 12px;">💸 COBRAR CUOTA (+30 días)</button>
+            <button type="submit" class="btn-accion btn-cobrar">💸 Cobrar Cuota (+30 días)</button>
         </form>
 
-        <form action="#" method="POST" style="margin: 0;">
+        <form action="{% url 'resetear_semana' alumno.id %}" method="POST" style="margin: 0;">
             {% csrf_token %}
-            <button type="submit" onclick="return confirm('¿Limpiar todos los checks del alumno?')" style="background: #222; color: #fff; border: 1px solid #444; padding: 8px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px;">🔄 RESETEAR SEMANA</button>
+            <button type="submit" onclick="return confirm('¿Limpiar progresos de la semana?')" class="btn-accion btn-secundario">🔄 Resetear Semana</button>
         </form>
 
-        <a href="#" style="background: #222; color: #fff; border: 1px solid #444; padding: 8px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; text-decoration: none;">✏️ EDITAR PERFIL</a>
+        <a href="{% url 'editar_alumno' alumno.id %}" class="btn-accion btn-secundario">✏️ Editar Perfil</a>
     </div>
 
-    <div style="display: flex; gap: 30px; margin-top: 30px;">
+    <div class="main-layout">
         
-        <div style="flex: 1; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #222; height: fit-content; position: sticky; top: 20px;">
-            <h3 style="color: #98cf2c; margin: 0 0 20px 0; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">+ NUEVO EJERCICIO</h3>
-            
+        <div class="form-asignar">
+            <h3>+ ASIGNAR EJERCICIO</h3>
             <form action="{% url 'detalle_alumno' alumno.id %}" method="POST">
                 {% csrf_token %}
                 
-                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Nombre del ejercicio:</label>
-                <input type="text" name="nombre" placeholder="Ej: Press de Banca" required style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px; outline: none;">
+                <label class="label-f">Nombre del ejercicio</label>
+                <input type="text" name="nombre" placeholder="Ej: Sentadilla Goblet" required class="input-f">
 
-                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Categoría:</label>
-                <select name="tipo" id="tipo_select" required onchange="adaptarFormulario()" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px; cursor: pointer;">
+                <label class="label-f">Categoría</label>
+                <select name="tipo" id="tipo_select" required onchange="adaptarFormulario()" class="input-f">
                     <option value="FUERZA">🏋️ FUERZA</option>
                     <option value="AEROBICO">🏃‍♂️ AERÓBICO</option>
                     <option value="ZONA_MEDIA">🧘 ZONA MEDIA</option>
                 </select>
 
-                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Día de la semana:</label>
-                <select name="dia" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px;">
+                <label class="label-f">Día asignado</label>
+                <select name="dia" class="input-f">
                     <option value="Lunes">LUNES</option>
                     <option value="Martes">MARTES</option>
                     <option value="Miércoles">MIÉRCOLES</option>
@@ -74,56 +243,55 @@
                     <option value="Sábado">SÁBADO</option>
                 </select>
 
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px;">
                     <div style="flex: 1;" id="col_sets">
-                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Sets</label>
-                        <input type="number" name="series" value="3" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px;">
+                        <label class="label-f">Sets</label>
+                        <input type="number" name="series" value="3" class="input-f">
                     </div>
                     <div style="flex: 1;">
-                        <label id="label_reps" style="font-size: 11px; color: #888; text-transform: uppercase;">Reps</label>
-                        <input type="text" name="reps" id="input_reps" placeholder="12" required style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px;">
+                        <label id="label_reps" class="label-f">Reps</label>
+                        <input type="text" name="reps" id="input_reps" placeholder="12" required class="input-f">
                     </div>
                     <div style="flex: 1;" id="campo_peso">
-                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Kg Sugerido</label>
-                        <input type="number" name="peso" placeholder="0" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px;">
+                        <label class="label-f">Kg Sugerido</label>
+                        <input type="number" name="peso" placeholder="0" class="input-f">
                     </div>
                 </div>
 
-                <button type="submit" style="width: 100%; padding: 15px; background: #98cf2c; color: #000; font-weight: 900; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; text-transform: uppercase;">
-                    ASIGNAR A RUTINA
+                <button type="submit" style="width: 100%; padding: 16px; background: var(--verde-aquiles); color: #000; font-weight: 900; border: none; border-radius: 12px; cursor: pointer; text-transform: uppercase;">
+                    Guardar en Rutina
                 </button>
             </form>
         </div>
 
-        <div style="flex: 3;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-                {% for dia, ejercicios in rutina.items %}
-                <div style="background: #111; padding: 20px; border-radius: 12px; border: 1px solid #222;">
-                    <h4 style="color: #98cf2c; border-bottom: 1px solid #333; padding-bottom: 10px; margin: 0 0 15px 0; text-transform: uppercase; font-size: 14px; letter-spacing: 2px;">{{ dia }}</h4>
-                    
-                    {% for ej in ejercicios %}
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 12px; margin-bottom: 8px; border-radius: 10px; border-left: 4px solid {% if ej.tipo == 'FUERZA' %}#98cf2c{% elif ej.tipo == 'AEROBICO' %}#44aaff{% else %}#ffbb33{% endif %};">
-                        <div style="font-size: 13px;">
-                            <strong style="color: #fff; display: block; margin-bottom: 2px;">{{ ej.nombre|upper }}</strong>
-                            
+        <div class="rutina-grid">
+            {% for dia, ejercicios in rutina.items %}
+            <div class="dia-card">
+                <h4>{{ dia }}</h4>
+                {% for ej in ejercicios %}
+                <div class="ej-item {% if ej.tipo == 'FUERZA' %}fuerza{% elif ej.tipo == 'AEROBICO' %}aerobico{% else %}zona_media{% endif %}">
+                    <div class="ej-info">
+                        <strong>{{ ej.nombre }}</strong>
+                        <span>
                             {% if ej.tipo == 'AEROBICO' %}
-                                <span style="color: #44aaff; font-size: 11px;">🏃‍♂️ {{ ej.repeticiones }} MIN</span>
-                            {% elif ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' %}
-                                <span style="color: #ffbb33; font-size: 11px;">🧘 {{ ej.repeticiones }} REPS/MIN</span>
+                                🏃‍♂️ {{ ej.repeticiones }} MIN
+                            {% elif ej.tipo == 'ZONA_MEDIA' %}
+                                🧘 {{ ej.series }} x {{ ej.repeticiones }}
                             {% else %}
-                                <span style="color: #98cf2c; font-size: 11px;">💪 {{ ej.series }} x {{ ej.repeticiones }}</span> 
-                                {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">({{ ej.peso_sugerido }}kg)</small>{% endif %}
+                                💪 {{ ej.series }} x {{ ej.repeticiones }} {% if ej.peso_sugerido %}({{ ej.peso_sugerido }}kg){% endif %}
                             {% endif %}
-                        </div>
-                        
-                        <a href="#" style="color: #ff4d4d; text-decoration: none; font-size: 14px; padding: 5px 10px;">✕</a>
+                        </span>
                     </div>
-                    {% empty %}
-                    <p style="color: #444; font-size: 11px; text-align: center; margin: 20px 0;">Sin ejercicios asignados.</p>
-                    {% endfor %}
+                    <form action="{% url 'eliminar_ejercicio' ej.id %}" method="POST" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-delete" style="background:none; border:none; cursor:pointer;" onclick="return confirm('¿Eliminar ejercicio?')">✕</button>
+                    </form>
                 </div>
+                {% empty %}
+                <p style="color: #333; font-size: 11px; text-align: center; margin: 20px 0;">Descanso / Sin asignar</p>
                 {% endfor %}
             </div>
+            {% endfor %}
         </div>
     </div>
 
@@ -136,24 +304,18 @@
         const inputReps = document.getElementById('input_reps');
 
         if (tipo === 'AEROBICO') {
-            colSets.style.opacity = '0.3';
-            colSets.style.pointerEvents = 'none';
-            campoPeso.style.opacity = '0.3';
-            campoPeso.style.pointerEvents = 'none';
+            colSets.style.opacity = '0.2';
+            campoPeso.style.opacity = '0.2';
             labelReps.innerText = 'MINUTOS';
             inputReps.placeholder = "20";
         } else if (tipo === 'ZONA_MEDIA') {
             colSets.style.opacity = '1';
-            colSets.style.pointerEvents = 'auto';
-            campoPeso.style.opacity = '0.3';
-            campoPeso.style.pointerEvents = 'none';
+            campoPeso.style.opacity = '0.2';
             labelReps.innerText = 'REPS/MIN';
             inputReps.placeholder = "20";
         } else {
             colSets.style.opacity = '1';
-            colSets.style.pointerEvents = 'auto';
             campoPeso.style.opacity = '1';
-            campoPeso.style.pointerEvents = 'auto';
             labelReps.innerText = 'REPS';
             inputReps.placeholder = "12";
         }
@@ -161,3 +323,4 @@
     window.onload = adaptarFormulario;
     </script>
 </body>
+</html>

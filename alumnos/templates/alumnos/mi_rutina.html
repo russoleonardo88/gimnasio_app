@@ -3,12 +3,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aquiles App - Mi Rutina</title>
 
     <link rel="manifest" href="{% static 'manifest.json' %}">
     <link rel="apple-touch-icon" href="{% static 'img/logo_aquiles.jpg' %}">
-    <meta name="theme-color" content="#98cf2c">
+    <meta name="theme-color" content="#000000">
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -26,7 +26,6 @@
             color: var(--blanco);
             margin: 0; padding: 0;
             -webkit-tap-highlight-color: transparent;
-            transition: opacity 0.2s ease;
         }
 
         .header {
@@ -34,7 +33,7 @@
             padding: 20px;
             display: flex;
             align-items: center;
-            border-bottom: 1px solid #222;
+            border-bottom: 1px solid #1a1a1a;
             position: sticky; top: 0; z-index: 100;
         }
 
@@ -47,6 +46,7 @@
             cursor: pointer;
             background: none;
             border: none;
+            padding: 0;
         }
 
         .header h1 {
@@ -57,66 +57,80 @@
             font-weight: 900;
         }
 
-        .container { padding: 20px; padding-bottom: 80px; }
+        .container { padding: 15px; padding-bottom: 50px; }
 
+        /* Categorías estéticas */
         .tipo-titulo {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--verde-aquiles);
-            background: rgba(152, 207, 44, 0.1);
-            padding: 6px 14px;
+            background: rgba(152, 207, 44, 0.05);
+            padding: 5px 12px;
             border-radius: 20px;
             display: inline-block;
-            margin: 25px 0 12px 5px;
+            margin: 20px 0 10px 0;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             font-weight: 800;
-            border: 1px solid rgba(152, 207, 44, 0.2);
+            border: 1px solid rgba(152, 207, 44, 0.1);
         }
 
         .ejercicio-card {
             background: var(--negro-card);
-            border: 1px solid #222;
+            border: 1px solid #1a1a1a;
             border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 12px;
+            padding: 18px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: transform 0.1s ease;
         }
 
-        .ejercicio-info h3 { margin: 0; font-size: 1rem; color: var(--blanco); text-transform: uppercase; }
-        .ejercicio-info p { margin: 5px 0 0 0; color: var(--gris-texto); font-size: 0.85rem; font-weight: 600; }
+        .ejercicio-info h3 { 
+            margin: 0; 
+            font-size: 0.95rem; 
+            color: var(--blanco); 
+            text-transform: uppercase; 
+            font-weight: 700;
+        }
+        
+        .ejercicio-info p { 
+            margin: 4px 0 0 0; 
+            color: var(--gris-texto); 
+            font-size: 0.8rem; 
+            font-weight: 500; 
+        }
 
         .circulo {
-            width: 42px; height: 42px;
-            border: 2px solid #333;
+            width: 38px; height: 38px;
+            border: 2px solid #222;
             border-radius: 50%;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
+            transition: all 0.2s ease;
         }
 
         .circulo.completado {
             background-color: var(--verde-aquiles);
             border-color: var(--verde-aquiles);
-            transform: scale(1.05);
         }
 
         .circulo::after {
             content: '✓';
             color: transparent;
             font-weight: 900;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
         .circulo.completado::after { color: #000; }
-        .circulo.loading { opacity: 0.5; pointer-events: none; }
+        
+        .circulo.loading { 
+            opacity: 0.3; 
+            transform: scale(0.9);
+        }
 
-        /* Estilo para cuando no hay nada */
         .empty-state {
-            text-align: center; margin-top: 80px; opacity: 0.4;
+            text-align: center; margin-top: 100px; color: var(--gris-texto);
         }
     </style>
 </head>
@@ -124,79 +138,45 @@
 
     <div class="header">
         <button onclick="irAlDashboard()" class="btn-atras">←</button>
-        <h1>RUTINA: {{ dia|upper }}</h1>
+        <h1>{{ dia_nombre|upper }}</h1>
     </div>
 
     <div class="container">
         {% if ejercicios %}
             
-            {# SECCIÓN AERÓBICO #}
-            {% if any_aerobico %}
-            <span class="tipo-titulo">🏃‍♂️ Aeróbico</span>
+            {# Agrupamos visualmente por categoría si querés #}
             {% for ej in ejercicios %}
-                {% if ej.tipo == 'AERÓBICO' or ej.tipo == 'AEROBICO' %}
+                {% if changed_cat != ej.categoria %}
+                    <span class="tipo-titulo">{{ ej.get_categoria_display|default:ej.categoria }}</span>
+                {% endif %}
+                
                 <div class="ejercicio-card">
                     <div class="ejercicio-info">
                         <h3>{{ ej.nombre }}</h3>
-                        <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
+                        <p>
+                            {{ ej.sets }} x {{ ej.reps }} 
+                            {% if ej.peso > 0 %} • {{ ej.peso }}kg{% endif %}
+                            {% if ej.tiempo %} • {{ ej.tiempo }}{% endif %}
+                        </p>
                     </div>
                     <div id="check-{{ ej.id }}" 
                          class="circulo {% if ej.completado %}completado{% endif %}" 
                          onclick="toggleEjercicio('{{ ej.id }}')">
                     </div>
                 </div>
-                {% endif %}
             {% endfor %}
-            {% endif %}
-
-            {# SECCIÓN FUERZA #}
-            {% if any_fuerza %}
-            <span class="tipo-titulo">🏋️ Fuerza</span>
-            {% for ej in ejercicios %}
-                {% if ej.tipo == 'FUERZA' %}
-                <div class="ejercicio-card">
-                    <div class="ejercicio-info">
-                        <h3>{{ ej.nombre }}</h3>
-                        <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
-                    </div>
-                    <div id="check-{{ ej.id }}" 
-                         class="circulo {% if ej.completado %}completado{% endif %}" 
-                         onclick="toggleEjercicio('{{ ej.id }}')">
-                    </div>
-                </div>
-                {% endif %}
-            {% endfor %}
-            {% endif %}
-
-            {# SECCIÓN ZONA MEDIA / OTROS #}
-            {% if any_zona_media %}
-            <span class="tipo-titulo">🧘 Zona Media / Especial</span>
-            {% for ej in ejercicios %}
-                {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'TABATA' or ej.tipo == 'ZONA MEDIA' %}
-                <div class="ejercicio-card">
-                    <div class="ejercicio-info">
-                        <h3>{{ ej.nombre }}</h3>
-                        <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
-                    </div>
-                    <div id="check-{{ ej.id }}" 
-                         class="circulo {% if ej.completado %}completado{% endif %}" 
-                         onclick="toggleEjercicio('{{ ej.id }}')">
-                    </div>
-                </div>
-                {% endif %}
-            {% endfor %}
-            {% endif %}
 
         {% else %}
             <div class="empty-state">
-                <p style="font-weight: 800; font-size: 0.9rem; letter-spacing: 1px;">SIN RUTINA PARA EL {{ dia|upper }}</p>
+                <p style="font-weight: 700; font-size: 0.8rem; letter-spacing: 1px; opacity: 0.5;">NO HAY EJERCICIOS PARA HOY</p>
             </div>
         {% endif %}
     </div>
 
     <script>
     function irAlDashboard() {
-        document.body.style.opacity = '0.4';
+        // Efecto visual de salida
+        document.body.style.opacity = '0.5';
         window.location.href = "{% url 'dashboard' %}";
     }
 
@@ -204,30 +184,26 @@
         const elemento = document.getElementById(`check-${ejercicioId}`);
         if (!elemento || elemento.classList.contains('loading')) return;
 
+        // Feedback inmediato al usuario
         elemento.classList.add('loading');
         
-        // El servidor responderá con el nuevo estado
+        // Llamada al servidor (asegurate que la URL coincida con tu urls.py)
         fetch(`/marcar-hecho/${ejercicioId}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json'
+                'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            elemento.classList.remove('loading');
-            if (data.status === 'ok') {
-                if (data.completado) {
-                    elemento.classList.add('completado');
-                } else {
-                    elemento.classList.remove('completado');
-                }
+        .then(response => {
+            if (response.ok) {
+                elemento.classList.toggle('completado');
             }
+            elemento.classList.remove('loading');
         })
         .catch(error => {
             elemento.classList.remove('loading');
-            console.error('Error:', error);
+            alert("Error de conexión");
         });
     }
     </script>
