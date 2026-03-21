@@ -1,62 +1,27 @@
-<div style="background-color: rgba(255,255,255,0.03); 
-            border-radius: 12px; 
-            padding: 15px 20px; 
-            margin-bottom: 10px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border: 1px solid #222; 
-            transition: border-color 0.2s;
-            position: relative;
-            {% if ej.tipo == 'FUERZA' or ej.tipo == 'ZONA MEDIA' or ej.tipo == 'TABATA' %}
-                border-left: 3px solid var(--verde-aquiles, #98cf2c);
+<div class="ejercicio-card">
+    <div class="ejercicio-info">
+        <h3 style="margin: 0; color: #fff;">{{ ej.nombre|upper }}</h3>
+        <p style="margin: 5px 0; font-weight: bold;">
+            {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' %}
+                🧘 {{ ej.repeticiones }} MINUTOS {% if ej.timmer %}| 🕒 {{ ej.timmer }}{% endif %}
             {% elif ej.tipo == 'AEROBICO' or ej.tipo == 'AERÓBICO' %}
-                border-left: 3px solid #0084ff;
-            {% endif %}">
-    
-    <div style="display: flex; flex-direction: column; gap: 4px;">
-        
-        <span style="color: var(--verde-aquiles, #98cf2c); 
-                     font-weight: 800; 
-                     font-size: 13px; 
-                     text-transform: uppercase; 
-                     letter-spacing: 1px;">
-            {{ ej.nombre }}
-        </span>
-
-        <div style="font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 5px;">
-            {% if ej.tipo == 'FUERZA' or ej.tipo == 'ZONA MEDIA' or ej.tipo == 'TABATA' %}
-                <span style="color: #666;">💪 {{ ej.series }} sets</span> 
-                <span style="color: #bbb;">• {{ ej.repeticiones }} reps</span>
-                {% if ej.peso_sugerido and ej.peso_sugerido > 0 %}
-                    <span style="color: #666; font-size: 11px; margin-left: 2px;">
-                        ({{ ej.peso_sugerido }}kg)
-                    </span>
-                {% endif %}
-            {% elif ej.tipo == 'AEROBICO' or ej.tipo == 'AERÓBICO' %}
-                <span style="color: #666;">🏃‍♂️ {{ ej.repeticiones }} MIN</span>
-                {% if ej.peso_sugerido and ej.peso_sugerido > 0 %}
-                    <span style="color: #bbb; font-size: 11px;">• P{{ ej.peso_sugerido }}</span>
-                {% endif %}
+                🏃‍♂️ {{ ej.repeticiones }} MINUTOS {% if ej.timmer %}| 🕒 {{ ej.timmer }}{% endif %}
+            {% elif ej.tipo == 'FUERZA' %}
+                💪 {{ ej.series }} SERIES x {{ ej.repeticiones }} REPS
+            {% else %}
+                {{ ej.series }}x{{ ej.repeticiones }}
             {% endif %}
-        </div>
+        </p>
+        
+        {% if ej.peso_sugerido and ej.peso_sugerido > 0 and ej.tipo == 'FUERZA' %}
+            <span class="peso-tag" style="color: #98cf2c; font-size: 0.9rem; font-weight: 800; display: block; margin-top: 5px; text-transform: uppercase;">
+                ⚡ CARGAR: {{ ej.peso_sugerido }}kg
+            </span>
+        {% endif %}
     </div>
 
-    <form action="{% url 'eliminar_ejercicio' ej.id %}" method="POST" style="margin: 0;">
-        {% csrf_token %}
-        <button type="submit" 
-                onclick="return confirm('¿Eliminar {{ ej.nombre|escapejs }} de la rutina?')" 
-                style="background: #1a1a1a; 
-                       border: 1px solid #333; 
-                       color: var(--gris-texto, #666); 
-                       cursor: pointer; 
-                       border-radius: 8px; 
-                       padding: 8px 10px; 
-                       font-size: 13px; 
-                       transition: all 0.2s;"
-                onmouseover="this.style.color='#ff4d4d'; this.style.borderColor='#ff4d4d'; this.style.background='#331111';"
-                onmouseout="this.style.color='#666'; this.style.borderColor='#333'; this.style.background='#1a1a1a';">
-            🗑️
-        </button>
-    </form>
+    <div id="check-{{ ej.id }}" 
+         class="circulo {% if ej.completado %}completado{% endif %}" 
+         onclick="toggleEjercicio({{ ej.id }})">
+    </div>
 </div>

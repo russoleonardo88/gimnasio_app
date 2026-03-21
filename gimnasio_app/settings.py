@@ -8,10 +8,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- SEGURIDAD ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3*r893bw)ik7h=!fd$x7ky$hiigyx@dy+*772wv^&e2t#hn#f&')
 
-# DEBUG: Forzamos False si estamos en Render, sino True para desarrollo
-DEBUG = os.environ.get('RENDER', 'False') == 'False'
+# IMPORTANTE: En Render, creá la Variable de Entorno DEBUG con valor False
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['gimnasio-app-ftq4.onrender.com', 'localhost', '127.0.0.1', '.onrender.com']
+ALLOWED_HOSTS = ['*']
 
 # --- APLICACIONES ---
 INSTALLED_APPS = [
@@ -20,15 +20,14 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic', 
     'django.contrib.staticfiles',
-    'alumnos',
+    'alumnos',  # Tu app
 ]
 
 # --- MIDDLEWARE ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -42,7 +41,7 @@ ROOT_URLCONF = 'gimnasio_app.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')], # Simplificado para evitar conflictos
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -57,16 +56,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 
-# --- BASE DE DATOS ---
+# --- BASE DE DATOS (NEON) ---
 DATABASES = {
     'default': dj_database_url.config(
-        default=f'sqlite:///{os.path.join(BASE_DIR, "db.sqlite3")}',
+        default=os.environ.get('DATABASE_URL'),
         conn_max_age=600
     )
 }
 
 # --- INTERNACIONALIZACIÓN ---
-LANGUAGE_CODE = 'es-ar'
+LANGUAGE_CODE = 'es-es'
 TIME_ZONE = 'America/Argentina/Buenos_Aires'
 USE_I18N = True
 USE_TZ = True
@@ -74,21 +73,47 @@ USE_TZ = True
 # --- ARCHIVOS ESTÁTICOS ---
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'alumnos', 'static')]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# --- CONFIGURACIÓN DE LOGIN ---
-LOGIN_REDIRECT_URL = 'dashboard' 
+# --- CONFIGURACIÓN DE LOGIN (CORREGIDO) ---
+# Usamos los nombres de las URLs definidos en tus urls.py
+LOGIN_REDIRECT_URL = 'dashboard_alumno'
 LOGIN_URL = 'login'
-LOGOUT_REDIRECT_URL = 'login'
 
-# --- SEGURIDAD CSRF ---
-CSRF_TRUSTED_ORIGINS = ['https://gimnasio-app-ftq4.onrender.com', 'https://*.onrender.com']
+# --- CONFIGURACIÓN DE SESIONES (PARA MANTENER EL LOGIN) ---
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 31536000  # 1 año en segundos
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True
 
-if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True
+# --- SEGURIDAD CSRF PARA RENDER ---
+CSRF_TRUSTED_ORIGINS = [
+    'https://gimnasio-app-ftq4.onrender.com',
+    'https://*.onrender.com'
+]
+
+# --- EL BLOQUE MAESTRO PARA LA APK Y PRODUCCIÓN ---
+if not DEBUG or os.environ.get('RENDER'):
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    
+    # SameSite=None permite que el WebView de Android reciba la cookie desde el dominio de Render
+    SESSION_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SAMESITE = 'None'
+    
+    # HttpOnly=True es más seguro, pero dejamos CSRF en False para evitar bloqueos en Android
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = False 
+    
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = False 
+    
+    APPEND_SLASH = True 
+else:
+    # Desarrollo local
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

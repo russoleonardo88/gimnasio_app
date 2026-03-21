@@ -9,14 +9,13 @@
     <style>
         :root {
             --negro-fondo: #0a0a0a;
-            --negro-card: #111111;
+            --negro-card: #141414;
             --verde-neon: #98cf2c;
             --blanco: #ffffff;
-            --gris-texto: #666666;
-            --gris-borde: #1f1f1f;
-            --moroso: #ff4d4d;
-            --azul-h: #0084ff;
-            --rosa-m: #ff007a;
+            --gris-texto: #888888;
+            --gris-borde: #222222;
+            --rojo-error: #ff4d4d;
+            --azul-pago: #4da3ff;
         }
 
         body {
@@ -24,169 +23,192 @@
             background-color: var(--negro-fondo);
             color: var(--blanco);
             margin: 0;
-            padding: 30px 40px 120px 40px;
+            padding: 20px 40px;
         }
 
-        /* HEADER ESTRATÉGICO */
+        /* --- HEADER --- */
         .header-principal {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--gris-borde);
+        }
+
+        .titulo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .titulo-container h1 {
-            color: var(--blanco);
+            color: var(--verde-neon);
             margin: 0;
             text-transform: uppercase;
             font-weight: 900;
             font-size: 26px;
-            letter-spacing: -1px;
+            letter-spacing: -0.5px;
         }
 
-        .search-container { position: relative; }
-        .search-bar {
-            background: #181818;
-            border: 1px solid var(--gris-borde);
-            padding: 12px 20px;
-            border-radius: 14px;
-            color: #fff;
-            width: 350px;
-            font-family: inherit;
-            transition: border-color 0.3s;
+        .logo-casco {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
         }
-        .search-bar:focus { border-color: var(--verde-neon); outline: none; }
 
         .btn-registrar {
             background-color: var(--verde-neon);
-            color: #000;
+            color: var(--negro-fondo);
             text-decoration: none;
-            padding: 14px 28px;
-            border-radius: 14px;
-            font-weight: 900;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 800;
             text-transform: uppercase;
             font-size: 13px;
-            transition: transform 0.2s;
+            transition: transform 0.2s, opacity 0.2s;
         }
-        .btn-registrar:hover { transform: translateY(-2px); }
 
-        /* GRID DE GESTIÓN */
-        .container-gestion {
-            display: grid;
-            grid-template-columns: 1fr 1fr 300px;
-            gap: 25px;
-            align-items: start;
+        .btn-registrar:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
         }
+
+        /* --- LAYOUT --- */
+        .container-gestion {
+            display: flex;
+            gap: 30px;
+        }
+
+        .columna-tablas { flex: 3; }
+        .columna-bajas { flex: 0.8; }
 
         .seccion-card {
             background: var(--negro-card);
             border: 1px solid var(--gris-borde);
-            border-radius: 24px;
+            border-radius: 20px;
             padding: 25px;
-            height: fit-content;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .seccion-titulo {
-            font-size: 12px;
-            font-weight: 900;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--gris-texto);
+            margin-top: 0;
             margin-bottom: 25px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        /* TABLAS ESTILO AQUILES */
-        .tabla-aquiles { width: 100%; border-collapse: collapse; }
+        .seccion-titulo::before {
+            content: '';
+            width: 4px;
+            height: 14px;
+            background: var(--verde-neon);
+            border-radius: 2px;
+        }
+
+        /* --- TABLAS --- */
+        .tabla-aquiles {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
         .tabla-aquiles th {
             text-align: left;
-            color: var(--gris-texto);
-            font-size: 10px;
-            padding: 10px 15px;
+            color: var(--verde-neon);
+            font-size: 11px;
             text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 15px;
             border-bottom: 1px solid var(--gris-borde);
         }
+
         .tabla-aquiles td {
-            padding: 16px 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.02);
-            font-size: 13px;
+            padding: 18px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 14px;
+            color: #eee;
         }
 
-        .nombre-socio { 
-            color: #fff; 
-            text-decoration: none; 
-            font-weight: 600; 
+        .tabla-aquiles tr:hover {
+            background: rgba(152, 207, 44, 0.02);
+        }
+
+        .nombre-socio {
+            color: var(--blanco);
+            text-decoration: none;
+            font-weight: 700;
             transition: color 0.2s;
         }
-        .nombre-socio:hover { color: var(--verde-neon); }
 
-        .codigo-tag {
-            background: #1a1a1a;
-            color: var(--gris-texto);
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 11px;
-            border: 1px solid var(--gris-borde);
+        .nombre-socio:hover {
+            color: var(--verde-neon);
         }
 
-        /* ESTADOS DE CUOTA */
-        .badge-cuota {
-            padding: 6px 12px;
-            border-radius: 8px;
+        .codigo-tag {
+            background: rgba(152, 207, 44, 0.1);
+            color: var(--verde-neon);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 12px;
+        }
+
+        /* --- BARRAS DE PROGRESO --- */
+        .progreso-container { width: 120px; }
+        .barra-fondo { background: #222; height: 6px; border-radius: 10px; overflow: hidden; }
+        .barra-relleno { background: var(--verde-neon); height: 100%; border-radius: 10px; }
+        .porcentaje-texto { font-size: 10px; color: var(--gris-texto); margin-top: 5px; display: block; font-weight: 600; }
+
+        /* --- CUOTA TAG (Mejorado) --- */
+        .cuota-tag {
             font-size: 10px;
             font-weight: 900;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            min-width: 80px;
         }
-        .cuota-pago { background: rgba(152, 207, 44, 0.1); color: var(--verde-neon); }
-        .cuota-moroso { background: rgba(255, 77, 77, 0.1); color: var(--moroso); }
 
-        /* COLUMNA DE BAJAS */
-        .baja-item {
-            background: #181818;
+        /* --- ACCIONES --- */
+        .btn-accion {
+            text-decoration: none;
+            font-size: 18px;
+            margin: 0 3px;
+            display: inline-block;
+            transition: transform 0.2s;
+            filter: grayscale(0.5);
+        }
+        .btn-accion:hover { transform: scale(1.2); filter: grayscale(0); }
+
+        /* --- COLUMNA BAJAS --- */
+        .item-baja {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--gris-borde);
+            border-radius: 12px;
             padding: 15px;
-            border-radius: 16px;
             margin-bottom: 12px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid var(--moroso);
+            flex-direction: column;
+            gap: 8px;
         }
 
         .btn-reactivar {
             color: var(--verde-neon);
             text-decoration: none;
-            font-size: 10px;
-            font-weight: 900;
+            font-size: 11px;
+            font-weight: 800;
             text-transform: uppercase;
-            padding: 5px 10px;
-            background: rgba(152, 207, 44, 0.05);
-            border-radius: 6px;
-        }
-
-        /* NAV BOTTOM (FLOTANTE) */
-        .nav-bottom {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(20,20,20,0.8);
-            backdrop-filter: blur(20px);
-            padding: 15px 50px;
-            border-radius: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            gap: 60px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            z-index: 1000;
-        }
-        .nav-item { text-decoration: none; font-size: 22px; filter: grayscale(1); transition: 0.3s; opacity: 0.5; }
-        .nav-item.active { filter: grayscale(0); opacity: 1; transform: scale(1.2); }
-
-        @media (max-width: 1200px) {
-            .container-gestion { grid-template-columns: 1fr; }
-            .columna-bajas { order: -1; }
+            letter-spacing: 0.5px;
+            text-align: right;
         }
     </style>
 </head>
@@ -194,110 +216,146 @@
 
     <div class="header-principal">
         <div class="titulo-container">
-            <h1>Gestión <span style="color: var(--verde-neon);">Aquiles</span></h1>
+            <h1>PANEL DE GESTIÓN AQUILES GYM</h1>
+            <img src="{% static 'img/logo_aquiles.png' %}" alt="Casco Aquiles" class="logo-casco">
         </div>
         
-        <form action="{% url 'gestion' %}" method="GET" class="search-container">
-            <input type="text" name="q" class="search-bar" placeholder="Buscar socio o código..." value="{{ request.GET.q }}">
-        </form>
-
-        <a href="{% url 'alta_socio_rapida' %}" class="btn-registrar">＋ Nuevo Alumno</a>
+        <a href="{% url 'alta_socio' %}" class="btn-registrar">
+            + REGISTRAR NUEVO SOCIO
+        </a>
     </div>
 
     <div class="container-gestion">
         
-        <div class="seccion-card">
-            <h3 class="seccion-titulo" style="color: var(--azul-h);">┃ Alumnos Masculinos</h3>
-            <table class="tabla-aquiles">
-                <thead>
-                    <tr>
-                        <th>Socio</th>
-                        <th>ID</th>
-                        <th>Cuota</th>
-                        <th style="text-align:right;">Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for alumno in alumnos_h %}
-                    <tr>
-                        <td>
-                            <a href="{% url 'detalle_alumno' alumno.id %}" class="nombre-socio">
-                                {{ alumno.user.first_name|upper }} {{ alumno.user.last_name|upper }}
-                            </a>
-                        </td>
-                        <td><span class="codigo-tag">#{{ alumno.codigo }}</span></td>
-                        <td>
-                            <span class="badge-cuota {% if alumno.cuota_pagada %}cuota-pago{% else %}cuota-moroso{% endif %}">
-                                {% if alumno.cuota_pagada %}AL DÍA{% else %}MOROSO{% endif %}
-                            </span>
-                        </td>
-                        <td style="text-align:right;">
-                            <a href="{% url 'editar_alumno' alumno.id %}" style="text-decoration:none;">✏️</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <div class="columna-tablas">
+            
+            {% comment %} --- TABLA HOMBRES --- {% endcomment %}
+            <div class="seccion-card">
+                <h3 class="seccion-titulo">SOCIOS HOMBRES (H)</h3>
+                <table class="tabla-aquiles">
+                    <thead>
+                        <tr>
+                            <th>Nombre / Historial</th>
+                            <th>Código</th>
+                            <th>Plan</th>
+                            <th style="text-align: center;">% Mes</th>
+                            <th>Rutina Hoy</th>
+                            <th style="text-align: center;">Estado Cuota</th>
+                            <th style="text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in stats_hombres %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'detalle_alumno' item.alumno.id %}" class="nombre-socio">
+                                    {{ item.alumno.user.last_name|upper }}, {{ item.alumno.user.first_name|upper }}
+                                </a>
+                                <a href="{% url 'historial_asistencias' item.alumno.id %}" title="Ver Historial" style="text-decoration: none; margin-left: 8px;">📅</a>
+                            </td>
+                            <td><span class="codigo-tag">{{ item.alumno.codigo }}</span></td>
+                            <td style="font-size: 12px; font-weight: 600;">{{ item.alumno.plan_semanal }} DÍAS</td>
+                            <td style="text-align: center; font-weight: 900; color: {% if item.porcentaje_asistencia < 50 %}var(--rojo-error){% else %}var(--verde-neon){% endif %};">
+                                {{ item.porcentaje_asistencia }}%
+                            </td>
+                            <td>
+                                <div class="progreso-container">
+                                    <div class="barra-fondo">
+                                        <div class="barra-relleno" style="width: {{ item.progreso_rutina }}%;"></div>
+                                    </div>
+                                    <span class="porcentaje-texto">{{ item.progreso_rutina }}% COMPLETADO</span>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="cuota-tag" style="background: {{ item.cuota_color }}22; color: {{ item.cuota_color }}; border: 1px solid {{ item.cuota_color }}44;">
+                                    {{ item.cuota_estado }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="{% url 'marcar_pago' item.alumno.id %}" class="btn-accion" title="Marcar Pago">💸</a>
+                                <a href="{% url 'editar_alumno' item.alumno.id %}" class="btn-accion" title="Editar">✏️</a>
+                                <a href="{% url 'cambiar_estado_alumno' item.alumno.id %}" onclick="return confirm('¿Dar de baja?')" class="btn-accion" title="Dar de baja">🚫</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" style="text-align: center; color: var(--gris-texto); padding: 40px;">No hay socios activos.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="seccion-card">
-            <h3 class="seccion-titulo" style="color: var(--rosa-m);">┃ Alumnas Femeninas</h3>
-            <table class="tabla-aquiles">
-                <thead>
-                    <tr>
-                        <th>Socia</th>
-                        <th>ID</th>
-                        <th>Cuota</th>
-                        <th style="text-align:right;">Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for alumno in alumnos_m %}
-                    <tr>
-                        <td>
-                            <a href="{% url 'detalle_alumno' alumno.id %}" class="nombre-socio">
-                                {{ alumno.user.first_name|upper }} {{ alumno.user.last_name|upper }}
-                            </a>
-                        </td>
-                        <td><span class="codigo-tag">#{{ alumno.codigo }}</span></td>
-                        <td>
-                            <span class="badge-cuota {% if alumno.cuota_pagada %}cuota-pago{% else %}cuota-moroso{% endif %}">
-                                {% if alumno.cuota_pagada %}AL DÍA{% else %}MOROSO{% endif %}
-                            </span>
-                        </td>
-                        <td style="text-align:right;">
-                            <a href="{% url 'editar_alumno' alumno.id %}" style="text-decoration:none;">✏️</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            {% comment %} --- TABLA MUJERES --- {% endcomment %}
+            <div class="seccion-card">
+                <h3 class="seccion-titulo" style="color: #ff69b4;">SOCIAS MUJERES (M)</h3>
+                <table class="tabla-aquiles">
+                    <thead>
+                        <tr>
+                            <th>Nombre / Historial</th>
+                            <th>Código</th>
+                            <th>Plan</th>
+                            <th style="text-align: center;">% Mes</th>
+                            <th>Rutina Hoy</th>
+                            <th style="text-align: center;">Estado Cuota</th>
+                            <th style="text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in stats_mujeres %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'detalle_alumno' item.alumno.id %}" class="nombre-socio">
+                                    {{ item.alumno.user.last_name|upper }}, {{ item.alumno.user.first_name|upper }}
+                                </a>
+                                <a href="{% url 'historial_asistencias' item.alumno.id %}" title="Ver Historial" style="text-decoration: none; margin-left: 8px;">📅</a>
+                            </td>
+                            <td><span class="codigo-tag">{{ item.alumno.codigo }}</span></td>
+                            <td style="font-size: 12px; font-weight: 600;">{{ item.alumno.plan_semanal }} DÍAS</td>
+                            <td style="text-align: center; font-weight: 900; color: {% if item.porcentaje_asistencia < 50 %}var(--rojo-error){% else %}var(--verde-neon){% endif %};">
+                                {{ item.porcentaje_asistencia }}%
+                            </td>
+                            <td>
+                                <div class="progreso-container">
+                                    <div class="barra-fondo">
+                                        <div class="barra-relleno" style="width: {{ item.progreso_rutina }}%;"></div>
+                                    </div>
+                                    <span class="porcentaje-texto">{{ item.progreso_rutina }}% COMPLETADO</span>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="cuota-tag" style="background: {{ item.cuota_color }}22; color: {{ item.cuota_color }}; border: 1px solid {{ item.cuota_color }}44;">
+                                    {{ item.cuota_estado }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="{% url 'marcar_pago' item.alumno.id %}" class="btn-accion" title="Marcar Pago">💸</a>
+                                <a href="{% url 'editar_alumno' item.alumno.id %}" class="btn-accion" title="Editar">✏️</a>
+                                <a href="{% url 'cambiar_estado_alumno' item.alumno.id %}" onclick="return confirm('¿Dar de baja?')" class="btn-accion" title="Dar de baja">🚫</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" style="text-align: center; color: var(--gris-texto); padding: 40px;">No hay socias activas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
         </div>
 
         <div class="columna-bajas">
-            <div class="seccion-card" style="border-color: #331111;">
-                <h3 class="seccion-titulo" style="color: var(--moroso);">┃ Inactivos / Bajas</h3>
-                {% for alumno in alumnos_baja %}
-                <div class="baja-item">
-                    <div>
-                        <span style="display:block; font-size: 13px; font-weight: 700; color: #eee;">{{ alumno.user.first_name|upper }}</span>
-                        <span style="font-size: 10px; color: var(--gris-texto);">ID: {{ alumno.codigo }}</span>
-                    </div>
-                    <a href="{% url 'cambiar_estado_alumno' alumno.id %}" class="btn-reactivar">Activar</a>
+            <div class="seccion-card">
+                <h3 class="seccion-titulo" style="color: var(--rojo-error);">Bajas</h3>
+                {% for baja in alumnos_baja %}
+                <div class="item-baja">
+                    <span style="color: var(--blanco); font-size: 13px; font-weight: 700;">{{ baja.user.last_name|upper }}, {{ baja.user.first_name|upper }}</span>
+                    <span style="color: var(--gris-texto); font-size: 11px;">Cód: {{ baja.codigo }}</span>
+                    <a href="{% url 'cambiar_estado_alumno' baja.id %}" class="btn-reactivar">Reactivar socio</a>
                 </div>
                 {% empty %}
-                <p style="color: #444; font-size: 12px; text-align:center; padding: 20px;">Sin registros.</p>
+                <p style="color: var(--gris-texto); font-size: 12px; text-align: center; padding: 20px;">No hay socios inactivos.</p>
                 {% endfor %}
             </div>
         </div>
 
-    </div>
-
-    <div class="nav-bottom">
-        <a href="{% url 'dashboard' %}" class="nav-item">🏠</a>
-        <a href="{% url 'gestion' %}" class="nav-item active">👥</a>
-        <a href="{% url 'control_acceso' %}" class="nav-item">🛂</a>
-        <a href="{% url 'logout' %}" class="nav-item">🚪</a>
     </div>
 
 </body>

@@ -24,21 +24,21 @@
                 <label style="display: block; margin-bottom: 8px; color: #98cf2c; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Nombre</label>
                 <input type="text" name="nombre" value="{{ alumno.user.first_name }}" required
                        style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; font-size: 15px; outline: none; transition: border-color 0.3s;"
-                       onfocus="this.style.borderColor='#98cf2c'" onblur="this.style.borderColor='#333'">
+                       onfocus="this.style.borderColor='#98cf2c'">
             </div>
 
             <div style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 8px; color: #98cf2c; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Apellido</label>
                 <input type="text" name="apellido" value="{{ alumno.user.last_name }}" required
                        style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; font-size: 15px; outline: none; transition: border-color 0.3s;"
-                       onfocus="this.style.borderColor='#98cf2c'" onblur="this.style.borderColor='#333'">
+                       onfocus="this.style.borderColor='#98cf2c'">
             </div>
 
             <div style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 8px; color: #98cf2c; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">DNI</label>
                 <input type="text" name="dni" value="{{ alumno.dni|default:'' }}"
                        style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; font-size: 15px; outline: none; transition: border-color 0.3s;"
-                       onfocus="this.style.borderColor='#98cf2c'" onblur="this.style.borderColor='#333'">
+                       onfocus="this.style.borderColor='#98cf2c'">
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
@@ -49,4 +49,36 @@
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 8px; color: #98cf2c; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Plan Semanal</label>
-                    <select name="plan" style="width: 100%; padding: 14px; border-radius:
+                    <select name="plan" style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; font-size: 15px; cursor: pointer; outline: none;">
+                        {% for i in "23456" %}
+                            <option value="{{ i }}" {% if alumno.plan_semanal|slugify == i %}selected{% endif %}>
+                                {{ i }} días
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px; padding: 15px; background: rgba(152, 207, 44, 0.05); border-radius: 12px; border: 1px dashed #333;">
+                <label style="display: flex; align-items: center; cursor: pointer; gap: 12px;">
+                    <input type="checkbox" name="cuota_pagada" {% if alumno.cuota_pagada %}checked{% endif %} 
+                           style="width: 22px; height: 22px; accent-color: #98cf2c; cursor: pointer;">
+                    <div>
+                        <span style="display: block; color: #98cf2c; font-size: 12px; font-weight: 900; text-transform: uppercase;">Estado de Pago</span>
+                        <span style="color: #888; font-size: 13px;">Marcar como mensualidad pagada</span>
+                    </div>
+                </label>
+            </div>
+
+            <button type="submit" style="width: 100%; background-color: #98cf2c; color: #000; padding: 16px; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s;">
+                Guardar Cambios
+            </button>
+
+            <a href="{% url 'gestion_gym' %}" style="display: block; text-align: center; margin-top: 25px; color: #555; text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                ← Cancelar y volver
+            </a>
+        </form>
+    </div>
+
+</body>
+</html>
