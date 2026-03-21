@@ -24,7 +24,7 @@ urlpatterns = [
    path('gestion/alta-socio/', views.alta_socio_rapida, name='alta_socio_rapida'),
     
     # --- GESTIÓN DE PAGOS ---
-    path('marcar-pago/<int:alumno_id>/', views.marcar_pago, name='marcar_pago'),
+    path('marcar-pago/<int:alumno_id>/', views.renovar_cuota, name='marcar_pago'),
     
     # --- ACCIONES DE RUTINA (ADMIN) ---
     path('alumno/<int:alumno_id>/agregar/', views.agregar_ejercicio_rapido, name='agregar_ejercicio'),
