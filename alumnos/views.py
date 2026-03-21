@@ -106,10 +106,35 @@ def marcar_hecho(request, ejercicio_id):
     return JsonResponse({'status': 'error'}, status=400)
 
 # --- VISTAS DE GESTIÓN (ADMIN) ---
-@login_required
 def control_acceso(request):
-    if not request.user.is_superuser: return redirect('dashboard')
-    return render(request, 'alumnos/control_acceso.html')
+    try:
+        mensaje = None
+        clase_alerta = ""
+
+        if request.method == 'POST':
+            codigo = request.POST.get('codigo')
+            # Buscamos al alumno
+            from .models import Alumno, Asistencia
+            alumno = Alumno.objects.filter(codigo=codigo, activo=True).first()
+            
+            if alumno:
+                # Registramos asistencia
+                Asistencia.objects.create(alumno=alumno)
+                mensaje = f"BIENVENIDO/A {alumno.user.first_name.upper()}"
+                clase_alerta = "success"
+            else:
+                mensaje = "CÓDIGO NO VÁLIDO O SOCIO INACTIVO"
+                clase_alerta = "danger"
+
+        # IMPORTANTE: Aquí llamamos a recepcion.html
+        return render(request, 'alumnos/recepcion.html', {
+            'mensaje': mensaje,
+            'clase_alerta': clase_alerta
+        })
+
+    except Exception as e:
+        # Esto te mostrará el error real en pantalla si algo falla
+        return HttpResponse(f"<h1>Error en Recepción:</h1><p>{str(e)}</p>")
 
 @login_required
 def gestion(request):  # Nombre simple, como vos lo querés
