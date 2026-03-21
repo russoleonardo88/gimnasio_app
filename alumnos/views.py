@@ -15,6 +15,7 @@ from datetime import timedelta
 # --- VISTAS DE AUTENTICACIÓN ---
 
 def login_view(request):
+    # Si ya está logueado, lo mandamos a su lugar correspondiente de una
     if request.user.is_authenticated:
         if request.user.is_staff:
             return redirect('gestion_gym')
@@ -26,12 +27,14 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             
+            # --- Configuración de Sesión ---
             recordarme = request.POST.get('remember_me')
             if recordarme:
                 request.session.set_expiry(31536000) # 1 año
             else:
                 request.session.set_expiry(86400) # 24 horas
-                
+            
+            # --- Redirección según Rango ---
             if user.is_staff:
                 return redirect('gestion_gym')
             return redirect('dashboard_alumno')
@@ -40,6 +43,7 @@ def login_view(request):
     else:
         form = AuthenticationForm()
     
+    # IMPORTANTE: Que busque el html dentro de la carpeta alumnos/
     return render(request, 'alumnos/login.html', {'form': form})
 
 def logout_view(request):
@@ -63,13 +67,20 @@ def cambiar_password(request):
 
 @login_required
 def dashboard(request):
+    # 1. SI ES STAFF, LO MANDAMOS DIRECTO A GESTIÓN (EVITA EL ERROR 500)
+    if request.user.is_staff:
+        return redirect('gestion_gym')
+
+    # 2. SI NO ES STAFF, INTENTAMOS BUSCAR SU PERFIL DE ALUMNO
     try:
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
-        if request.user.is_staff:
-            return redirect('gestion_gym')
-        return render(request, 'alumnos/dashboard.html', {'error': 'No tienes un perfil de alumno asignado.'})
+        # Si no es staff y no es alumno, mostramos el error en el template
+        return render(request, 'alumnos/dashboard.html', {
+            'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
+        })
 
+    # --- LÓGICA DE PROGRESO SEMANAL ---
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
     
@@ -82,6 +93,7 @@ def dashboard(request):
         porcentaje = int((completados / total * 100)) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
+    # --- LÓGICA DE DÍA ACTUAL ---
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes', 
@@ -90,10 +102,12 @@ def dashboard(request):
     dia_hoy_esp = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
     ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
 
+    # --- LÓGICA DE ASISTENCIAS ---
     asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
     
+    # 3. RENDERIZADO DEL DASHBOARD DE ALUMNO
     return render(request, 'alumnos/dashboard.html', {
         'alumno': alumno, 
         'progreso_dias': progreso_dias, 
