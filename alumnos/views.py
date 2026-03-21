@@ -57,7 +57,7 @@ def dashboard(request):
                 return redirect('gestion')
             return render(request, 'alumnos/login.html', {'error': 'Perfil no encontrado.'})
 
-        # 1. Progreso por día (Barras horizontales)
+        # 1. Progreso por día
         dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
         progreso_dias = []
         for dia in dias_semana:
@@ -67,15 +67,16 @@ def dashboard(request):
             porcentaje = int((hechos / total) * 100) if total > 0 else 0
             progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-        # 2. Datos para Gráficos (Circular y Líneas)
-        # Rendimiento: Tomamos los % de las últimas 5 asistencias
+        # 2. Datos para Gráficos
         ultimas_asistencias = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
-        grafico_rendimiento_data = [int(a.porcentaje_completado) for a in reversed(ultimas_asistencias)]
+        # Cambiamos la lógica para evitar que total_asistencias sea indefinida
+        total_asistencias_cuenta = Asistencia.objects.filter(alumno=alumno).count()
         
-        # Si no hay asistencias, ponemos 0 para que el gráfico no rompa
+        grafico_rendimiento_data = [int(a.porcentaje_completado if hasattr(a, 'porcentaje_completado') else 0) for a in reversed(ultimas_asistencias)]
+        
         if not grafico_rendimiento_data:
-            # Reemplazamos los [] por los datos reales que ya calculaste arriba
-            grafico_rendimiento_data = [total_asistencias, porcentaje_total]
+            # Ponemos datos de respaldo basados en la cuenta real
+            grafico_rendimiento_data = [total_asistencias_cuenta, 0]
 
         context = {
             'alumno': alumno,
@@ -96,10 +97,8 @@ def mi_rutina(request):
     dia_url = request.GET.get('dia')
     dias_map = {0: 'Lunes', 1: 'Martes', 2: 'Miércoles', 3: 'Jueves', 4: 'Viernes', 5: 'Sábado', 6: 'Domingo'}
     dia_nombre = dia_url if dia_url else dias_map[timezone.now().weekday()]
-    
     ejercicios = alumno.ejercicios.filter(dia_semana=dia_nombre)
     
-    # Esto ayuda al HTML a saber qué secciones mostrar
     context = {
         'ejercicios': ejercicios,
         'dia': dia_nombre,
@@ -107,7 +106,6 @@ def mi_rutina(request):
         'any_fuerza': ejercicios.filter(tipo='FUERZA').exists(),
         'any_zona_media': ejercicios.filter(tipo__in=['ZONA_MEDIA', 'ZONA MEDIA', 'TABATA']).exists(),
     }
-    
     return render(request, 'alumnos/mi_rutina.html', context)
 
 @login_required
@@ -119,7 +117,6 @@ def marcar_hecho(request, ejercicio_id):
             ejercicio.ultima_vez_hecho = timezone.now()
         ejercicio.save()
         
-        # Calcular nuevo progreso del día para actualizar la UI
         ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana)
         total = ejercicios_dia.count()
         hechos = ejercicios_dia.filter(completado=True).count()
@@ -134,42 +131,54 @@ def gestion(request):
     if not request.user.is_superuser:
         return redirect('dashboard')
 
-    try:
-        alumnos_h = Alumno.objects.filter(genero='H', activo=True).order_by('user__last_name')
-        alumnos_m = Alumno.objects.filter(genero='M', activo=True).order_by('user__last_name')
-        alumnos_baja = Alumno.objects.filter(activo=False).order_by('user__last_name')
+    alumnos_h = Alumno.objects.filter(genero='H', activo=True).order_by('user__last_name')
+    alumnos_m = Alumno.objects.filter(genero='M', activo=True).order_by('user__last_name')
+    alumnos_baja = Alumno.objects.filter(activo=False).order_by('user__last_name')
 
-        hoy = date.today()
-        DIAS_LABORABLES = 20 
+    hoy = date.today()
+    DIAS_LABORABLES = 20 
 
-        for lista in [alumnos_h, alumnos_m]:
-            for alumno in lista:
-                asistencias_mes = Asistencia.objects.filter(
-                    alumno=alumno, 
-                    fecha__month=hoy.month, 
-                    fecha__year=hoy.year
-                ).count()
-                porcentaje = int((asistencias_mes / DIAS_LABORABLES) * 100)
-                alumno.porcentaje_mes = min(porcentaje, 100)
+    for lista in [alumnos_h, alumnos_m]:
+        for alumno in lista:
+            asistencias_mes = Asistencia.objects.filter(
+                alumno=alumno, 
+                fecha__month=hoy.month, 
+                fecha__year=hoy.year
+            ).count()
+            porcentaje = int((asistencias_mes / DIAS_LABORABLES) * 100)
+            alumno.porcentaje_mes = min(porcentaje, 100)
 
-        return render(request, 'alumnos/gestion.html', {
-            'alumnos_h': alumnos_h,
-            'alumnos_m': alumnos_m,
-            'alumnos_baja': alumnos_baja,
-        })
-    except Exception as e:
-        return HttpResponse(f"Error en Gestión: {e}")
+    return render(request, 'alumnos/gestion.html', {
+        'alumnos_h': alumnos_h,
+        'alumnos_m': alumnos_m,
+        'alumnos_baja': alumnos_baja,
+    })
+
+# --- ESTA ES LA FUNCIÓN QUE RENDER NO ENCONTRABA ---
+@login_required
+def recepcion(request):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
+    
+    mensaje = None
+    if request.method == 'POST':
+        identificador = request.POST.get('identificador')
+        alumno = Alumno.objects.filter(dni=identificador).first() or Alumno.objects.filter(codigo=identificador).first()
+        
+        if alumno:
+            Asistencia.objects.create(alumno=alumno)
+            mensaje = f"¡Bienvenido {alumno.user.first_name}!"
+        else:
+            mensaje = "Socio no encontrado."
+
+    return render(request, 'alumnos/recepcion.html', {'mensaje': mensaje})
 
 @login_required
 def historial_asistencias(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard')
     alumno = get_object_or_404(Alumno, id=alumno_id)
     asistencias = alumno.asistencias.all().order_by('-fecha')
-    
-    # Cálculo de porcentaje histórico
     total_asistencias = asistencias.count()
-    # Suponiendo que debería haber venido 3 veces por semana desde su inicio
-    # (Esto es una estimación para que el gráfico no esté vacío)
     porcentaje_total = min(int((total_asistencias / 48) * 100), 100) 
 
     return render(request, 'alumnos/historial_asistencias.html', {
@@ -179,7 +188,6 @@ def historial_asistencias(request, alumno_id):
         'asistencias_count': total_asistencias
     })
 
-# --- OTRAS FUNCIONES DE ADMIN ---
 @login_required
 def detalle_alumno(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard')
@@ -207,11 +215,11 @@ def cambiar_estado_alumno(request, alumno_id):
     return redirect('gestion')
 
 @login_required
-def marcar_pago(request, alumno_id):
+def renovar_cuota(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard')
     alumno = get_object_or_404(Alumno, id=alumno_id)
-    alumno.cuota_pagada = True
-    alumno.fecha_vencimiento = date.today() + timedelta(days=30)
+    base_fecha = max(alumno.fecha_vencimiento or date.today(), date.today())
+    alumno.fecha_vencimiento = base_fecha + timedelta(days=30)
     alumno.save()
     return redirect('detalle_alumno', alumno_id=alumno.id)
 
@@ -220,7 +228,7 @@ def resetear_rutina(request, alumno_id):
     if not request.user.is_superuser: return redirect('dashboard')
     alumno = get_object_or_404(Alumno, id=alumno_id)
     alumno.ejercicios.all().update(completado=False)
-    return redirect('detalle_alumno', alumno_id=alumno_id)
+    return redirect('detalle_alumno', alumno_id=alumno.id)
 
 @login_required
 def eliminar_ejercicio(request, ejercicio_id):
@@ -229,19 +237,3 @@ def eliminar_ejercicio(request, ejercicio_id):
     al_id = ejercicio.alumno.id
     ejercicio.delete()
     return redirect('detalle_alumno', alumno_id=al_id)
-
-@login_required
-def renovar_cuota(request, alumno_id):
-    alumno = get_object_or_404(Alumno, id=alumno_id)
-    # Sumamos 30 días a la fecha de vencimiento actual (o a hoy si ya venció)
-    base_fecha = max(alumno.fecha_vencimiento, timezone.now().date())
-    alumno.fecha_vencimiento = base_fecha + timedelta(days=30)
-    alumno.save()
-    return redirect('detalle_alumno', alumno_id=alumno.id)
-
-@login_required
-def resetear_rutina(request, alumno_id):
-    alumno = get_object_or_404(Alumno, id=alumno_id)
-    # Ponemos todos los ejercicios de este alumno en "no completado"
-    alumno.ejercicios.all().update(completado=False)
-    return redirect('detalle_alumno', alumno_id=alumno.id)

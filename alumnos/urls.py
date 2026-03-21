@@ -15,7 +15,7 @@ urlpatterns = [
     path('marcar-hecho/<int:ejercicio_id>/', views.marcar_hecho, name='marcar_hecho'),
     
     # --- RUTAS PARA EL ADMIN/DUEÑO (Gestión) ---
-    path('recepcion/', views.control_acceso, name='control_acceso'),
+    path('recepcion/', views.recepcion, name='recepcion'),
     path('gestion/', views.gestion, name='gestion'),
     path('gestion/alumno/<int:alumno_id>/', views.detalle_alumno, name='detalle_alumno'),
     path('gestion/editar/<int:alumno_id>/', views.editar_alumno, name='editar_alumno'),
