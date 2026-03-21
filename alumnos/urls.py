@@ -10,7 +10,7 @@ urlpatterns = [
     # Alumno
     path('dashboard/', views.dashboard, name='dashboard'),
     path('mi-rutina/', views.mi_rutina, name='mi_rutina'),
-    path('marcar-hecho/<int:ejercicio_id>/', views.marcar_hecho, name='marcar_hecho'),
+    path('marcar-hecho/<int:ejercicio_id>/', views.marcar_ejercicio_hecho, name='marcar_hecho'),
     
     # Gestión
     path('recepcion/', views.recepcion, name='recepcion'),
