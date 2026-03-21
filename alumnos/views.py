@@ -74,7 +74,8 @@ def dashboard(request):
         
         # Si no hay asistencias, ponemos 0 para que el gráfico no rompa
         if not grafico_rendimiento_data:
-            grafico_rendimiento_data = []  # Esto crea una lista vacía. No rompe el código y te deja hacer el push.
+            # Reemplazamos los [] por los datos reales que ya calculaste arriba
+            grafico_rendimiento_data = [total_asistencias, porcentaje_total]
 
         context = {
             'alumno': alumno,
