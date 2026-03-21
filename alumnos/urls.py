@@ -16,7 +16,7 @@ urlpatterns = [
     
     # --- RUTAS PARA EL ADMIN/DUEÑO (Gestión) ---
     path('recepcion/', views.control_acceso, name='control_acceso'),
-    path('gestion/', views.gestion_gym, name='gestion_gym'),
+    path('gestion/', views.gestion, name='gestion'),
     path('gestion/alumno/<int:alumno_id>/', views.detalle_alumno, name='detalle_alumno'),
     path('gestion/editar/<int:alumno_id>/', views.editar_alumno, name='editar_alumno'),
     path('gestion/estado/<int:alumno_id>/', views.cambiar_estado_alumno, name='cambiar_estado_alumno'),

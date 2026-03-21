@@ -11,7 +11,7 @@ from datetime import timedelta
 def login_view(request):
     if request.user.is_authenticated:
         if request.user.is_superuser:
-            return redirect('gestion_gym')
+            return redirect('gestion')
         return redirect('dashboard')
 
     if request.method == 'POST':
@@ -22,7 +22,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             if user.is_superuser:
-                return redirect('gestion_gym')
+                return redirect('gestion')
             return redirect('dashboard')
         else:
             return render(request, 'alumnos/login.html', {'error': 'Usuario o contraseña incorrectos'})
@@ -53,7 +53,7 @@ def dashboard(request):
         
         if not alumno:
             if request.user.is_superuser:
-                return redirect('gestion_gym')
+                return redirect('gestion')
             return render(request, 'alumnos/login.html', {'error': 'Tu usuario no tiene un perfil de alumno asignado.'})
 
         dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
@@ -74,11 +74,11 @@ def dashboard(request):
             'grafico_rendimiento_data': [],
         }
         
+        # USA dashboard.html
         return render(request, 'alumnos/dashboard.html', context)
 
     except Exception as e:
-        print(f"Error en dashboard: {e}")
-        return HttpResponse(f"Error interno: {e}", status=500)
+        return HttpResponse(f"Error en Dashboard: {e}", status=500)
 
 @login_required
 def mi_rutina(request):
@@ -112,12 +112,18 @@ def control_acceso(request):
     return render(request, 'alumnos/control_acceso.html')
 
 @login_required
-def gestion_gym(request):  # Mantenemos este nombre para que urls.py no explote
+def gestion(request):  # Nombre simple, como vos lo querés
     if not request.user.is_superuser:
         return redirect('dashboard')
     
-    alumnos_lista = Alumno.objects.all().order_by('user__last_name')
-    return render(request, 'alumnos/gestion.html', {'alumnos': alumnos_lista})
+    try:
+        alumnos_lista = Alumno.objects.all().order_by('user__last_name')
+        
+        # Grabado: alumnos/gestion.html
+        return render(request, 'alumnos/gestion.html', {'alumnos': alumnos_lista})
+    
+    except Exception as e:
+        return HttpResponse(f"<h1>Error en Gestión:</h1><p>{str(e)}</p>")
 
 @login_required
 def detalle_alumno(request, alumno_id):
@@ -137,7 +143,7 @@ def cambiar_estado_alumno(request, alumno_id):
     alumno = get_object_or_404(Alumno, id=alumno_id)
     alumno.activo = not alumno.activo
     alumno.save()
-    return redirect('gestion_gym')
+    return redirect('gestion')
 
 @login_required
 def historial_asistencias(request, alumno_id):
@@ -181,8 +187,3 @@ def resetear_rutina(request, alumno_id):
 
 from django.contrib.auth.models import User
 
-def crear_admin_temporal(request):
-    if not User.objects.filter(username='admin').exists():
-        User.objects.create_superuser('admin', 'admin@test.com', 'admin1234')
-        return HttpResponse("Admin creado: usuario 'admin', clave 'admin1234'. ¡BORRÁ ESTO LUEGO!")
-    return HttpResponse("El admin ya existe.")
