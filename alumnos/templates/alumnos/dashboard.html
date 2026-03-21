@@ -181,15 +181,14 @@
         Chart.defaults.color = defaults.color;
         Chart.defaults.font = defaults.font;
 
-        // Gráfico de Barras - Corrección de datos
-        const dataDias = {{ grafico_dias_data|safe|default:"[]" }};
+        // Gráfico de Barras - Días entrenados por mes (Datos estáticos de ejemplo por ahora)
         new Chart(document.getElementById('graficoDias'), {
             type: 'bar',
             data: {
                 labels: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN'],
                 datasets: [{
                     label: 'Días',
-                    data: dataDias.length ? dataDias :,
+                    data:, // Podríamos dinamizar esto luego
                     backgroundColor: '#98cf2c',
                     borderRadius: 5
                 }]
@@ -204,12 +203,15 @@
             }
         });
 
-        // Gráfico de Línea - Corrección de datos
-        const dataRendimiento = {{ grafico_rendimiento_data|safe|default:"[]" }};
+        // Gráfico de Línea - Rendimiento real de las últimas asistencias
+        const dataRendimiento = {{ grafico_rendimiento_data|safe }};
+        // Creamos etiquetas según la cantidad de datos que lleguen (S1, S2, etc)
+        const labelsRendimiento = dataRendimiento.map((_, i) => 'S' + (i + 1));
+
         new Chart(document.getElementById('graficoIntensidad'), {
             type: 'line',
             data: {
-                labels: ['S1', 'S2', 'S3', 'S4'],
+                labels: labelsRendimiento.length ? labelsRendimiento : ['S1'],
                 datasets: [{
                     label: 'Rendimiento %',
                     data: dataRendimiento.length ? dataRendimiento :,

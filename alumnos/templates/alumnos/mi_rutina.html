@@ -57,7 +57,7 @@
             font-weight: 900;
         }
 
-        .container { padding: 20px; padding-bottom: 60px; }
+        .container { padding: 20px; padding-bottom: 80px; }
 
         .tipo-titulo {
             font-size: 11px;
@@ -66,7 +66,7 @@
             padding: 6px 14px;
             border-radius: 20px;
             display: inline-block;
-            margin: 25px 0 15px 5px;
+            margin: 25px 0 12px 5px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             font-weight: 800;
@@ -85,18 +85,17 @@
             transition: transform 0.1s ease;
         }
 
-        .ejercicio-info h3 { margin: 0; font-size: 1.1rem; color: var(--blanco); text-transform: uppercase; }
-        .ejercicio-info p { margin: 5px 0 0 0; color: var(--gris-texto); font-size: 0.9rem; font-weight: 600; }
+        .ejercicio-info h3 { margin: 0; font-size: 1rem; color: var(--blanco); text-transform: uppercase; }
+        .ejercicio-info p { margin: 5px 0 0 0; color: var(--gris-texto); font-size: 0.85rem; font-weight: 600; }
 
         .circulo {
-            width: 45px; height: 45px;
+            width: 42px; height: 42px;
             border: 2px solid #333;
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
-            position: relative;
         }
 
         .circulo.completado {
@@ -109,77 +108,87 @@
             content: '✓';
             color: transparent;
             font-weight: 900;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
         }
 
         .circulo.completado::after { color: #000; }
-
-        /* Estado deshabilitado para evitar múltiples clicks */
         .circulo.loading { opacity: 0.5; pointer-events: none; }
+
+        /* Estilo para cuando no hay nada */
+        .empty-state {
+            text-align: center; margin-top: 80px; opacity: 0.4;
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
         <button onclick="irAlDashboard()" class="btn-atras">←</button>
-        <h1>RUTINA: {{ dia }}</h1>
+        <h1>RUTINA: {{ dia|upper }}</h1>
     </div>
 
     <div class="container">
         {% if ejercicios %}
             
-            {% if ejercicios %}
-                {% for ej in ejercicios %}
-                    {% if ej.tipo == 'AERÓBICO' or ej.tipo == 'AEROBICO' %}
-                        {% if forloop.first %}<span class="tipo-titulo">🏃‍♂️ Aeróbico</span>{% endif %}
-                        <div class="ejercicio-card">
-                            <div class="ejercicio-info">
-                                <h3>{{ ej.nombre }}</h3>
-                                <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
-                            </div>
-                            <div id="check-{{ ej.id }}" 
-                                 class="circulo {% if ej.completado %}completado{% endif %}" 
-                                 onclick="toggleEjercicio('{{ ej.id }}')">
-                            </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
+            {# SECCIÓN AERÓBICO #}
+            {% if any_aerobico %}
+            <span class="tipo-titulo">🏃‍♂️ Aeróbico</span>
+            {% for ej in ejercicios %}
+                {% if ej.tipo == 'AERÓBICO' or ej.tipo == 'AEROBICO' %}
+                <div class="ejercicio-card">
+                    <div class="ejercicio-info">
+                        <h3>{{ ej.nombre }}</h3>
+                        <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
+                    </div>
+                    <div id="check-{{ ej.id }}" 
+                         class="circulo {% if ej.completado %}completado{% endif %}" 
+                         onclick="toggleEjercicio('{{ ej.id }}')">
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
             {% endif %}
 
+            {# SECCIÓN FUERZA #}
+            {% if any_fuerza %}
+            <span class="tipo-titulo">🏋️ Fuerza</span>
             {% for ej in ejercicios %}
                 {% if ej.tipo == 'FUERZA' %}
-                    {% if forloop.first %}<span class="tipo-titulo">🏋️ Fuerza</span>{% endif %}
-                    <div class="ejercicio-card">
-                        <div class="ejercicio-info">
-                            <h3>{{ ej.nombre }}</h3>
-                            <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
-                        </div>
-                        <div id="check-{{ ej.id }}" 
-                             class="circulo {% if ej.completado %}completado{% endif %}" 
-                             onclick="toggleEjercicio('{{ ej.id }}')">
-                        </div>
+                <div class="ejercicio-card">
+                    <div class="ejercicio-info">
+                        <h3>{{ ej.nombre }}</h3>
+                        <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
                     </div>
+                    <div id="check-{{ ej.id }}" 
+                         class="circulo {% if ej.completado %}completado{% endif %}" 
+                         onclick="toggleEjercicio('{{ ej.id }}')">
+                    </div>
+                </div>
                 {% endif %}
             {% endfor %}
+            {% endif %}
 
+            {# SECCIÓN ZONA MEDIA / OTROS #}
+            {% if any_zona_media %}
+            <span class="tipo-titulo">🧘 Zona Media / Especial</span>
             {% for ej in ejercicios %}
                 {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'TABATA' or ej.tipo == 'ZONA MEDIA' %}
-                    {% if forloop.first %}<span class="tipo-titulo">🧘 Zona Media</span>{% endif %}
-                    <div class="ejercicio-card">
-                        <div class="ejercicio-info">
-                            <h3>{{ ej.nombre }}</h3>
-                            <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
-                        </div>
-                        <div id="check-{{ ej.id }}" 
-                             class="circulo {% if ej.completado %}completado{% endif %}" 
-                             onclick="toggleEjercicio('{{ ej.id }}')">
-                        </div>
+                <div class="ejercicio-card">
+                    <div class="ejercicio-info">
+                        <h3>{{ ej.nombre }}</h3>
+                        <p>{{ ej.series }} x {{ ej.repeticiones }}</p>
                     </div>
+                    <div id="check-{{ ej.id }}" 
+                         class="circulo {% if ej.completado %}completado{% endif %}" 
+                         onclick="toggleEjercicio('{{ ej.id }}')">
+                    </div>
+                </div>
                 {% endif %}
             {% endfor %}
+            {% endif %}
 
         {% else %}
-            <div style="text-align: center; margin-top: 80px; opacity: 0.4;">
+            <div class="empty-state">
                 <p style="font-weight: 800; font-size: 0.9rem; letter-spacing: 1px;">SIN RUTINA PARA EL {{ dia|upper }}</p>
             </div>
         {% endif %}
@@ -195,11 +204,9 @@
         const elemento = document.getElementById(`check-${ejercicioId}`);
         if (!elemento || elemento.classList.contains('loading')) return;
 
-        // UI Optimista
         elemento.classList.add('loading');
-        const estadoActual = elemento.classList.contains('completado');
-        elemento.classList.toggle('completado');
-
+        
+        // El servidor responderá con el nuevo estado
         fetch(`/marcar-hecho/${ejercicioId}/`, {
             method: 'POST',
             headers: {
@@ -211,24 +218,15 @@
         .then(data => {
             elemento.classList.remove('loading');
             if (data.status === 'ok') {
-                // Sincronizar con el estado real del servidor
                 if (data.completado) {
                     elemento.classList.add('completado');
                 } else {
                     elemento.classList.remove('completado');
                 }
-            } else {
-                // Revertir en caso de error
-                if (estadoActual) elemento.classList.add('completado');
-                else elemento.classList.remove('completado');
-                alert("Error de conexión");
             }
         })
         .catch(error => {
             elemento.classList.remove('loading');
-            // Revertir en caso de error de red
-            if (estadoActual) elemento.classList.add('completado');
-            else elemento.classList.remove('completado');
             console.error('Error:', error);
         });
     }

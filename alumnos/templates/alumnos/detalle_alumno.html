@@ -1,107 +1,125 @@
-<body style="background-color: #000; color: #fff; font-family: sans-serif; padding: 40px;">
+<body style="background-color: #000; color: #fff; font-family: 'Inter', sans-serif; padding: 40px; margin: 0;">
     
-    <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #98cf2c; padding-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #98cf2c; padding-bottom: 20px; align-items: flex-start;">
         <div>
-            <h1 style="margin-bottom: 5px;">
+            <h1 style="margin: 0 0 5px 0; font-size: 28px; font-weight: 900;">
                 FICHA: 
                 {% if alumno.user.get_full_name %}
                     {{ alumno.user.last_name|upper }}, {{ alumno.user.first_name|upper }}
                 {% else %}
                     SOCIO {{ alumno.codigo }}
                 {% endif %}
-                <span style="color: #666; font-size: 20px;">({{ alumno.codigo }})</span>
+                <span style="color: #666; font-size: 20px; font-weight: 400;">#{{ alumno.codigo }}</span>
             </h1>
             
             <div style="display: flex; gap: 20px; font-size: 13px; color: #bbb; margin-top: 10px;">
                 {% if alumno.dni %}<span><strong>DNI:</strong> {{ alumno.dni }}</span>{% endif %}
-                {% if alumno.domicilio %}<span><strong>DOMICILIO:</strong> {{ alumno.domicilio }}</span>{% endif %}
                 {% if alumno.celular %}
                 <span>
                     <strong>CEL:</strong> 
                     <a href="https://wa.me/{{ alumno.celular }}" target="_blank" style="color: #98cf2c; text-decoration: none;">
-                        {{ alumno.celular }} <span style="font-size: 10px;">(WhatsApp 📱)</span>
+                        {{ alumno.celular }} <span style="font-size: 10px; opacity: 0.7;">(WHATSAPP)</span>
                     </a>
                 </span>
                 {% endif %}
-                {% if alumno.contacto_emergencia %}
-                <span style="color: #ff4d4d;"><strong>🚨 EMERGENCIA:</strong> {{ alumno.contacto_emergencia }}</span>
-                {% endif %}
+                <span style="color: {% if alumno.esta_al_dia %}#98cf2c{% else %}#ff4d4d{% endif %};">
+                    <strong>VENCE:</strong> {{ alumno.fecha_vencimiento|date:"d/m/Y" }}
+                </span>
             </div>
         </div>
-        <a href="{% url 'gestion' %}" style="color: #98cf2c; text-decoration: none; font-weight: bold; align-self: center; border: 1px solid #98cf2c; padding: 8px 15px; border-radius: 5px;">← VOLVER AL PANEL</a>
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'gestion' %}" style="color: #fff; text-decoration: none; font-size: 12px; font-weight: bold; border: 1px solid #333; padding: 10px 20px; border-radius: 8px; background: #111;">← VOLVER</a>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 15px; margin-top: 20px; padding: 15px; background: #111; border-radius: 12px; border: 1px solid #222;">
+        <form action="{% url 'renovar_cuota' alumno.id %}" method="POST" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" style="background: #98cf2c; color: #000; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 900; cursor: pointer; font-size: 12px;">💸 COBRAR CUOTA (+30 días)</button>
+        </form>
+
+        <form action="{% url 'resetear_rutina' alumno.id %}" method="POST" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" onclick="return confirm('¿Limpiar todos los checks del alumno?')" style="background: #222; color: #fff; border: 1px solid #444; padding: 8px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px;">🔄 RESETEAR SEMANA</button>
+        </form>
+
+        <a href="{% url 'editar_alumno' alumno.id %}" style="background: #222; color: #fff; border: 1px solid #444; padding: 8px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; text-decoration: none;">✏️ EDITAR PERFIL</a>
     </div>
 
     <div style="display: flex; gap: 30px; margin-top: 30px;">
+        
         <div style="flex: 1; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #222; height: fit-content; position: sticky; top: 20px;">
-            <h3 style="color: #98cf2c; margin-top: 0; text-transform: uppercase; font-size: 16px;">+ ASIGNAR EJERCICIO</h3>
+            <h3 style="color: #98cf2c; margin: 0 0 20px 0; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">+ NUEVO EJERCICIO</h3>
             <form action="{% url 'agregar_ejercicio' alumno.id %}" method="POST">
                 {% csrf_token %}
                 
                 <label style="font-size: 11px; color: #888; text-transform: uppercase;">Nombre del ejercicio:</label>
-                <input type="text" name="nombre" placeholder="Ej: Bicicleta Fija" required style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; outline: none;">
+                <input type="text" name="nombre" placeholder="Ej: Press de Banca" required style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px; outline: none;">
 
-                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Tipo / Categoría:</label>
-                <select name="tipo" id="tipo_select" required onchange="adaptarFormulario()" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; cursor: pointer;">
-                    <option value="FUERZA">💪 FUERZA</option>
+                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Categoría:</label>
+                <select name="tipo" id="tipo_select" required onchange="adaptarFormulario()" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px; cursor: pointer;">
+                    <option value="FUERZA">🏋️ FUERZA</option>
                     <option value="AEROBICO">🏃‍♂️ AERÓBICO</option>
                     <option value="ZONA_MEDIA">🧘 ZONA MEDIA</option>
                 </select>
 
-                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Día asignado:</label>
-                <select name="dia" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
-                    {% for dia in dias %}
-                        <option value="{{ dia }}">{{ dia|upper }}</option>
-                    {% endfor %}
+                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Día de la semana:</label>
+                <select name="dia" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px;">
+                    <option value="Lunes">LUNES</option>
+                    <option value="Martes">MARTES</option>
+                    <option value="Miércoles">MIÉRCOLES</option>
+                    <option value="Jueves">JUEVES</option>
+                    <option value="Viernes">VIERNES</option>
+                    <option value="Sábado">SÁBADO</option>
                 </select>
 
                 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                     <div style="flex: 1;" id="col_sets">
-                        <label id="label_series" style="font-size: 11px; color: #888; text-transform: uppercase;">Sets</label>
-                        <input type="number" name="series" value="3" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Sets</label>
+                        <input type="number" name="series" value="3" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px;">
                     </div>
                     <div style="flex: 1;">
-                        <label id="label_reps" style="font-size: 11px; color: #888; text-transform: uppercase;">Reps / Min</label>
-                        <input type="text" name="reps" id="input_reps" placeholder="12" required style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                        <label id="label_reps" style="font-size: 11px; color: #888; text-transform: uppercase;">Reps</label>
+                        <input type="text" name="reps" id="input_reps" placeholder="12" required style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px;">
                     </div>
                     <div style="flex: 1;" id="campo_peso">
-                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Kg</label>
-                        <input type="number" name="peso" placeholder="0" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
-                    </div>
-                    <div style="flex: 1; display: none;" id="campo_timmer">
-                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Timer</label>
-                        <input type="text" name="timmer" placeholder="P1" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Kg Sugerido</label>
+                        <input type="number" name="peso" placeholder="0" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 8px;">
                     </div>
                 </div>
 
-                <button type="submit" style="width: 100%; padding: 15px; background: #98cf2c; color: #000; font-weight: 900; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; text-transform: uppercase;">
-                    Cargar a la rutina
+                <button type="submit" style="width: 100%; padding: 15px; background: #98cf2c; color: #000; font-weight: 900; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; text-transform: uppercase;">
+                    ASIGNAR A RUTINA
                 </button>
             </form>
         </div>
 
         <div style="flex: 3;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
                 {% for dia, ejercicios in rutina.items %}
                 <div style="background: #111; padding: 20px; border-radius: 12px; border: 1px solid #222;">
-                    <h4 style="color: #98cf2c; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; text-transform: uppercase;">{{ dia }}</h4>
-                    <div style="margin-top: 15px;">
-                        {% for ej in ejercicios %}
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid {% if ej.tipo == 'FUERZA' %}#98cf2c{% elif ej.tipo == 'AEROBICO' %}#44aaff{% else %}#ffbb33{% endif %};">
-                            <div style="font-size: 14px;">
-                                <strong style="color: #fff; display: block; margin-bottom: 3px;">{{ ej.nombre|upper }}</strong>
-                                {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' %}
-                                    <span style="color: #ffbb33; font-weight: bold;">🧘 {{ ej.repeticiones }} MIN {% if ej.timmer %}| {{ ej.timmer }}{% endif %}</span>
-                                {% elif ej.tipo == 'AEROBICO' %}
-                                    <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timmer %}| {{ ej.timmer }}{% endif %}</span>
-                                {% else %}
-                                    <span style="color: #98cf2c; font-weight: bold;">💪 {{ ej.series }}x{{ ej.repeticiones }}</span> 
-                                    {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">{{ ej.peso_sugerido }}kg</small>{% endif %}
-                                {% endif %}
-                            </div>
-                            <a href="{% url 'eliminar_ejercicio' ej.id %}" onclick="return confirm('¿Eliminar?')" style="color: #ff4d4d; text-decoration: none; font-size: 12px; background: #222; padding: 6px 10px; border-radius: 6px; border: 1px solid #333;">🗑️</a>
+                    <h4 style="color: #98cf2c; border-bottom: 1px solid #333; padding-bottom: 10px; margin: 0 0 15px 0; text-transform: uppercase; font-size: 14px; letter-spacing: 2px;">{{ dia }}</h4>
+                    
+                    {% for ej in ejercicios %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 12px; margin-bottom: 8px; border-radius: 10px; border-left: 4px solid {% if ej.tipo == 'FUERZA' %}#98cf2c{% elif ej.tipo == 'AEROBICO' %}#44aaff{% else %}#ffbb33{% endif %};">
+                        <div style="font-size: 13px;">
+                            <strong style="color: #fff; display: block; margin-bottom: 2px;">{{ ej.nombre|upper }}</strong>
+                            
+                            {% if ej.tipo == 'AEROBICO' %}
+                                <span style="color: #44aaff; font-size: 11px;">🏃‍♂️ {{ ej.repeticiones }} MIN</span>
+                            {% elif ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' %}
+                                <span style="color: #ffbb33; font-size: 11px;">🧘 {{ ej.repeticiones }} REPS/MIN</span>
+                            {% else %}
+                                <span style="color: #98cf2c; font-size: 11px;">💪 {{ ej.series }} x {{ ej.repeticiones }}</span> 
+                                {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">({{ ej.peso_sugerido }}kg)</small>{% endif %}
+                            {% endif %}
                         </div>
-                        {% endfor %}
+                        
+                        <a href="{% url 'eliminar_ejercicio' ej.id %}" onclick="return confirm('¿Eliminar {{ ej.nombre }}?')" style="color: #ff4d4d; text-decoration: none; font-size: 14px; padding: 5px 10px;">✕</a>
                     </div>
+                    {% empty %}
+                    <p style="color: #444; font-size: 11px; text-align: center; margin: 20px 0;">Sin ejercicios asignados.</p>
+                    {% endfor %}
                 </div>
                 {% endfor %}
             </div>
@@ -113,25 +131,33 @@
         const tipo = document.getElementById('tipo_select').value;
         const colSets = document.getElementById('col_sets');
         const campoPeso = document.getElementById('campo_peso');
-        const campoTimmer = document.getElementById('campo_timmer');
         const labelReps = document.getElementById('label_reps');
         const inputReps = document.getElementById('input_reps');
 
-        if (tipo === 'AEROBICO' || tipo === 'ZONA_MEDIA') {
-            colSets.style.display = 'none';
-            campoPeso.style.display = 'none';
-            campoTimmer.style.display = 'block';
+        if (tipo === 'AEROBICO') {
+            colSets.style.opacity = '0.3';
+            colSets.style.pointerEvents = 'none';
+            campoPeso.style.opacity = '0.3';
+            campoPeso.style.pointerEvents = 'none';
             labelReps.innerText = 'MINUTOS';
             inputReps.placeholder = "20";
-        } 
-        else {
-            colSets.style.display = 'block';
-            campoPeso.style.display = 'block';
-            campoTimmer.style.display = 'none';
+        } else if (tipo === 'ZONA_MEDIA') {
+            colSets.style.opacity = '1';
+            colSets.style.pointerEvents = 'auto';
+            campoPeso.style.opacity = '0.3';
+            campoPeso.style.pointerEvents = 'none';
+            labelReps.innerText = 'REPS/MIN';
+            inputReps.placeholder = "20";
+        } else {
+            colSets.style.opacity = '1';
+            colSets.style.pointerEvents = 'auto';
+            campoPeso.style.opacity = '1';
+            campoPeso.style.pointerEvents = 'auto';
             labelReps.innerText = 'REPS';
             inputReps.placeholder = "12";
         }
     }
-    document.addEventListener('DOMContentLoaded', adaptarFormulario);
+    // Ejecutar al cargar para asegurar el estado inicial
+    window.onload = adaptarFormulario;
     </script>
 </body>
