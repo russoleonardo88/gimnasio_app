@@ -5,4 +5,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # Conectamos las urls de la app alumnos a la raíz del proyecto
     path('', include('alumnos.urls')), 
+    path('login/', views.login_usuario, name='login'),
 ]
