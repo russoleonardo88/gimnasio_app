@@ -190,8 +190,8 @@ document.addEventListener('DOMContentLoaded', function () {
     Chart.defaults.scale.grid = defaults.grid;
 
     // Datos seguros desde Django
-    const datosAsistencias = {{ asistencias_por_mes|default:"[]"|safe }};
-    const datosRendimiento = {{ rendimiento|default:""|safe }};
+    const datosAsistencias = {{ asistencias_por_mes|safe }};
+    const datosRendimiento = {{ rendimiento|safe }};
 
     // Gráfico de Días (Barras)
     const ctxDias = document.getElementById('graficoDias');
