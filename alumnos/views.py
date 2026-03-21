@@ -68,7 +68,7 @@ def cambiar_password(request):
 # --- VISTAS DEL ALUMNO ---
 
 @login_required
-def dashboard_alumno(request):
+def dashboard(request):
     try:
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
