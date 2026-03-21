@@ -195,43 +195,39 @@ def detalle_alumno(request, alumno_id):
     
     alumno = get_object_or_404(Alumno, id=alumno_id)
     
-    # 1. Lógica para que el botón "Cargar a la rutina" funcione
+    # 1. PROCESAR EL FORMULARIO (POST)
+    # Ajustado para recibir 'series' del HTML y guardarlo como 'sets' en la DB
     if request.method == 'POST':
         Ejercicio.objects.create(
             alumno=alumno,
             nombre=request.POST.get('nombre'),
-            dia_semana=request.POST.get('dia_semana'),
+            dia_semana=request.POST.get('dia'), # Tu HTML usa name="dia"
             tipo=request.POST.get('tipo', 'FUERZA'),
-            sets=request.POST.get('sets', '3'),
-            reps=request.POST.get('reps', '12'),
-            peso=request.POST.get('peso', '0')
+            sets=request.POST.get('series', '3'), # Tu HTML usa name="series"
+            reps=request.POST.get('reps', '12'),   # Tu HTML usa name="reps"
+            peso=request.POST.get('peso', '0')     # Tu HTML usa name="peso"
         )
         return redirect('detalle_alumno', alumno_id=alumno.id)
 
-    # 2. Traducimos los nombres para que card_ejercicio.html los entienda
-    ejercicios = alumno.ejercicios.all()
-    for ej in ejercicios:
-        # Adaptamos lo que pide el HTML a lo que tiene la Base de Datos
+    # 2. PREPARAR DATOS PARA EL HTML
+    ejercicios_lista = alumno.ejercicios.all()
+    
+    # Mapeo de campos para que el bucle del HTML no falle
+    for ej in ejercicios_lista:
         ej.series = ej.sets           
         ej.repeticiones = ej.reps     
         ej.peso_sugerido = ej.peso    
 
-    # 3. Organizamos los días
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    rutina_por_dia = {dia: ejercicios.filter(dia_semana=dia) for dia in dias}
-
-    # 4. Calculamos asistencias y PORCENTAJE (Aquí estaba el error 500)
-    total_asistencias = alumno.asistencias.count()
-    # Calculamos el porcentaje sobre 20 días o lo que prefieras
-    porcentaje_total = min(int((total_asistencias / 20) * 100), 100) if total_asistencias > 0 else 0
+    
+    # IMPORTANTE: La variable DEBE llamarse 'rutina' porque así está en tu HTML
+    rutina = {dia: ejercicios_lista.filter(dia_semana=dia) for dia in dias}
 
     context = {
         'alumno': alumno,
-        'rutina_por_dia': rutina_por_dia,
-        'grafico_rendimiento_data': [total_asistencias, porcentaje_total],
-        'total_asistencias': total_asistencias,
-        'porcentaje_total': porcentaje_total, # Esta variable faltaba en tu código
+        'rutina': rutina, # Antes se llamaba rutina_por_dia, ahora 'rutina'
     }
+    
     return render(request, 'alumnos/detalle_alumno.html', context)
 
 @login_required
