@@ -93,7 +93,7 @@ def dashboard(request):
     hace_una_semana = timezone.now().date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
 
-    # --- NUEVO: DATOS PARA LOS GRÁFICOS (Indentación corregida) ---
+    # --- DATOS PARA LOS GRÁFICOS (REVISADO) ---
     hoy = timezone.now()
     asistencias_por_mes = []
     for mes in range(1, 13):
@@ -103,7 +103,6 @@ def dashboard(request):
             fecha__month=mes
         ).count()
         asistencias_por_mes.append(conteo)
-    # -------------------------------------------------------------
     
     return render(request, 'alumnos/dashboard.html', {
         'alumno': alumno, 
