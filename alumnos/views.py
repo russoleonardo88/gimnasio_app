@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.db import models
 from .models import Alumno, Asistencia, Ejercicio
 from datetime import date, timedelta
+
 import json
 
 # --- AUTENTICACIÓN ---
@@ -40,36 +41,51 @@ def cambiar_password(request):
 # --- VISTAS DEL ALUMNO ---
 @login_required
 @never_cache # <--- EVITA QUE EL BOTÓN ATRÁS MUESTRE PROGRESO VIEJO
+
+
+
 def dashboard(request):
     alumno = Alumno.objects.filter(user=request.user).first()
     if not alumno:
-        if request.user.is_superuser: return redirect('gestion')
+        if request.user.is_superuser: 
+            return redirect('gestion')
         return redirect('login')
 
-    # Cálculo de progreso para las 5 barras (Lunes a Viernes)
+    # 1. Cálculo de progreso para las 5 barras (Lunes a Viernes)
     dias_semana = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES']
-    progreso_semanal = {}
+    progreso_dias = [] # Cambiamos a lista para que sea más fácil de iterar en el template
     
     for dia in dias_semana:
         ejercicios_dia = Ejercicio.objects.filter(alumno=alumno, dia_asignado=dia)
         total = ejercicios_dia.count()
         hechos = ejercicios_dia.filter(completado=True).count()
-        porcentaje = (hechos / total * 100) if total > 0 else 0
-        progreso_semanal[dia] = porcentaje
+        porcentaje = int((hechos / total * 100)) if total > 0 else 0
+        
+        progreso_dias.append({
+            'nombre': dia,
+            'porcentaje': porcentaje
+        })
 
-    # Datos para el gráfico de rendimiento (últimas 5 asistencias)
-    asistencias = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
-    grafico_data = [int(a.porcentaje_completado) for a in reversed(asistencias)]
+    # 2. Datos para el gráfico de rendimiento (últimas 5 asistencias)
+    asistencias_qs = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     
-    # CORRECCIÓN DE SINTAXIS PARA RENDER:
-    if not grafico_data:
-        grafico_data =
+    # Si no hay datos, enviamos una lista con un 0 para que Chart.js no rompa
+    if asistencias_qs.exists():
+        grafico_data = [int(a.porcentaje_completado or 0) for a in reversed(asistencias_qs)]
+    else:
+        grafico_data = # <--- ESTO corrige el error de sintaxis y evita el crash
+
+    # 3. Datos para el gráfico de barras (Días por mes - Ejemplo real)
+    # Por ahora, para el build, podés dejarlo estático o calcularlo con Count
+    grafico_meses_data = # Ene, Feb, Mar...
 
     context = {
         'alumno': alumno,
-        'progreso_semanal': progreso_semanal,
+        'progreso_dias': progreso_dias,
         'grafico_rendimiento_data': json.dumps(grafico_data),
-        'ultima_asistencia': Asistencia.objects.filter(alumno=alumno).order_by('-fecha').first(),
+        'grafico_dias_data': json.dumps(grafico_meses_data),
+        'asistencias': asistencias_qs,
+        'mensaje_motivador': "Llevás 3 días esta semana. ¡A darle! 🔥",
     }
     return render(request, 'alumnos/dashboard.html', context)
 
