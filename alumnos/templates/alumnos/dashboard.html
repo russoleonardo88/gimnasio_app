@@ -174,7 +174,9 @@
         </a>
     </div>
 
-    <script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
 document.addEventListener('DOMContentLoaded', function () {
 
     const defaults = {
@@ -189,9 +191,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Datos seguros desde Django
     const datosAsistencias = {{ asistencias_por_mes|default:"[]"|safe }};
-    const datosRendimiento = {{ rendimiento|default:"[0,0,0,0]"|safe }};
+    const datosRendimiento = {{ rendimiento|default:""|safe }};
 
-    // Gráfico de Días
+    // Gráfico de Días (Barras)
     const ctxDias = document.getElementById('graficoDias');
     if (ctxDias) {
         new Chart(ctxDias, {
@@ -215,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Gráfico de Intensidad / Rendimiento
+    // Gráfico de Intensidad / Rendimiento (Línea)
     const ctxInt = document.getElementById('graficoIntensidad');
     if (ctxInt) {
         new Chart(ctxInt, {
@@ -247,7 +249,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
-  </script> 
+    }
+}); // <-- Aquí faltaba este cierre
+</script>
+
+<script>
+(function () {
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
+    window.onunload = function () {};
+})();
+</script>
+
+  <script>
     (function () {
         // 1. Detecta si la página se carga desde la caché (botón atrás del celular)
         window.addEventListener('pageshow', function (event) {
