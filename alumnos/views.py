@@ -15,7 +15,6 @@ from datetime import timedelta
 # --- VISTAS DE AUTENTICACIÓN ---
 
 def login_view(request):
-    # Si ya está autenticado, lo mandamos a su lugar
     if request.user.is_authenticated:
         return redirect('gestion_gym' if request.user.is_staff else 'dashboard_alumno')
 
@@ -25,10 +24,9 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             
-            # Configuración de recordarme
+            # Recordarme: 1 año o 24hs
             request.session.set_expiry(31536000 if request.POST.get('remember_me') else 86400)
             
-            # Redirección inmediata según perfil para evitar que el admin entre al dashboard
             if user.is_staff:
                 return redirect('gestion_gym')
             return redirect('dashboard_alumno')
@@ -59,11 +57,10 @@ def cambiar_password(request):
 
 @login_required
 def dashboard(request):
-    # 1. SEGURIDAD: Si es Mariano (staff), lo sacamos de aquí para evitar Error 500
+    # SEGURIDAD: Staff fuera del dashboard de alumnos
     if request.user.is_staff:
         return redirect('gestion_gym')
 
-    # 2. BUSCAR PERFIL DE ALUMNO
     try:
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
@@ -71,7 +68,7 @@ def dashboard(request):
             'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
         })
 
-    # --- LÓGICA DE PROGRESO SEMANAL ---
+    # Lógica de progreso semanal
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
     todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
@@ -83,7 +80,6 @@ def dashboard(request):
         porcentaje = int((completados / total * 100)) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-    # --- LÓGICA DE DÍA ACTUAL ---
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes', 
@@ -92,7 +88,6 @@ def dashboard(request):
     dia_hoy_esp = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
     ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
 
-    # --- LÓGICA DE ASISTENCIAS ---
     asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
@@ -116,7 +111,6 @@ def mi_rutina(request):
     dia_default = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
     dia_seleccionado = request.GET.get('dia', dia_default)
     alumno = get_object_or_404(Alumno, user=request.user)
-    
     ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado).distinct()
     
     hoy = timezone.now().date()
@@ -158,7 +152,6 @@ def control_acceso(request):
         dato_ingresado = request.POST.get("codigo", "").upper().strip()
         try:
             alumno = Alumno.objects.get(Q(codigo=dato_ingresado) | Q(dni=dato_ingresado))
-            
             if not alumno.activo:
                 mensaje = f"ACCESO DENEGADO: {alumno.user.first_name.upper()} ESTÁ DE BAJA"
                 clase_alerta = "danger"
@@ -176,7 +169,7 @@ def control_acceso(request):
 
 @login_required
 def gestion_gym(request):
-    # 1. SEGURIDAD: Solo staff entra aquí
+    # BLINDAJE: Solo personal administrativo
     if not request.user.is_staff:
         return redirect('dashboard_alumno')
     
@@ -190,23 +183,19 @@ def gestion_gym(request):
     stats_mujeres = []
     
     for alu in alumnos_activos:
-        # Cálculo de asistencias del mes
         conteo = Asistencia.objects.filter(alumno=alu, fecha__month=hoy.month, fecha__year=hoy.year).count()
         
-        # PROTECCIÓN: Evitar error 500 si el plan es 0 o None
+        # ESCUDO: Evitar división por cero o errores con planes vacíos
         try:
             meta = int(alu.plan_semanal or 0) * 4
             porcentaje_asistencia = int((conteo / meta * 100)) if meta > 0 else 0
-        except:
+        except (ValueError, TypeError):
             porcentaje_asistencia = 0
         
-        # PROTECCIÓN: Evitar error 500 si no hay asistencias para calcular progreso
+        # ESCUDO: Evitar errores si no hay asistencias para el progreso
         ultima = Asistencia.objects.filter(alumno=alu).order_by('-fecha').first()
-        progreso_rutina = 0
-        if ultima:
-            progreso_rutina = int(ultima.porcentaje_completado or 0)
+        progreso_rutina = int(getattr(ultima, 'porcentaje_completado', 0) or 0)
         
-        # Lógica de colores de cuota
         if alu.cuota_pagada:
             cuota_estado, cuota_color = 'PAGADO', '#98cf2c'
         elif es_fecha_cobro:
@@ -233,8 +222,6 @@ def gestion_gym(request):
         'stats_mujeres': stats_mujeres,
         'alumnos_baja': alumnos_baja
     })
-
-# --- EL RESTO DE TUS FUNCIONES SE MANTIENEN IGUAL ---
 
 @login_required
 def detalle_alumno(request, alumno_id):
@@ -358,12 +345,9 @@ def historial_asistencias(request, alumno_id):
 
 @login_required
 def renovar_cuota(request, alumno_id):
-    if not request.user.is_staff:
-        return redirect('dashboard_alumno')
-        
+    if not request.user.is_staff: return redirect('dashboard_alumno')
     alumno = get_object_or_404(Alumno, id=alumno_id)
     alumno.cuota_pagada = True
     alumno.fecha_pago = timezone.now().date()
     alumno.save()
-    
     return redirect('gestion_gym')
