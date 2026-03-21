@@ -187,10 +187,12 @@
         new Chart(document.getElementById('graficoDias'), {
             type: 'bar',
             data: {
-                labels: ['ENE', 'FEB', 'MAR'],
+                // He expandido las etiquetas a los 12 meses
+                labels: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'],
                 datasets: [{
                     label: 'Días',
-                    data: [15, 18, 12],
+                    // Aquí cargamos los datos reales que vienen de views.py
+                    data: {{ asistencias_por_mes|safe }},
                     backgroundColor: '#98cf2c',
                     borderRadius: 5
                 }]
@@ -208,7 +210,7 @@
                 labels: ['S1', 'S2', 'S3', 'S4'],
                 datasets: [{
                     label: 'Intensidad %',
-                    data: [70, 85, 80, 95],
+                    data:,
                     borderColor: '#98cf2c',
                     tension: 0.3,
                     fill: false

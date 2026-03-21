@@ -92,6 +92,19 @@ def dashboard(request):
     asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
+
+    # --- NUEVO: DATOS PARA LOS GRÁFICOS ---
+    hoy = timezone.now()
+    # Contamos asistencias por mes para el gráfico de barras
+    asistencias_por_mes = []
+    for mes in range(1, 13):
+        conteo = Asistencia.objects.filter(
+            alumno=alumno, 
+            fecha__year=hoy.year, 
+            fecha__month=mes
+        ).count()
+        asistencias_por_mes.append(conteo)
+    # --------------------------------------
     
     return render(request, 'alumnos/dashboard.html', {
         'alumno': alumno, 
@@ -99,9 +112,9 @@ def dashboard(request):
         'asistencias': asistencias_recientes,
         'ejercicios_hoy': ejercicios_hoy,
         'asistencias_semana': asistencias_semana,
+        'asistencias_por_mes': asistencias_por_mes,  # <-- Enviamos esto al HTML
         'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
     })
-
 @login_required
 def mi_rutina(request):
     traduccion_dias = {
