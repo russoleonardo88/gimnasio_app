@@ -217,7 +217,7 @@
             <img src="{% static 'img/logo_aquiles.png' %}" alt="Casco Aquiles" class="logo-casco">
         </div>
         
-        <a href="{% url 'alta_socio' %}" class="btn-registrar">
+        <a href="{% url 'alta_socio_rapida' %}" class="btn-registrar">
             + REGISTRAR NUEVO SOCIO
         </a>
     </div>
@@ -250,7 +250,9 @@
                                 <a href="{% url 'historial_asistencias' item.alumno.id %}" title="Ver Historial" style="text-decoration: none; margin-left: 8px;">📅</a>
                             </td>
                             <td><span class="codigo-tag">{{ item.alumno.codigo }}</span></td>
-                            <td style="font-size: 12px; font-weight: 600;">{{ item.alumno.plan_semanal }} DÍAS</td>
+                            <td style="font-size: 12px; font-weight: 600;">
+                                {{ item.alumno.plan_semanal|default:"--" }} DÍAS
+                            </td>
                             <td style="text-align: center; font-weight: 900; color: {% if item.porcentaje_asistencia < 50 %}var(--rojo-error){% else %}var(--verde-neon){% endif %};">
                                 {{ item.porcentaje_asistencia }}%
                             </td>
@@ -304,7 +306,9 @@
                                 <a href="{% url 'historial_asistencias' item.alumno.id %}" title="Ver Historial" style="text-decoration: none; margin-left: 8px;">📅</a>
                             </td>
                             <td><span class="codigo-tag">{{ item.alumno.codigo }}</span></td>
-                            <td style="font-size: 12px; font-weight: 600;">{{ item.alumno.plan_semanal }} DÍAS</td>
+                            <td style="font-size: 12px; font-weight: 600;">
+                                {{ item.alumno.plan_semanal|default:"--" }} DÍAS
+                            </td>
                             <td style="text-align: center; font-weight: 900; color: {% if item.porcentaje_asistencia < 50 %}var(--rojo-error){% else %}var(--verde-neon){% endif %};">
                                 {{ item.porcentaje_asistencia }}%
                             </td>
@@ -337,19 +341,21 @@
         </div>
 
         <div class="columna-bajas">
-            <div class="seccion-card">
-                <h3 class="seccion-titulo" style="color: var(--rojo-error);">Bajas</h3>
-                {% for baja in alumnos_baja %}
-                <div class="item-baja">
-                    <span style="color: var(--blanco); font-size: 13px; font-weight: 700;">{{ baja.user.last_name|upper }}, {{ baja.user.first_name|upper }}</span>
-                    <span style="color: var(--gris-texto); font-size: 11px;">Cód: {{ baja.codigo }}</span>
-                    <a href="{% url 'cambiar_estado_alumno' baja.id %}" class="btn-reactivar">Reactivar socio</a>
-                </div>
-                {% empty %}
-                <p style="color: var(--gris-texto); font-size: 12px; text-align: center; padding: 20px;">No hay socios inactivos.</p>
-                {% endfor %}
-            </div>
+    <div class="seccion-card">
+        <h3 class="seccion-titulo" style="color: var(--rojo-error);">Bajas</h3>
+        {% for baja in alumnos_baja %}
+        <div class="item-baja">
+            <span style="color: var(--blanco); font-size: 13px; font-weight: 700;">{{ baja.user.last_name|upper }}, {{ baja.user.first_name|upper }}</span>
+            <span style="color: var(--gris-texto); font-size: 11px;">Cód: {{ baja.codigo }}</span>
+            
+            <a href="{% url 'cambiar_estado_alumno' baja.id %}" class="btn-reactivar">Reactivar socio</a>
+            
         </div>
+        {% empty %}
+        <p style="color: var(--gris-texto); font-size: 12px; text-align: center; padding: 20px;">No hay socios inactivos.</p>
+        {% endfor %}
+    </div>
+</div>
 
     </div>
 

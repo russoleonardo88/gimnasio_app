@@ -169,55 +169,45 @@ def control_acceso(request):
 
 @login_required
 def gestion_gym(request):
-    # BLINDAJE: Solo personal administrativo
     if not request.user.is_staff:
         return redirect('dashboard_alumno')
     
     hoy = timezone.now().date()
-    es_fecha_cobro = 1 <= hoy.day <= 15
-    
-    # Traemos los alumnos con select_related para que no sea lento
-    alumnos_activos = Alumno.objects.filter(activo=True).select_related('user').order_by('user__last_name', 'user__first_name')
+    alumnos_activos = Alumno.objects.filter(activo=True).select_related('user')
     alumnos_baja = Alumno.objects.filter(activo=False).select_related('user')
     
     stats_hombres = []
     stats_mujeres = []
     
-    for alu in alumnos_activos:
-        # 1. Contar asistencias del mes actual
-        conteo = Asistencia.objects.filter(alumno=alu, fecha__month=hoy.month, fecha__year=hoy.year).count()
-        
-        # 2. ESCUDO ANTICRASH: Cálculo de porcentaje de asistencia
-        try:
-            # Si plan_semanal es None o vacío, usamos 1 para no dividir por cero
-            plan_valido = int(alu.plan_semanal) if alu.plan_semanal and str(alu.plan_semanal).isdigit() else 0
-            meta = plan_valido * 4
-            porcentaje_asistencia = int((conteo / meta * 100)) if meta > 0 else 0
-        except (ValueError, TypeError, ZeroDivisionError):
-            porcentaje_asistencia = 0
-        
-        # 3. ESCUDO ANTICRASH: Progreso de rutina
-        ultima = Asistencia.objects.filter(alumno=alu).order_by('-fecha').first()
-        progreso_rutina = 0
-        if ultima and ultima.porcentaje_completado:
-            progreso_rutina = int(ultima.porcentaje_completado)
-        
-        # 4. Lógica de Cuota
-        if alu.cuota_pagada:
-            cuota_estado, cuota_color = 'PAGADO', '#98cf2c'
-        elif es_fecha_cobro:
-            cuota_estado, cuota_color = 'PENDIENTE', '#ffffff'
-        else:
-            cuota_estado, cuota_color = 'MOROSO', '#ff4d4d'
+    traduccion_dias = {
+        'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
+        'Thursday': 'Jueves', 'Friday': 'Viernes', 
+        'Saturday': 'Lunes', 'Sunday': 'Lunes'
+    }
+    dia_hoy = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
 
-        # Armamos el diccionario que espera el gestion.html que corregimos antes
+    for alu in alumnos_activos:
+        # 1. Porcentaje de asistencia mensual (Base: Plan semanal * 4 semanas)
+        conteo_mes = Asistencia.objects.filter(alumno=alu, fecha__month=hoy.month).count()
+        meta_mes = (alu.plan_semanal or 0) * 4
+        porcentaje_asistencia = int((conteo_mes / meta_mes * 100)) if meta_mes > 0 else 0
+        
+        # 2. Progreso de rutina de HOY
+        ejercicios_hoy = Ejercicio.objects.filter(alumno=alu, dia_semana=dia_hoy).distinct()
+        total_hoy = ejercicios_hoy.count()
+        hechos_hoy = ejercicios_hoy.filter(completado=True).count()
+        progreso_hoy = int((hechos_hoy / total_hoy * 100)) if total_hoy > 0 else 0
+
+        # 3. Estado de cuota
+        c_color = '#98cf2c' if alu.cuota_pagada else '#ff4d4d'
+        c_estado = 'PAGADO' if alu.cuota_pagada else 'PENDIENTE'
+
         data = {
             'alumno': alu,
-            'asistencias': conteo,
-            'porcentaje_asistencia': min(porcentaje_asistencia, 100), # Máximo 100%
-            'progreso_rutina': progreso_rutina,
-            'cuota_estado': cuota_estado,
-            'cuota_color': cuota_color,
+            'porcentaje_asistencia': porcentaje_asistencia,
+            'progreso_rutina': progreso_hoy,
+            'cuota_estado': c_estado,
+            'cuota_color': c_color,
         }
         
         if alu.genero == 'H':
