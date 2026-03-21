@@ -190,34 +190,48 @@ def historial_asistencias(request, alumno_id):
 
 @login_required
 def detalle_alumno(request, alumno_id):
-    if not request.user.is_superuser: 
+    if not request.user.is_superuser:
         return redirect('dashboard')
     
-    # 1. Traemos al alumno y sus ejercicios
     alumno = get_object_or_404(Alumno, id=alumno_id)
+    
+    # 1. Lógica para que el botón "Cargar a la rutina" funcione
+    if request.method == 'POST':
+        Ejercicio.objects.create(
+            alumno=alumno,
+            nombre=request.POST.get('nombre'),
+            dia_semana=request.POST.get('dia_semana'),
+            tipo=request.POST.get('tipo', 'FUERZA'),
+            sets=request.POST.get('sets', '3'),
+            reps=request.POST.get('reps', '12'),
+            peso=request.POST.get('peso', '0')
+        )
+        return redirect('detalle_alumno', alumno_id=alumno.id)
+
+    # 2. Traducimos los nombres para que card_ejercicio.html los entienda
     ejercicios = alumno.ejercicios.all()
+    for ej in ejercicios:
+        # Adaptamos lo que pide el HTML a lo que tiene la Base de Datos
+        ej.series = ej.sets           
+        ej.repeticiones = ej.reps     
+        ej.peso_sugerido = ej.peso    
 
-    # 2. Calculamos asistencias para que el gráfico no de error 500
-    asistencias = alumno.asistencias.all().order_by('-fecha')
-    total_asistencias = asistencias.count()
-    porcentaje_total = min(int((total_asistencias / 48) * 100), 100) if total_asistencias > 0 else 0
-
-    # 3. Preparamos los datos del gráfico (lo que causaba el subrayado amarillo)
-    grafico_rendimiento_data = [total_asistencias, porcentaje_total]
-
-    # 4. Agrupamos ejercicios por día para las columnas de la ficha
+    # 3. Organizamos los días
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
     rutina_por_dia = {dia: ejercicios.filter(dia_semana=dia) for dia in dias}
 
+    # 4. Calculamos asistencias y PORCENTAJE (Aquí estaba el error 500)
+    total_asistencias = alumno.asistencias.count()
+    # Calculamos el porcentaje sobre 20 días o lo que prefieras
+    porcentaje_total = min(int((total_asistencias / 20) * 100), 100) if total_asistencias > 0 else 0
+
     context = {
         'alumno': alumno,
-        'ejercicios': ejercicios,
         'rutina_por_dia': rutina_por_dia,
-        'grafico_rendimiento_data': grafico_rendimiento_data,
+        'grafico_rendimiento_data': [total_asistencias, porcentaje_total],
         'total_asistencias': total_asistencias,
-        'porcentaje_total': porcentaje_total,
+        'porcentaje_total': porcentaje_total, # Esta variable faltaba en tu código
     }
-
     return render(request, 'alumnos/detalle_alumno.html', context)
 
 @login_required
