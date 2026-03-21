@@ -15,11 +15,9 @@ from datetime import timedelta
 # --- VISTAS DE AUTENTICACIÓN ---
 
 def login_view(request):
-    # Si ya está logueado, lo mandamos a su lugar correspondiente de una
+    # Si ya está autenticado, lo mandamos a su lugar
     if request.user.is_authenticated:
-        if request.user.is_staff:
-            return redirect('gestion_gym')
-        return redirect('dashboard_alumno')
+        return redirect('gestion_gym' if request.user.is_staff else 'dashboard_alumno')
 
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -27,14 +25,10 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             
-            # --- Configuración de Sesión ---
-            recordarme = request.POST.get('remember_me')
-            if recordarme:
-                request.session.set_expiry(31536000) # 1 año
-            else:
-                request.session.set_expiry(86400) # 24 horas
+            # Configuración de recordarme
+            request.session.set_expiry(31536000 if request.POST.get('remember_me') else 86400)
             
-            # --- Redirección según Rango ---
+            # Redirección inmediata según perfil para evitar que el admin entre al dashboard
             if user.is_staff:
                 return redirect('gestion_gym')
             return redirect('dashboard_alumno')
@@ -42,8 +36,6 @@ def login_view(request):
             messages.error(request, "Usuario o contraseña incorrectos.")
     else:
         form = AuthenticationForm()
-    
-    # IMPORTANTE: Que busque el html dentro de la carpeta alumnos/
     return render(request, 'alumnos/login.html', {'form': form})
 
 def logout_view(request):
@@ -67,15 +59,14 @@ def cambiar_password(request):
 
 @login_required
 def dashboard(request):
-    # 1. SI ES STAFF, LO MANDAMOS DIRECTO A GESTIÓN (EVITA EL ERROR 500)
+    # 1. SEGURIDAD: Si es Mariano (staff), lo sacamos de aquí para evitar Error 500
     if request.user.is_staff:
         return redirect('gestion_gym')
 
-    # 2. SI NO ES STAFF, INTENTAMOS BUSCAR SU PERFIL DE ALUMNO
+    # 2. BUSCAR PERFIL DE ALUMNO
     try:
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
-        # Si no es staff y no es alumno, mostramos el error en el template
         return render(request, 'alumnos/dashboard.html', {
             'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
         })
@@ -83,7 +74,6 @@ def dashboard(request):
     # --- LÓGICA DE PROGRESO SEMANAL ---
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
-    
     todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
 
     for dia in dias_semana:
@@ -107,7 +97,6 @@ def dashboard(request):
     hace_una_semana = timezone.now().date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
     
-    # 3. RENDERIZADO DEL DASHBOARD DE ALUMNO
     return render(request, 'alumnos/dashboard.html', {
         'alumno': alumno, 
         'progreso_dias': progreso_dias, 
@@ -187,6 +176,7 @@ def control_acceso(request):
 
 @login_required
 def gestion_gym(request):
+    # 1. SEGURIDAD: Solo staff entra aquí
     if not request.user.is_staff:
         return redirect('dashboard_alumno')
     
@@ -200,13 +190,23 @@ def gestion_gym(request):
     stats_mujeres = []
     
     for alu in alumnos_activos:
+        # Cálculo de asistencias del mes
         conteo = Asistencia.objects.filter(alumno=alu, fecha__month=hoy.month, fecha__year=hoy.year).count()
-        meta = int(alu.plan_semanal) * 4
-        porcentaje_asistencia = int((conteo / meta * 100)) if meta > 0 else 0
         
+        # PROTECCIÓN: Evitar error 500 si el plan es 0 o None
+        try:
+            meta = int(alu.plan_semanal or 0) * 4
+            porcentaje_asistencia = int((conteo / meta * 100)) if meta > 0 else 0
+        except:
+            porcentaje_asistencia = 0
+        
+        # PROTECCIÓN: Evitar error 500 si no hay asistencias para calcular progreso
         ultima = Asistencia.objects.filter(alumno=alu).order_by('-fecha').first()
-        progreso_rutina = int(ultima.porcentaje_completado if ultima else 0)
+        progreso_rutina = 0
+        if ultima:
+            progreso_rutina = int(ultima.porcentaje_completado or 0)
         
+        # Lógica de colores de cuota
         if alu.cuota_pagada:
             cuota_estado, cuota_color = 'PAGADO', '#98cf2c'
         elif es_fecha_cobro:
@@ -233,6 +233,8 @@ def gestion_gym(request):
         'stats_mujeres': stats_mujeres,
         'alumnos_baja': alumnos_baja
     })
+
+# --- EL RESTO DE TUS FUNCIONES SE MANTIENEN IGUAL ---
 
 @login_required
 def detalle_alumno(request, alumno_id):
@@ -345,7 +347,7 @@ def historial_asistencias(request, alumno_id):
     asistencias = Asistencia.objects.filter(alumno=alumno, fecha__range=[hace_30_dias, hoy]).order_by('-fecha')
     
     conteo = Asistencia.objects.filter(alumno=alumno, fecha__month=hoy.month, fecha__year=hoy.year).count()
-    meta = int(alumno.plan_semanal) * 4
+    meta = int(alumno.plan_semanal or 0) * 4
     porcentaje_mes = int((conteo / meta * 100)) if meta > 0 else 0
     
     return render(request, 'alumnos/historial_asistencias.html', {
@@ -364,4 +366,4 @@ def renovar_cuota(request, alumno_id):
     alumno.fecha_pago = timezone.now().date()
     alumno.save()
     
-    return redirect('gestion_gym') # Corregido para que coincida con tu url 'gestion_gym'
+    return redirect('gestion_gym')

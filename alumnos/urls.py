@@ -14,7 +14,7 @@ urlpatterns = [
     
     # Gestión
     path('recepcion/', views.control_acceso, name='recepcion'),
-    path('gestion/', views.gestion_gym, name='gestion'),
+    path('gestion/', views.gestion_gym, name='gestion_gym'),
     path('gestion/alumno/<int:alumno_id>/', views.detalle_alumno, name='detalle_alumno'),
     path('gestion/editar/<int:alumno_id>/', views.editar_alumno, name='editar_alumno'),
     path('gestion/alta-socio/', views.alta_socio_rapida, name='alta_socio_rapida'),
