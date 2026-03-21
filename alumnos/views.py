@@ -94,27 +94,57 @@ def dashboard(request):
     hace_una_semana = timezone.now().date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
 
-    # --- DATOS PARA LOS GRÁFICOS (REVISADO) ---
+    # --- DATOS PARA LOS GRÁFICOS ---
     hoy = timezone.now()
+
+    # --- ASISTENCIAS POR MES ---
     asistencias_por_mes = []
     for mes in range(1, 13):
         conteo = Asistencia.objects.filter(
-            alumno=alumno, 
-            fecha__year=hoy.year, 
+            alumno=alumno,
+            fecha__year=hoy.year,
             fecha__month=mes
         ).count()
         asistencias_por_mes.append(conteo)
-    
+
+    # --- RENDIMIENTO POR SEMANA ---
+    rendimiento = []
+    _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
+
+    semanas = [
+        (1, 7),
+        (8, 14),
+        (15, 21),
+        (22, ultimo_dia)
+    ]
+
+    for inicio, fin in semanas:
+        ejercicios_semana = Ejercicio.objects.filter(
+            alumno=alumno,
+            fecha__year=hoy.year,
+            fecha__month=hoy.month,
+            fecha__day__gte=inicio,
+            fecha__day__lte=fin
+        )
+
+        asignados = ejercicios_semana.count()
+        realizados = ejercicios_semana.filter(realizado=True).count()
+
+        if asignados > 0:
+            porcentaje = round((realizados / asignados) * 100)
+        else:
+            porcentaje = 0
+
+        rendimiento.append(porcentaje)
+
     return render(request, 'alumnos/dashboard.html', {
-        # Usamos json.dumps para que la lista sea 100% compatible con JS
         'asistencias_por_mes': json.dumps(asistencias_por_mes),
-        'rendimiento': json.dumps(),
-        'alumno': alumno, 
-        'progreso_dias': progreso_dias, 
+        'rendimiento': json.dumps(rendimiento),
+        'alumno': alumno,
+        'progreso_dias': progreso_dias,
         'asistencias': asistencias_recientes,
         'ejercicios_hoy': ejercicios_hoy,
         'asistencias_semana': asistencias_semana,
-        'asistencias_por_mes': asistencias_por_mes,
         'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
     })
 
