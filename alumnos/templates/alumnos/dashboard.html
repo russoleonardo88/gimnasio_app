@@ -234,23 +234,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false },
-                    title: { 
-                        display: true, 
-                        text: 'RENDIMIENTO (%)', 
-                        color: '#fff' 
-                    } 
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'RENDIMIENTO (%)',
+                    color: '#fff'
+                }
+            },
+            scales: {
+                y: { 
+                    min: 0, 
+                    max: 100,
+                    ticks: { color: '#fff' } // Agregué esto para que se vean los números
                 },
-                scales: { 
-                    y: { min: 0, max: 100 } 
+                x: {
+                    ticks: { color: '#fff' }
                 }
             }
-        });
-    }
-}); // <-- Aquí faltaba este cierre
+        } // <--- Aquí se cierra la llave de options
+    }); // <--- Aquí se cierra el paréntesis del new Chart
+}
 </script>
 
 <script>
