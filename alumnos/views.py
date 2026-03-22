@@ -98,17 +98,21 @@ def dashboard(request):
     # --- DATOS PARA LOS GRÁFICOS ---
     hoy = timezone.now()
 
-    # --- ASISTENCIAS POR MES ---
-    asistencias_por_mes = []
-    for mes in range(1, 13):
-        conteo = Asistencia.objects.filter(
-            alumno=alumno,
-            fecha__year=hoy.year,
-            fecha__month=mes
-        ).count()
-        asistencias_por_mes.append(conteo)
+    # --- NUEVA LÓGICA: DISTRIBUCIÓN DE ENTRENAMIENTO ---
+    # Contamos tipos de ejercicio en la rutina total del alumno
+    total_e = todos_ejercicios.count()
+    c_fuerza = todos_ejercicios.filter(tipo='FUERZA').count()
+    c_aero = todos_ejercicios.filter(tipo='AEROBICO').count()
+    
+    if total_e > 0:
+        p_fuerza = round((c_fuerza / total_e) * 100)
+        p_aero = round((c_aero / total_e) * 100)
+    else:
+        p_fuerza, p_aero = 0, 0
+    
+    datos_distribucion = [p_fuerza, p_aero]
 
-    # --- RENDIMIENTO POR SEMANA ---
+    # --- RENDIMIENTO POR SEMANA (Se mantiene igual) ---
     rendimiento = []
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
 
@@ -139,7 +143,7 @@ def dashboard(request):
         rendimiento.append(porcentaje)
 
     return render(request, 'alumnos/dashboard.html', {
-        'asistencias_por_mes': json.dumps(asistencias_por_mes),
+        'datos_distribucion': json.dumps(datos_distribucion), # Reemplaza asistencias_por_mes
         'rendimiento': json.dumps(rendimiento),
         'alumno': alumno,
         'progreso_dias': progreso_dias,

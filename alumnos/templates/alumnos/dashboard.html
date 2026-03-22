@@ -138,8 +138,12 @@
         {% endfor %}
     </div>
 
-    <h3 class="seccion-titulo">Último Entrenamiento</h3>
-    <div class="card-seccion">
+    <div class="grafico-card">
+    <h4 style="color: #fff; text-align: center; font-size: 11px; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+        Distribución de Cargas (%)
+    </h4>
+    <canvas id="graficoDistribucion"></canvas>
+    </div>
         {% if dia_ultimo and dia_ultimo != "Sin actividad" %}
             <div class="actividad-item">
                 <div>
@@ -188,28 +192,37 @@ document.addEventListener('DOMContentLoaded', function () {
     Chart.defaults.scale.grid = defaults.grid;
 
     // Datos seguros desde Django
-    const datosAsistencias = {{ asistencias_por_mes|safe|default:"[]" }};
+    const datosDistribucion = {{ datos_distribucion|safe|default:"[]" }};
     const datosRendimiento = {{ rendimiento|safe|default:"[]" }};
 
-    // Gráfico de Días (Barras)
-    const ctxDias = document.getElementById('graficoDias');
-    if (ctxDias) {
-        new Chart(ctxDias, {
-            type: 'bar',
+    // Gráfico de Distribución (Dona)
+    const ctxDist = document.getElementById('graficoDistribucion');
+    if (ctxDist) {
+        new Chart(ctxDist, {
+            type: 'doughnut',
             data: {
-                labels: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'],
+                labels: ['Fuerza', 'Aeróbico'],
                 datasets: [{
-                    label: 'Días',
-                    data: datosAsistencias,
-                    backgroundColor: '#98cf2c',
-                    borderRadius: 5
+                    data: datosDistribucion,
+                    backgroundColor: ['#98cf2c', '#222222'],
+                    borderWidth: 0,
+                    hoverOffset: 10
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false } 
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            color: '#888',
+                            padding: 15,
+                            font: { size: 10, weight: '700' }
+                        }
+                    }
                 }
             }
         });
