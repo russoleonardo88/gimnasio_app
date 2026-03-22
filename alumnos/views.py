@@ -99,23 +99,29 @@ def dashboard(request):
     hoy = timezone.now()
 
     # --- LÓGICA INTEGRADA: DISTRIBUCIÓN DE ENTRENAMIENTO REAL ---
-# Solo contamos los ejercicios que el alumno YA completó
-ejercicios_hechos = todos_ejercicios.filter(completado=True)
-total_completados = ejercicios_hechos.count()
+    # 1. Primero definimos de dónde salen los ejercicios
+    todos_ejercicios = Ejercicio.objects.filter(user=request.user) 
 
-if total_completados > 0:
-    # Contamos por tipo solo sobre lo completado
-    c_fuerza = ejercicios_hechos.filter(tipo='FUERZA').count()
-    c_aero = ejercicios_hechos.filter(tipo='AEROBICO').count()
-    
-    # Calculamos porcentajes redondos
-    p_fuerza = round((c_fuerza / total_completados) * 100)
-    p_aero = round((c_aero / total_completados) * 100)
-else:
-    # Si no hay nada hecho, enviamos 0 para que el JS sepa que está vacío
-    p_fuerza, p_aero = 0, 0
+    # 2. AHORA SÍ podemos usar 'todos_ejercicios' para la dona
+    ejercicios_hechos = todos_ejercicios.filter(completado=True)
+    total_completados = ejercicios_hechos.count()
 
-datos_distribucion = [p_fuerza, p_aero]   
+    if total_completados > 0:
+        c_fuerza = ejercicios_hechos.filter(tipo='FUERZA').count()
+        c_aero = ejercicios_hechos.filter(tipo='AEROBICO').count()
+        p_fuerza = round((c_fuerza / total_completados) * 100)
+        p_aero = round((c_aero / total_completados) * 100)
+    else:
+        p_fuerza, p_aero = 0, 0
+
+    datos_distribucion = [p_fuerza, p_aero]
+
+    # 3. No te olvides de pasar 'datos_distribucion' al context final
+    context = {
+        'datos_distribucion': datos_distribucion,
+        # ... el resto de tus variables ...
+    }
+    return render(request, 'alumnos/dashboard.html', context)
 
 
 @login_required
