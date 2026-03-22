@@ -40,7 +40,6 @@
             box-sizing: border-box;
         }
 
-        /* --- CLASE PARA QUE LOS LINKS SEAN INTERACTIVOS --- */
         .progreso-link {
             text-decoration: none;
             color: inherit;
@@ -64,7 +63,6 @@
             margin-bottom: 10px;
         }
 
-        /* --- ESTILO PARA EL CHECKMARK ESTÉTICO --- */
         .check-estetico {
             width: 24px; height: 24px;
             background-color: var(--verde-neon);
@@ -138,12 +136,8 @@
         {% endfor %}
     </div>
 
-    <div class="grafico-card">
-    <h4 style="color: #fff; text-align: center; font-size: 11px; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
-        Distribución de Cargas (%)
-    </h4>
-    <canvas id="graficoDistribucion"></canvas>
-    </div>
+    <h3 class="seccion-titulo">Último Entrenamiento</h3>
+    <div class="card-seccion">
         {% if dia_ultimo and dia_ultimo != "Sin actividad" %}
             <div class="actividad-item">
                 <div>
@@ -160,8 +154,12 @@
     <h3 class="seccion-titulo">Estadísticas</h3>
     <div class="contenedor-graficos">
         <div class="grafico-card">
-            <canvas id="graficoDias"></canvas>
+            <h4 style="color: #fff; text-align: center; font-size: 11px; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                Distribución de Cargas (%)
+            </h4>
+            <canvas id="graficoDistribucion"></canvas>
         </div>
+        
         <div class="grafico-card">
             <canvas id="graficoIntensidad"></canvas>
         </div>
@@ -272,27 +270,13 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <script>
-(function () {
-    window.addEventListener('pageshow', function (event) {
-        if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {
-            window.location.reload();
-        }
-    });
-    window.onunload = function () {};
-})();
-</script>
-
-<script>
     (function () {
-        // 1. Detecta si la página se carga desde la caché (botón atrás del celular)
         window.addEventListener('pageshow', function (event) {
             if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {
                 window.location.reload();
             }
         });
 
-        // 2. Truco extra para navegadores de Android/iOS:
-        // Forzamos a que no guarde esta página en la caché "congelada"
         window.onunload = function () {};
     })();
 </script>
