@@ -57,26 +57,23 @@ def cambiar_password(request):
     return render(request, 'alumnos/cambiar_password.html', {'form': form})
 
 # --- VISTAS DEL ALUMNO ---
-
 @login_required
 def dashboard(request):
-    # 1. SEGURIDAD: Staff fuera del dashboard de alumnos
+    # SEGURIDAD: Staff fuera del dashboard de alumnos
     if request.user.is_staff:
         return redirect('gestion_gym')
 
     try:
-        # Usamos select_related para optimizar la consulta al User
-        alumno_perfil = Alumno.objects.select_related('user').get(user=request.user)
+        alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
         return render(request, 'alumnos/dashboard.html', {
             'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
         })
 
-    # 2. LÓGICA DE PROGRESO SEMANAL (Barras horizontales)
+    # Lógica de progreso semanal
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
-    # Usamos alumno_perfil para evitar el error de "Must be Alumno instance"
-    todos_ejercicios = Ejercicio.objects.filter(alumno=alumno_perfil)
+    todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
 
     for dia in dias_semana:
         ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).distinct()
@@ -85,7 +82,6 @@ def dashboard(request):
         porcentaje = int((completados / total * 100)) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-    # 3. EJERCICIOS DE HOY
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes', 
@@ -94,13 +90,15 @@ def dashboard(request):
     dia_hoy_esp = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
     ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
 
-    # 4. ASISTENCIAS Y RENDIMIENTO
-    asistencias_recientes = Asistencia.objects.filter(alumno=alumno_perfil).order_by('-fecha')[:5]
+    asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
-    asistencias_semana = Asistencia.objects.filter(alumno=alumno_perfil, fecha__gte=hace_una_semana).count()
+    asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
 
-    # 5. LÓGICA DE LA DONA (Distribución Real y Reactiva)
-    # Filtramos solo los que el alumno marcó como listos
+    # --- DATOS PARA LOS GRÁFICOS ---
+    hoy = timezone.now()
+
+    # --- NUEVA LÓGICA: DISTRIBUCIÓN DE ENTRENAMIENTO ---
+    # Corrección de indentación y uso de la variable 'alumno' ya definida arriba
     ejercicios_hechos = todos_ejercicios.filter(completado=True)
     total_completados = ejercicios_hechos.count()
 
@@ -110,23 +108,51 @@ def dashboard(request):
         p_fuerza = round((c_fuerza / total_completados) * 100)
         p_aero = round((c_aero / total_completados) * 100)
     else:
-        # Si no completó nada hoy, la dona se verá vacía/gris
         p_fuerza, p_aero = 0, 0
 
     datos_distribucion = [p_fuerza, p_aero]
 
-    # 6. CONTEXTO COMPLETO PARA EL TEMPLATE
-    context = {
-        'alumno': alumno_perfil,
+    # --- RENDIMIENTO POR SEMANA ---
+    rendimiento = []
+    _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
+
+    semanas = [
+        (1, 7),
+        (8, 14),
+        (15, 21),
+        (22, ultimo_dia)
+    ]
+
+    for inicio, fin in semanas:
+        ejercicios_semana = Ejercicio.objects.filter(
+            alumno=alumno,
+            fecha_asignacion__year=hoy.year,
+            fecha_asignacion__month=hoy.month,
+            fecha_asignacion__day__gte=inicio,
+            fecha_asignacion__day__lte=fin
+        )
+
+        asignados = ejercicios_semana.count()
+        realizados = ejercicios_semana.filter(completado=True).count()
+
+        if asignados > 0:
+            porcentaje = round((realizados / asignados) * 100)
+        else:
+            porcentaje = 0
+
+        rendimiento.append(porcentaje)
+
+    return render(request, 'alumnos/dashboard.html', {
+        'datos_distribucion': json.dumps(datos_distribucion), 
+        'rendimiento': json.dumps(rendimiento),
+        'alumno': alumno,
         'progreso_dias': progreso_dias,
+        'asistencias': asistencias_recientes,
         'ejercicios_hoy': ejercicios_hoy,
-        'datos_distribucion': datos_distribucion,
-        'asistencias_recientes': asistencias_recientes,
         'asistencias_semana': asistencias_semana,
-        'dia_hoy_esp': dia_hoy_esp,
-    }
-    
-    return render(request, 'alumnos/dashboard.html', context)
+        'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
+    })
+
 
 
 @login_required
