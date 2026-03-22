@@ -220,9 +220,10 @@ def gestion_gym(request):
     if not request.user.is_staff:
         return redirect('dashboard_alumno')
     
+    
     hoy = timezone.now().date()
-    alumnos_activos = Alumno.objects.filter(activo=True).select_related('user')
-    alumnos_baja = Alumno.objects.filter(activo=False).select_related('user')
+    alumnos_activos = Alumno.objects.filter(activo=True).select_related('user').order_by('user__last_name', 'user__first_name')
+    alumnos_baja = Alumno.objects.filter(activo=False).select_related('user').order_by('user__last_name', 'user__first_name')
     
     stats_hombres = []
     stats_mujeres = []
