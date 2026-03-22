@@ -100,7 +100,7 @@ def dashboard(request):
 
     # --- LÓGICA INTEGRADA: DISTRIBUCIÓN DE ENTRENAMIENTO REAL ---
     # 1. Primero definimos de dónde salen los ejercicios
-    todos_ejercicios = Ejercicio.objects.filter(user=request.user) 
+    todos_ejercicios = Ejercicio.objects.filter(alumno=request.user) 
 
     # 2. AHORA SÍ podemos usar 'todos_ejercicios' para la dona
     ejercicios_hechos = todos_ejercicios.filter(completado=True)
