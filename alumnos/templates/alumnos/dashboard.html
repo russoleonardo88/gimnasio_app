@@ -120,18 +120,26 @@
     </div>
 
     <h3 class="seccion-titulo">Mi Rutina Semanal (L-V)</h3>
-    <div class="card-seccion">
-        {% for item in progreso_dias %}
-        <a href="{% url 'mi_rutina' %}?dia={{ item.nombre }}" class="progreso-link">
-            <div class="progreso-item">
-                <div class="progreso-info">
-                    <span>{{ item.nombre }}</span>
-                    <span style="color: var(--verde-neon);">{{ item.porcentaje }}%</span>
-                </div>
-                <div class="barra-fondo">
-                    <div class="barra-relleno" style="width: {{ item.porcentaje }}%;"></div>
-                </div>
+    <h3 class="seccion-titulo">Último Entrenamiento</h3>
+<div class="card-seccion">
+    {% if dia_ultimo and dia_ultimo != "Sin actividad" %}
+        <div class="actividad-item">
+            <div>
+                <strong style="color: var(--blanco); text-transform: uppercase;">
+                    {{ dia_ultimo }}
+                </strong>
+                <p style="color: var(--gris-texto); margin: 3px 0 0 0; font-size: 12px;">
+                    Completaste el {{ progreso_ultimo }}% de tu rutina.
+                </p>
             </div>
+            <div class="check-estetico">✓</div>
+        </div>
+    {% else %}
+        <p style="color: #444; text-align: center; font-size: 12px;">
+            Aún no has marcado ejercicios esta semana.
+        </p>
+    {% endif %}
+</div>
         </a>
         {% empty %}
         <p style="color: #444; text-align: center; font-size: 12px;">Sin rutina asignada.</p>
@@ -190,8 +198,8 @@ document.addEventListener('DOMContentLoaded', function () {
     Chart.defaults.scale.grid = defaults.grid;
 
     // Datos seguros desde Django
-    const datosAsistencias = {{ asistencias_por_mes|safe }};
-    const datosRendimiento = {{ rendimiento|safe }};
+    const datosAsistencias = {{ asistencias_por_mes|safe|default:"[]" }};
+    const datosRendimiento = {{ rendimiento|safe|default:"[]" }};
 
     // Gráfico de Días (Barras)
     const ctxDias = document.getElementById('graficoDias');

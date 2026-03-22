@@ -88,8 +88,21 @@ def dashboard(request):
         'Thursday': 'Jueves', 'Friday': 'Viernes',
         'Saturday': 'Lunes', 'Sunday': 'Lunes'
     }
-    dia_hoy_esp = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
-    ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
+    ultimo_check = Ejercicio.objects.filter(alumno=alumno, completado=True).order_by('-id').first()
+
+if ultimo_check:
+    # Si encontró uno, usamos el día de ese ejercicio (ej: 'Jueves')
+    dia_ultimo = ultimo_check.dia_semana
+    
+    # Buscamos todos los ejercicios de ese día específico para sacar el %
+    ejercicios_del_dia = todos_ejercicios.filter(dia_semana=dia_ultimo).distinct()
+    total_u = ejercicios_del_dia.count()
+    completados_u = ejercicios_del_dia.filter(completado=True).count()
+    progreso_ultimo = int((completados_u / total_u * 100)) if total_u > 0 else 0
+else:
+    # Si el alumno es nuevo y no tiene ningún check
+    dia_ultimo = "Sin actividad"
+    progreso_ultimo = 0
 
     asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
@@ -138,11 +151,13 @@ def dashboard(request):
 
         rendimiento.append(porcentaje)
 
-    return render(request, 'alumnos/dashboard.html', {
-        'asistencias_por_mes': json.dumps(asistencias_por_mes),
-        'rendimiento': json.dumps(rendimiento),
-        'alumno': alumno,
+        return render(request, 'dashboard.html', {
         'progreso_dias': progreso_dias,
+        'dia_ultimo': dia_ultimo,       # El nombre del día (ej: 'Jueves')
+        'progreso_ultimo': progreso_ultimo, # El % de ese día
+        'asistencias_por_mes': asistencias_por_mes,
+        'rendimiento': rendimiento,
+        'alumno': alumno,
         'asistencias': asistencias_recientes,
         'ejercicios_hoy': ejercicios_hoy,
         'asistencias_semana': asistencias_semana,
