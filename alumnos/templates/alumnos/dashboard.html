@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Aquiles Gym</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --negro-fondo: #0a0a0a;
@@ -138,6 +137,16 @@
         {% endfor %}
     </div>
 
+    <div class="card bg-dark text-white p-3 mb-4">
+    <h5 class="text-uppercase" style="color: #98cf2c;">Último Entrenamiento</h5>
+    {% if ultimo_entrenamiento %}
+        <h4>{{ ultimo_entrenamiento.fecha|date:"l d \d\e F"|upper|default:"SIN ENTRENAMIENTO" }}</h4>
+        <p>Completaste el {{ ultimo_entrenamiento.porcentaje }}% de tu rutina.</p>
+    {% else %}
+        <p>No hay entrenamientos registrados aún.</p>
+    {% endif %}
+    </div>
+    
     <h3 class="seccion-titulo">Último Entrenamiento</h3>
     <div class="card-seccion">
         {% if asistencias %}
@@ -174,8 +183,7 @@
         </a>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -193,73 +201,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const datosAsistencias = {{ asistencias_por_mes|safe }};
     const datosRendimiento = {{ rendimiento|safe }};
 
-    // Gráfico de Días (Barras)
-    const ctxDias = document.getElementById('graficoDias');
-    if (ctxDias) {
-        new Chart(ctxDias, {
-            type: 'bar',
-            data: {
-                labels: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'],
-                datasets: [{
-                    label: 'Días',
-                    data: datosAsistencias,
-                    backgroundColor: '#98cf2c',
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false } 
-                }
-            }
-        });
-    }
-
-    // Gráfico de Intensidad / Rendimiento (Línea)
-    const ctxInt = document.getElementById('graficoIntensidad');
-    if (ctxInt) {
-        new Chart(ctxInt, {
-            type: 'line',
-            data: {
-                labels: ['S1', 'S2', 'S3', 'S4'],
-                datasets: [{
-                    label: 'Intensidad %',
-                    data: datosRendimiento,
-                    borderColor: '#98cf2c',
-                    backgroundColor: '#98cf2c',
-                    tension: 0.3,
-                    fill: false
-                }]
-            },
-            options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                title: {
-                    display: true,
-                    text: 'RENDIMIENTO (%)',
-                    color: '#fff'
-                }
-            },
-            scales: {
-                y: { 
-                    min: 0, 
-                    max: 100,
-                    ticks: { color: '#fff' } // Agregué esto para que se vean los números
-                },
-                x: {
-                    ticks: { color: '#fff' }
-                }
-            }
-        } // <--- Aquí se cierra la llave de options
-    }); // <--- Aquí se cierra el paréntesis del new Chart
-}
+    
 </script>
-
-<script>
+   
 (function () {
     window.addEventListener('pageshow', function (event) {
         if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {

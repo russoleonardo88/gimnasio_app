@@ -9,7 +9,8 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Alumno, Ejercicio, Asistencia, Entrenador
 from django.contrib.auth.models import User
 from django.utils import timezone
-from django.db.models import Count, Avg, Q
+from datetime import datetime, timedelta
+from django.db.models import Count, Q, Max
 from django.db.models.functions import ExtractMonth
 from django.contrib import messages
 from datetime import timedelta
@@ -58,7 +59,6 @@ def cambiar_password(request):
 
 # --- VISTAS DEL ALUMNO ---
 
-@login_required
 def dashboard(request):
     # SEGURIDAD: Staff fuera del dashboard de alumnos
     if request.user.is_staff:
@@ -71,7 +71,7 @@ def dashboard(request):
             'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
         })
 
-    # Lógica de progreso semanal
+    # --- 1. LÓGICA DE PROGRESO SEMANAL (LO DE ARRIBA DE LA FOTO) ---
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
     todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
@@ -79,75 +79,34 @@ def dashboard(request):
     for dia in dias_semana:
         ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).distinct()
         total = ejercicios_dia.count()
+        # !!! REVISÁ QUE NO DIGA 'realizado' !!!
         completados = ejercicios_dia.filter(completado=True).count()
         porcentaje = int((completados / total * 100)) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-    traduccion_dias = {
-        'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
-        'Thursday': 'Jueves', 'Friday': 'Viernes', 
-        'Saturday': 'Lunes', 'Sunday': 'Lunes'
-    }
-    dia_hoy_esp = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
-    ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
+    # --- 2. LÓGICA DEL ÚLTIMO ENTRENAMIENTO REAL (CORREGIDA PARA QUE NO Diga SÁBADO) ---
+    # Buscamos la fecha máxima (Viernes) que tenga ejercicios completados
+    ultima_fecha = todos_ejercicios.filter(completado=True).aggregate(Max('fecha_asignacion'))['fecha_asignacion__max']
+    
+    ultimo_entrenamiento_info = None
+    if ultima_fecha:
+        ejercicios_ultimo = todos_ejercicios.filter(fecha_asignacion=ultima_fecha)
+        total_u = ejercicios_ultimo.count()
+        completados_u = ejercicios_ultimo.filter(completado=True).count()
+        porcentaje_u = round((completados_u / total_u) * 100) if total_u > 0 else 0
+        ultimo_entrenamiento_info = {
+            'fecha': ultima_fecha,
+            'porcentaje': porcentaje_u
+        }
 
-    asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
-    hace_una_semana = timezone.now().date() - timedelta(days=7)
-    asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
-
-    # --- DATOS PARA LOS GRÁFICOS ---
-    hoy = timezone.now()
-
-    # --- ASISTENCIAS POR MES ---
-    asistencias_por_mes = []
-    for mes in range(1, 13):
-        conteo = Asistencia.objects.filter(
-            alumno=alumno,
-            fecha__year=hoy.year,
-            fecha__month=mes
-        ).count()
-        asistencias_por_mes.append(conteo)
-
-    # --- RENDIMIENTO POR SEMANA ---
-    rendimiento = []
-    _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
-
-    semanas = [
-        (1, 7),
-        (8, 14),
-        (15, 21),
-        (22, ultimo_dia)
-    ]
-
-    for inicio, fin in semanas:
-        ejercicios_semana = Ejercicio.objects.filter(
-            alumno=alumno,
-            fecha_asignacion__year=hoy.year,
-            fecha_asignacion__month=hoy.month,
-            fecha_asignacion__day__gte=inicio,
-            fecha_asignacion__day__lte=fin
-        )
-
-        asignados = ejercicios_semana.count()
-        realizados = ejercicios_semana.filter(completado=True).count()
-
-        if asignados > 0:
-            porcentaje = round((realizados / asignados) * 100)
-        else:
-            porcentaje = 0
-
-        rendimiento.append(porcentaje)
-
-    return render(request, 'alumnos/dashboard.html', {
-        'asistencias_por_mes': json.dumps(asistencias_por_mes),
-        'rendimiento': json.dumps(rendimiento),
+    # Contexto para el template
+    context = {
         'alumno': alumno,
         'progreso_dias': progreso_dias,
-        'asistencias': asistencias_recientes,
-        'ejercicios_hoy': ejercicios_hoy,
-        'asistencias_semana': asistencias_semana,
-        'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
-    })
+        'ultimo_entrenamiento': ultimo_entrenamiento_info, # Variable nueva
+    }
+    
+    return render(request, 'alumnos/dashboard.html', context)
 
 @login_required
 def mi_rutina(request):
