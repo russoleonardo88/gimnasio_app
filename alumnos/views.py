@@ -225,6 +225,33 @@ def detalle_alumno(request, alumno_id):
     rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).distinct() for dia in dias}
     return render(request, 'alumnos/detalle_alumno.html', {'alumno': alumno, 'rutina': rutina, 'dias': dias})
 
+# --- AGREGAR ESTO A alumnos/views.py ---
+
+@login_required
+def editar_alumno(request, alumno_id):
+    if not request.user.is_staff: 
+        return redirect('dashboard_alumno')
+        
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    
+    if request.method == "POST":
+        alumno.user.first_name = request.POST.get('nombre')
+        alumno.user.last_name = request.POST.get('apellido')
+        alumno.user.save()
+        
+        alumno.plan_semanal = request.POST.get('plan')
+        alumno.dni = request.POST.get('dni')
+        alumno.domicilio = request.POST.get('domicilio')
+        alumno.celular = request.POST.get('celular')
+        alumno.contacto_emergencia = request.POST.get('emergencia')
+        alumno.cuota_pagada = 'cuota_pagada' in request.POST
+        alumno.save()
+        
+        messages.success(request, f"Datos de {alumno.user.first_name} actualizados.")
+        return redirect('gestion_gym')
+        
+    return render(request, 'alumnos/editar_alumno.html', {'alumno': alumno})
+
 @login_required
 def eliminar_ejercicio(request, ejercicio_id):
     ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id)
