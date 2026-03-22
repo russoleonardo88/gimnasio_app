@@ -73,20 +73,8 @@
             font-size: 14px; font-weight: bold;
         }
 
-        .contenedor-graficos { 
-            width: 100%; max-width: 800px; 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 20px; 
-            margin-bottom: 25px; 
-        }
-        
-        @media (max-width: 600px) {
-            .contenedor-graficos { grid-template-columns: 1fr; }
-        }
-
-        .grafico-card { background: var(--negro-card); border: 1px solid var(--gris-borde); border-radius: 16px; padding: 15px; height: 250px; }
-
+               
+            
         .footer-links { text-align: center; margin-top: auto; padding: 20px 0; width: 100%; max-width: 800px; }
         .link-perfil {
             display: inline-block;
@@ -162,17 +150,7 @@
         {% else %}
             <p style="color: #444; text-align: center; font-size: 12px;">Sin actividad registrada esta semana.</p>
         {% endif %}
-    </div>
-
-    <h3 class="seccion-titulo">Estadísticas</h3>
-    <div class="contenedor-graficos">
-        <div class="grafico-card">
-            <canvas id="graficoDias"></canvas>
-        </div>
-        <div class="grafico-card">
-            <canvas id="graficoIntensidad"></canvas>
-        </div>
-    </div>
+    
 
     <div class="footer-links">
         <a href="{% url 'cambiar_password' %}" class="link-perfil">
