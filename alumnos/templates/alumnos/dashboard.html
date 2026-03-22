@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Aquiles Gym</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --negro-fondo: #0a0a0a;
@@ -39,37 +40,55 @@
             box-sizing: border-box;
         }
 
+        /* --- CLASE PARA QUE LOS LINKS SEAN INTERACTIVOS --- */
         .progreso-link {
             text-decoration: none;
             color: inherit;
             display: block;
-            transition: transform 0.2s ease;
-            margin-bottom: 15px;
+            transition: transform 0.2s ease, opacity 0.2s ease;
         }
-        .progreso-link:active { transform: scale(0.98); }
+        .progreso-link:active { transform: scale(0.97); }
+        .progreso-link:hover { opacity: 0.9; }
 
         .seccion-titulo { font-size: 11px; font-weight: 700; color: var(--gris-texto); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; width: 100%; max-width: 800px; }
 
+        .progreso-item { margin-bottom: 15px; }
         .progreso-info { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
         .barra-fondo { background: #222; height: 6px; border-radius: 10px; overflow: hidden; }
-        .barra-relleno { background: var(--verde-neon); height: 100%; border-radius: 10px; transition: width 0.5s ease; }
+        .barra-relleno { background: var(--verde-neon); height: 100%; border-radius: 10px; transition: width 0.5s ease-in-out; }
 
         .actividad-item {
             background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px; padding: 15px;
+            border-radius: 10px; padding: 15px;
             display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px;
         }
 
+        /* --- ESTILO PARA EL CHECKMARK ESTÉTICO --- */
         .check-estetico {
             width: 24px; height: 24px;
             background-color: var(--verde-neon);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             color: var(--negro-fondo);
-            font-size: 12px;
+            font-size: 14px; font-weight: bold;
         }
 
-        .footer-links { text-align: center; margin-top: 10px; padding: 20px 0; width: 100%; max-width: 800px; }
+        .contenedor-graficos { 
+            width: 100%; max-width: 800px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        @media (max-width: 600px) {
+            .contenedor-graficos { grid-template-columns: 1fr; }
+        }
+
+        .grafico-card { background: var(--negro-card); border: 1px solid var(--gris-borde); border-radius: 16px; padding: 15px; height: 250px; }
+
+        .footer-links { text-align: center; margin-top: auto; padding: 20px 0; width: 100%; max-width: 800px; }
         .link-perfil {
             display: inline-block;
             color: var(--verde-neon);
@@ -97,19 +116,21 @@
             <h1>HOLA, {{ user.first_name|upper }}</h1>
             <p>{{ mensaje_motivador }}</p>
         </div>
-        <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo" class="logo-casco">
+        <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-casco">
     </div>
 
     <h3 class="seccion-titulo">Mi Rutina Semanal (L-V)</h3>
     <div class="card-seccion">
-        {% for dia in progreso_dias %}
-        <a href="{% url 'mi_rutina' %}?dia={{ dia.nombre }}" class="progreso-link">
-            <div class="progreso-info">
-                <span>{{ dia.nombre }}</span>
-                <span>{{ dia.porcentaje }}%</span>
-            </div>
-            <div class="barra-fondo">
-                <div class="barra-relleno" style="width: {{ dia.porcentaje }}%;"></div>
+        {% for item in progreso_dias %}
+        <a href="{% url 'mi_rutina' %}?dia={{ item.nombre }}" class="progreso-link">
+            <div class="progreso-item">
+                <div class="progreso-info">
+                    <span>{{ item.nombre }}</span>
+                    <span style="color: var(--verde-neon);">{{ item.porcentaje }}%</span>
+                </div>
+                <div class="barra-fondo">
+                    <div class="barra-relleno" style="width: {{ item.porcentaje }}%;"></div>
+                </div>
             </div>
         </a>
         {% empty %}
@@ -119,35 +140,150 @@
 
     <h3 class="seccion-titulo">Último Entrenamiento</h3>
     <div class="card-seccion">
-        {% if ultimo_entrenamiento %}
-        <div class="actividad-item">
-            <div>
-                <strong style="color: var(--blanco);">{{ ultimo_entrenamiento.fecha|date:"l d \d\e F"|upper }}</strong>
-                <p style="color: var(--gris-texto); margin: 3px 0 0 0; font-size: 12px;">
-                    Completaste el {{ ultimo_entrenamiento.porcentaje }}% de tu rutina.
-                </p>
+        {% if asistencias %}
+            {% with ultima=asistencias|first %}
+            <div class="actividad-item">
+                <div>
+                    <strong style="color: var(--blanco);">{{ ultima.fecha|date:"l j \d\e F"|upper }}</strong>
+                    <p style="color: var(--gris-texto); margin: 3px 0 0 0; font-size: 12px;">Completaste el {{ ultima.porcentaje_completado }}% de tu rutina.</p>
+                </div>
+                <div class="check-estetico">✓</div>
             </div>
-            <div class="check-estetico">✓</div>
-        </div>
+            {% endwith %}
         {% else %}
-        <p style="color: #444; text-align: center; font-size: 12px;">Sin actividad registrada.</p>
+            <p style="color: #444; text-align: center; font-size: 12px;">Sin actividad registrada esta semana.</p>
         {% endif %}
     </div>
 
-    <div class="footer-links">
-        <a href="{% url 'cambiar_password' %}" class="link-perfil">⚙️ CAMBIAR CLAVE</a>
-        <a href="{% url 'logout' %}" class="link-logout">CERRAR SESIÓN DE {{ user.first_name|upper }}</a>
+    <h3 class="seccion-titulo">Estadísticas</h3>
+    <div class="contenedor-graficos">
+        <div class="grafico-card">
+            <canvas id="graficoDias"></canvas>
+        </div>
+        <div class="grafico-card">
+            <canvas id="graficoIntensidad"></canvas>
+        </div>
     </div>
 
-    <script>
-        (function () {
-            window.addEventListener('pageshow', function (event) {
-                if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {
-                    window.location.reload();
+    <div class="footer-links">
+        <a href="{% url 'cambiar_password' %}" class="link-perfil">
+            ⚙️ CAMBIAR CLAVE
+        </a>
+        <a href="{% url 'logout' %}" class="link-logout">
+            CERRAR SESIÓN DE {{ user.first_name|upper }}
+        </a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const defaults = {
+        color: '#888888',
+        font: { family: "'Inter', sans-serif", size: 10 },
+        grid: { color: '#222222' }
+    };
+
+    Chart.defaults.color = defaults.color;
+    Chart.defaults.font = defaults.font;
+    Chart.defaults.scale.grid = defaults.grid;
+
+    // Datos seguros desde Django
+    const datosAsistencias = {{ asistencias_por_mes|safe }};
+    const datosRendimiento = {{ rendimiento|safe }};
+
+    // Gráfico de Días (Barras)
+    const ctxDias = document.getElementById('graficoDias');
+    if (ctxDias) {
+        new Chart(ctxDias, {
+            type: 'bar',
+            data: {
+                labels: ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'],
+                datasets: [{
+                    label: 'Días',
+                    data: datosAsistencias,
+                    backgroundColor: '#98cf2c',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false } 
                 }
-            });
-            window.onunload = function () {};
-        })();
-    </script>
+            }
+        });
+    }
+
+    // Gráfico de Intensidad / Rendimiento (Línea)
+    const ctxInt = document.getElementById('graficoIntensidad');
+    if (ctxInt) {
+        new Chart(ctxInt, {
+            type: 'line',
+            data: {
+                labels: ['S1','S2','S3','S4'],
+                datasets: [{
+                    label: 'Intensidad %',
+                    data: datosRendimiento,
+                    borderColor: '#98cf2c',
+                    backgroundColor: '#98cf2c',
+                    tension: 0.3,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'RENDIMIENTO (%)',
+                        color: '#fff'
+                    }
+                },
+                scales: {
+                    y: { 
+                        min: 0,
+                        max: 100,
+                        ticks: { color: '#fff' } // Agregué esto para que se vean los números
+                    },
+                    x: {
+                        ticks: { color: '#fff' }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+
+<script>
+(function () {
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
+    window.onunload = function () {};
+})();
+</script>
+
+<script>
+    (function () {
+        // 1. Detecta si la página se carga desde la caché (botón atrás del celular)
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+
+        // 2. Truco extra para navegadores de Android/iOS:
+        // Forzamos a que no guarde esta página en la caché "congelada"
+        window.onunload = function () {};
+    })();
+</script>
 </body>
 </html>
