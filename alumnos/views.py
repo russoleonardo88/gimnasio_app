@@ -98,60 +98,25 @@ def dashboard(request):
     # --- DATOS PARA LOS GRÁFICOS ---
     hoy = timezone.now()
 
-    # --- NUEVA LÓGICA: DISTRIBUCIÓN DE ENTRENAMIENTO ---
-    # Contamos tipos de ejercicio en la rutina total del alumno
-    total_e = todos_ejercicios.count()
-    c_fuerza = todos_ejercicios.filter(tipo='FUERZA').count()
-    c_aero = todos_ejercicios.filter(tipo='AEROBICO').count()
+    # --- LÓGICA INTEGRADA: DISTRIBUCIÓN DE ENTRENAMIENTO REAL ---
+# Solo contamos los ejercicios que el alumno YA completó
+ejercicios_hechos = todos_ejercicios.filter(completado=True)
+total_completados = ejercicios_hechos.count()
+
+if total_completados > 0:
+    # Contamos por tipo solo sobre lo completado
+    c_fuerza = ejercicios_hechos.filter(tipo='FUERZA').count()
+    c_aero = ejercicios_hechos.filter(tipo='AEROBICO').count()
     
-    if total_e > 0:
-        p_fuerza = round((c_fuerza / total_e) * 100)
-        p_aero = round((c_aero / total_e) * 100)
-    else:
-        p_fuerza, p_aero = 0, 0
-    
-    datos_distribucion = [p_fuerza, p_aero]
+    # Calculamos porcentajes redondos
+    p_fuerza = round((c_fuerza / total_completados) * 100)
+    p_aero = round((c_aero / total_completados) * 100)
+else:
+    # Si no hay nada hecho, enviamos 0 para que el JS sepa que está vacío
+    p_fuerza, p_aero = 0, 0
 
-    # --- RENDIMIENTO POR SEMANA (Se mantiene igual) ---
-    rendimiento = []
-    _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
+datos_distribucion = [p_fuerza, p_aero]   
 
-    semanas = [
-        (1, 7),
-        (8, 14),
-        (15, 21),
-        (22, ultimo_dia)
-    ]
-
-    for inicio, fin in semanas:
-        ejercicios_semana = Ejercicio.objects.filter(
-            alumno=alumno,
-            fecha_asignacion__year=hoy.year,
-            fecha_asignacion__month=hoy.month,
-            fecha_asignacion__day__gte=inicio,
-            fecha_asignacion__day__lte=fin
-        )
-
-        asignados = ejercicios_semana.count()
-        realizados = ejercicios_semana.filter(completado=True).count()
-
-        if asignados > 0:
-            porcentaje = round((realizados / asignados) * 100)
-        else:
-            porcentaje = 0
-
-        rendimiento.append(porcentaje)
-
-    return render(request, 'alumnos/dashboard.html', {
-        'datos_distribucion': json.dumps(datos_distribucion), # Reemplaza asistencias_por_mes
-        'rendimiento': json.dumps(rendimiento),
-        'alumno': alumno,
-        'progreso_dias': progreso_dias,
-        'asistencias': asistencias_recientes,
-        'ejercicios_hoy': ejercicios_hoy,
-        'asistencias_semana': asistencias_semana,
-        'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
-    })
 
 @login_required
 def mi_rutina(request):
