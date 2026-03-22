@@ -60,21 +60,23 @@ def cambiar_password(request):
 
 @login_required
 def dashboard(request):
-    # SEGURIDAD: Staff fuera del dashboard de alumnos
+    # 1. SEGURIDAD: Staff fuera del dashboard de alumnos
     if request.user.is_staff:
         return redirect('gestion_gym')
 
     try:
-        alumno = Alumno.objects.select_related('user').get(user=request.user)
+        # Usamos select_related para optimizar la consulta al User
+        alumno_perfil = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
         return render(request, 'alumnos/dashboard.html', {
             'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
         })
 
-    # Lógica de progreso semanal
+    # 2. LÓGICA DE PROGRESO SEMANAL (Barras horizontales)
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
-    todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
+    # Usamos alumno_perfil para evitar el error de "Must be Alumno instance"
+    todos_ejercicios = Ejercicio.objects.filter(alumno=alumno_perfil)
 
     for dia in dias_semana:
         ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).distinct()
@@ -83,6 +85,7 @@ def dashboard(request):
         porcentaje = int((completados / total * 100)) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
+    # 3. EJERCICIOS DE HOY
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes', 
@@ -91,18 +94,13 @@ def dashboard(request):
     dia_hoy_esp = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
     ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
 
-    asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
+    # 4. ASISTENCIAS Y RENDIMIENTO
+    asistencias_recientes = Asistencia.objects.filter(alumno=alumno_perfil).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
-    asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
+    asistencias_semana = Asistencia.objects.filter(alumno=alumno_perfil, fecha__gte=hace_una_semana).count()
 
-    # --- DATOS PARA LOS GRÁFICOS ---
-    hoy = timezone.now()
-
-    # --- LÓGICA INTEGRADA: DISTRIBUCIÓN DE ENTRENAMIENTO REAL ---
-    # 1. Primero definimos de dónde salen los ejercicios
-    todos_ejercicios = Ejercicio.objects.filter(alumno=request.user) 
-
-    # 2. AHORA SÍ podemos usar 'todos_ejercicios' para la dona
+    # 5. LÓGICA DE LA DONA (Distribución Real y Reactiva)
+    # Filtramos solo los que el alumno marcó como listos
     ejercicios_hechos = todos_ejercicios.filter(completado=True)
     total_completados = ejercicios_hechos.count()
 
@@ -112,15 +110,22 @@ def dashboard(request):
         p_fuerza = round((c_fuerza / total_completados) * 100)
         p_aero = round((c_aero / total_completados) * 100)
     else:
+        # Si no completó nada hoy, la dona se verá vacía/gris
         p_fuerza, p_aero = 0, 0
 
     datos_distribucion = [p_fuerza, p_aero]
 
-    # 3. No te olvides de pasar 'datos_distribucion' al context final
+    # 6. CONTEXTO COMPLETO PARA EL TEMPLATE
     context = {
+        'alumno': alumno_perfil,
+        'progreso_dias': progreso_dias,
+        'ejercicios_hoy': ejercicios_hoy,
         'datos_distribucion': datos_distribucion,
-        # ... el resto de tus variables ...
+        'asistencias_recientes': asistencias_recientes,
+        'asistencias_semana': asistencias_semana,
+        'dia_hoy_esp': dia_hoy_esp,
     }
+    
     return render(request, 'alumnos/dashboard.html', context)
 
 
