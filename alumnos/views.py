@@ -71,7 +71,7 @@ def dashboard(request):
             'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
         })
 
-    # Lógica de progreso semanal
+    # --- LÓGICA DE PROGRESO SEMANAL (Barras L-V) ---
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
     todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
@@ -83,27 +83,24 @@ def dashboard(request):
         porcentaje = int((completados / total * 100)) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-    traduccion_dias = {
-        'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
-        'Thursday': 'Jueves', 'Friday': 'Viernes',
-        'Saturday': 'Lunes', 'Sunday': 'Lunes'
-    }
+    # --- LÓGICA DE ÚLTIMO ENTRENAMIENTO REAL (Corregido) ---
     ultimo_check = Ejercicio.objects.filter(alumno=alumno, completado=True).order_by('-id').first()
 
-if ultimo_check:
-    # Si encontró uno, usamos el día de ese ejercicio (ej: 'Jueves')
-    dia_ultimo = ultimo_check.dia_semana
-    
-    # Buscamos todos los ejercicios de ese día específico para sacar el %
-    ejercicios_del_dia = todos_ejercicios.filter(dia_semana=dia_ultimo).distinct()
-    total_u = ejercicios_del_dia.count()
-    completados_u = ejercicios_del_dia.filter(completado=True).count()
-    progreso_ultimo = int((completados_u / total_u * 100)) if total_u > 0 else 0
-else:
-    # Si el alumno es nuevo y no tiene ningún check
-    dia_ultimo = "Sin actividad"
-    progreso_ultimo = 0
+    if ultimo_check:
+        # Si encontró uno, usamos el día de ese ejercicio (ej: 'Jueves')
+        dia_ultimo = ultimo_check.dia_semana
+        
+        # Buscamos todos los ejercicios de ese día específico para sacar el %
+        ejercicios_del_dia = todos_ejercicios.filter(dia_semana=dia_ultimo).distinct()
+        total_u = ejercicios_del_dia.count()
+        completados_u = ejercicios_del_dia.filter(completado=True).count()
+        progreso_ultimo = int((completados_u / total_u * 100)) if total_u > 0 else 0
+    else:
+        # Si el alumno es nuevo y no tiene ningún check
+        dia_ultimo = "Sin actividad"
+        progreso_ultimo = 0
 
+    # --- ASISTENCIAS ---
     asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
@@ -111,7 +108,7 @@ else:
     # --- DATOS PARA LOS GRÁFICOS ---
     hoy = timezone.now()
 
-    # --- ASISTENCIAS POR MES ---
+    # Asistencias por mes
     asistencias_por_mes = []
     for mes in range(1, 13):
         conteo = Asistencia.objects.filter(
@@ -121,7 +118,7 @@ else:
         ).count()
         asistencias_por_mes.append(conteo)
 
-    # --- RENDIMIENTO POR SEMANA ---
+    # Rendimiento por semana
     rendimiento = []
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
 
@@ -145,25 +142,24 @@ else:
         realizados = ejercicios_semana.filter(completado=True).count()
 
         if asignados > 0:
-            porcentaje = round((realizados / asignados) * 100)
+            porcentaje_sem = round((realizados / asignados) * 100)
         else:
-            porcentaje = 0
+            porcentaje_sem = 0
 
-        rendimiento.append(porcentaje)
+        rendimiento.append(porcentaje_sem)
 
-        return render(request, 'dashboard.html', {
+    # El return debe estar AL FINAL de la función, fuera de los bucles 'for'
+    return render(request, 'dashboard.html', {
         'progreso_dias': progreso_dias,
-        'dia_ultimo': dia_ultimo,       # El nombre del día (ej: 'Jueves')
-        'progreso_ultimo': progreso_ultimo, # El % de ese día
+        'dia_ultimo': dia_ultimo,           
+        'progreso_ultimo': progreso_ultimo, 
         'asistencias_por_mes': asistencias_por_mes,
         'rendimiento': rendimiento,
         'alumno': alumno,
         'asistencias': asistencias_recientes,
-        'ejercicios_hoy': ejercicios_hoy,
         'asistencias_semana': asistencias_semana,
         'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
     })
-
 @login_required
 def mi_rutina(request):
     traduccion_dias = {
