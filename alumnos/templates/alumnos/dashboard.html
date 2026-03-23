@@ -261,7 +261,16 @@
     </div>
 
     <div class="footer-links">
-        <a href="{% url 'cambiar_password' %}" class="link-perfil">⚙️ CONFIGURACIÓN</a>
+        <a href="{% url 'cambiar_password' %}" class="link-config">
+            ⚙️ CAMBIAR CONTRASEÑA
+        </a>
+
+        <form action="{% url 'logout' %}" method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="link-logout" style="background: none; border: none; cursor: pointer; font-family: inherit;">
+                CERRAR SESIÓN DE {{ user.first_name|upper }}
+            </button>
+        </form>
     </div>
 
     <script>
