@@ -8,8 +8,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- SEGURIDAD ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3*r893bw)ik7h=!fd$x7ky$hiigyx@dy+*772wv^&e2t#hn#f&')
 
-# IMPORTANTE: En Render, creá la Variable de Entorno DEBUG con valor False
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# Cambiado a True por defecto si no hay variable, para facilitar desarrollo local
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -56,13 +56,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 
-# --- BASE DE DATOS (NEON) ---
+# --- BASE DE DATOS (HÍBRIDA: NEON O LOCAL) ---
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
+
+# Si existe DATABASE_URL (en Render), sobrescribe la configuración para usar PostgreSQL
+db_from_env = dj_database_url.config(conn_max_age=600)
+if db_from_env:
+    DATABASES['default'] = db_from_env
 
 # --- INTERNACIONALIZACIÓN ---
 LANGUAGE_CODE = 'es-es'
@@ -75,14 +80,13 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# --- CONFIGURACIÓN DE LOGIN (CORREGIDO) ---
-# Usamos los nombres de las URLs definidos en tus urls.py
+# --- CONFIGURACIÓN DE LOGIN ---
 LOGIN_REDIRECT_URL = 'dashboard_alumno'
 LOGIN_URL = 'login'
 
-# --- CONFIGURACIÓN DE SESIONES (PARA MANTENER EL LOGIN) ---
+# --- CONFIGURACIÓN DE SESIONES ---
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 31536000  # 1 año en segundos
+SESSION_COOKIE_AGE = 31536000  # 1 año
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 
@@ -97,11 +101,9 @@ if not DEBUG or os.environ.get('RENDER'):
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     
-    # SameSite=None permite que el WebView de Android reciba la cookie desde el dominio de Render
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
     
-    # HttpOnly=True es más seguro, pero dejamos CSRF en False para evitar bloqueos en Android
     SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_HTTPONLY = False 
     

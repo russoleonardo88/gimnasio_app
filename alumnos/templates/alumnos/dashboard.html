@@ -192,9 +192,15 @@
             {% for ejercicio in ejercicios_hoy %}
                 {% if ejercicio.tipo == 'ZONA_MEDIA' %}
                 <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
-                    <span style="font-size: 20px;">🏋️</span>
+                    <span style="font-size: 20px;">⏱️</span>
                     <strong>{{ ejercicio.nombre }}</strong>
-                    <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
+                    <p>
+                        {% if ejercicio.timer %}
+                            {{ ejercicio.timer }} | P:{{ ejercicio.peso_sugerido }}
+                        {% else %}
+                            {{ ejercicio.series }}x{{ ejercicio.repeticiones }}
+                        {% endif %}
+                    </p>
                 </div>
                 {% endif %}
             {% endfor %}
@@ -214,9 +220,15 @@
             {% for ejercicio in ejercicios_hoy %}
                 {% if ejercicio.tipo == 'AEROBICO' %}
                 <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
-                    <span style="font-size: 20px;">🏃</span>
+                    <span style="font-size: 20px;">⏱️</span>
                     <strong>{{ ejercicio.nombre }}</strong>
-                    <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
+                    <p>
+                        {% if ejercicio.timer %}
+                            {{ ejercicio.timer }} | P:{{ ejercicio.peso_sugerido }}
+                        {% else %}
+                            {{ ejercicio.series }}x{{ ejercicio.repeticiones }}
+                        {% endif %}
+                    </p>
                 </div>
                 {% endif %}
             {% endfor %}
@@ -260,7 +272,6 @@
     </div>
 
     <script>
-    // Variables globales para los gráficos
     let chartDistribucion;
     let chartRendimiento;
 
@@ -276,7 +287,6 @@
         const datosDistribucion = JSON.parse('{{ datos_distribucion|safe|escapejs }}');
         const datosRendimiento = JSON.parse('{{ rendimiento|safe|escapejs }}');
 
-        // Inicializar Gráfico de Distribución
         chartDistribucion = new Chart(document.getElementById('graficoDistribucion'), {
             type: 'doughnut',
             data: {
@@ -297,7 +307,6 @@
             }
         });
 
-        // Inicializar Gráfico de Rendimiento
         chartRendimiento = new Chart(document.getElementById('graficoIntensidad'), {
             type: 'line',
             data: {
@@ -324,16 +333,13 @@
             }
         });
 
-        // Lógica de actualización AJAX
         document.querySelectorAll('.btn-ejercicio').forEach(card => {
-    card.addEventListener('click', function() {
-        const ejercicioId = this.getAttribute('data-id');
-        
-        // Esta es la forma más segura de armar la URL en Django
-        const url = `/marcar_completado/${ejercicioId}/`; 
+            card.addEventListener('click', function() {
+                const ejercicioId = this.getAttribute('data-id');
+                const url = `/marcar_completado/${ejercicioId}/`; 
 
-        fetch(url, {
-            method: 'POST',
+                fetch(url, {
+                    method: 'POST',
                     headers: {
                         'X-CSRFToken': '{{ csrf_token }}',
                         'X-Requested-With': 'XMLHttpRequest'
@@ -342,29 +348,25 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'ok') {
-                // 1. Alternar clase visual
-                if (data.completado) {
-                    this.classList.add('completado');
-                } else {
-                    this.classList.remove('completado');
-                }
+                        if (data.completado) {
+                            this.classList.add('completado');
+                        } else {
+                            this.classList.remove('completado');
+                        }
 
-                // 2. Actualizar Barra de Progreso
-                document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
-                document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
+                        document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
+                        document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
 
-                // 3. Actualizar Gráfico de Dona (Distribución)
-                if (chartDistribucion) {
-                    chartDistribucion.data.datasets[0].data = data.datos_distribucion;
-                    chartDistribucion.update('active'); 
-                }
+                        if (chartDistribucion) {
+                            chartDistribucion.data.datasets.data = data.datos_distribucion;
+                            chartDistribucion.update('active'); 
+                        }
 
-                // 4. Actualizar Gráfico de Línea (Rendimiento)
-                if (chartRendimiento) {
-                    chartRendimiento.data.datasets[0].data = data.rendimiento;
-                    chartRendimiento.update('active');
-                }
-                }
+                        if (chartRendimiento) {
+                            chartRendimiento.data.datasets.data = data.rendimiento;
+                            chartRendimiento.update('active');
+                        }
+                    }
                 })
                 .catch(error => console.error('Error:', error));
             });
