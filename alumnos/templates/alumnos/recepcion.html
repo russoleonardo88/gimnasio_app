@@ -1,182 +1,213 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recepción - Aquiles Gym</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        /* ==============================
+           1. Reset y Estilos Base
+           ============================== */
         :root {
-            --verde-aquiles: #98cf2c;
-            --rojo-error: #ff4d4d;
-            --amarillo-alerta: #ffc107;
-            --negro-fondo: #000000;
-            --negro-card: #0a0a0a;
-            --gris-borde: #1a1a1a;
+            --color-neon: #a3ff00; /* Verde neón característico */
+            --color-fondo: #000000;
+            --color-input: #111111;
+            --color-borde: #222222;
+            --color-texto-oscuro: #555555;
+            --font-main: 'Oswald', 'Segoe UI', Roboto, Helvetica, sans-serif; /* Usamos Oswald para un toque más deportivo */
         }
 
-        body { 
-            background-color: var(--negro-fondo); 
-            color: #ffffff; 
-            font-family: 'Inter', sans-serif; 
-            margin: 0;
-            overflow: hidden; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
+        /* Importamos una fuente más "deportiva" y gruesa para los títulos */
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700;900&display=swap');
 
-        /* DISEÑO DEL LOGO NUEVO */
-        .contenedor-logo {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .casco-vikingo {
-            width: 120px; /* Ajusta según el tamaño de tu archivo de imagen */
-            height: auto;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 0 10px rgba(152, 207, 44, 0.2));
-        }
-
-        .brand-name {
-            font-size: 55px;
-            font-weight: 900;
-            color: var(--verde-aquiles);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            line-height: 0.9;
-            margin: 0;
-        }
-
-        .brand-sub {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--verde-aquiles);
-            text-transform: uppercase;
-            letter-spacing: 6px;
-            margin-top: 5px;
-            border-top: 2px solid var(--verde-aquiles);
-            border-bottom: 2px solid var(--verde-aquiles);
-            display: inline-block;
-            padding: 2px 10px;
-        }
-
-        .recepcion-tag {
-            font-size: 12px;
-            color: #444;
-            letter-spacing: 8px;
-            margin-top: 30px;
-            font-weight: 400;
-            text-transform: uppercase;
-        }
-
-        /* INPUT DE ID SOCIO */
-        .form-recepcion { width: 100%; max-width: 500px; padding: 0 20px; box-sizing: border-box; }
-        
-        .input-codigo { 
-            background: var(--negro-card); 
-            color: #ffffff; 
-            border: 2px solid var(--gris-borde); 
-            padding: 25px; 
-            font-size: 40px; 
-            text-align: center; 
-            width: 100%; 
-            border-radius: 20px; 
-            outline: none; 
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
+        * {
             box-sizing: border-box;
-        }
-        
-        .input-codigo:focus {
-            border-color: var(--verde-aquiles);
-            box-shadow: 0 0 30px rgba(152, 207, 44, 0.1);
+            margin: 0;
+            padding: 0;
         }
 
-        .input-codigo::placeholder {
-            color: #333;
-            letter-spacing: 2px;
+        body {
+            background-color: var(--color-fondo);
+            color: #fff;
+            font-family: var(--font-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            text-rendering: optimizeLegibility;
         }
 
-        /* ALERTAS GRANDES */
-        .alerta-contenedor {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+        /* ==============================
+           2. Contenedor y Proporciones
+           ============================== */
+        .main-container {
+            text-align: center;
+            width: 90%;
+            /* Aumentamos el ancho máximo para que la PC no se vea "chica" */
+            max-width: 650px; 
+            padding: 40px;
+            /* Añadimos un sutil efecto de "fresnel" en los bordes para profundidad */
+            border-radius: 20px;
+            box-shadow: inset 0 0 100px rgba(163, 255, 0, 0.03); 
+        }
+
+        /* ==============================
+           3. Logo e Identidad
+           ============================== */
+        .logo-block {
+            margin-bottom: 50px; /* Espacio generoso bajo el logo */
+        }
+
+        .aquiles-logo {
+            /* Usamos 'max-width' para el logo específico que nos diste.
+               '220px' es un tamaño que se siente grande y dominante sin ser tosco. */
+            max-width: 220px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            /* Un pequeño resplandor neón para el logo */
+            filter: drop-shadow(0 0 10px rgba(163, 255, 0, 0.2));
+        }
+
+        /* ==============================
+           4. Textos y Títulos
+           ============================== */
+        h1.brand-name {
+            font-size: 5rem; /* Tamaño MUY grande para "AQUILES" */
+            font-weight: 900;
+            color: var(--color-neon);
+            margin: 0;
+            letter-spacing: -3px; /* Juntamos las letras para más impacto */
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .gym-divider {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.9);
-            z-index: 100;
-            animation: fadeIn 0.3s ease;
+            margin-top: -5px;
+            margin-bottom: 30px;
         }
 
-        .mensaje-alerta { 
-            padding: 60px; 
-            border-radius: 40px; 
+        .gym-line {
+            height: 3px;
+            background-color: var(--color-neon);
+            flex-grow: 1;
+            border-radius: 2px;
+        }
+
+        .gym-cisar-text {
+            font-size: 1.4rem;
+            letter-spacing: 6px;
+            color: var(--color-neon);
+            text-transform: uppercase;
+            padding: 0 15px;
+            font-weight: 700;
+        }
+
+        /* Mantenemos el texto 'recepción' del template original */
+        .section-label {
+            display: block;
+            font-size: 1rem;
+            color: var(--color-texto-oscuro);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 25px;
+            font-weight: 400;
+        }
+
+        /* ==============================
+           5. ID Socio - Input/Boton
+           ============================== */
+        .id-socio-container {
+            position: relative;
+            width: 100%;
+        }
+
+        /* Mantenemos la estructura de botón/input pero mejoramos el diseño */
+        .id-input-field {
+            width: 100%;
+            background-color: var(--color-input);
+            border: 2px solid var(--color-borde);
+            border-radius: 18px; /* Bordes más redondeados y modernos */
+            padding: 28px; /* Más acolchado para un toque premium */
+            font-size: 2.2rem; /* Texto de ID muy grande y legible */
             font-weight: 900;
-            text-transform: uppercase;
+            color: #fff;
             text-align: center;
-            min-width: 60%
+            text-transform: uppercase;
+            box-sizing: border-box;
+            transition: all 0.4s ease;
+            outline: none;
+            letter-spacing: 2px;
+            cursor: pointer; /* Lo hacemos parecer un botón también */
         }
 
-        .success { background-color: var(--verde-aquiles); color: #000; font-size: 50px; }
-        .danger { background-color: var(--rojo-error); color: #fff; font-size: 45px; }
-        .warning { background-color: var(--amarillo-alerta); color: #000; font-size: 45px; }
+        /* Efectos al interactuar (Focus) */
+        .id-input-field:focus {
+            border-color: var(--color-neon);
+            background-color: rgba(163, 255, 0, 0.05);
+            box-shadow: 0 0 30px rgba(163, 255, 0, 0.2);
+        }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Efecto al pasar el mouse (para que se sienta interactivo) */
+        .id-input-field:hover {
+            border-color: #333;
+        }
 
-        .instruccion {
-            position: fixed;
-            bottom: 30px;
-            color: #222;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
+        /* Personalización del placeholder (ID SOCIO) */
+        .id-input-field::placeholder {
+            color: #333;
+            font-weight: 700;
+            font-size: 2rem;
+            letter-spacing: 1px;
+        }
+
+        /* ==============================
+           6. Media Queries (Responsivo)
+           ============================== */
+        /* Ajustes para tablets y móviles */
+        @media (max-width: 768px) {
+            h1.brand-name { font-size: 3.8rem; }
+            .aquiles-logo { max-width: 180px; }
+            .id-input-field { padding: 22px; font-size: 1.8rem; }
+            .id-input-field::placeholder { font-size: 1.6rem; }
+        }
+
+        /* Ajustes para móviles pequeños */
+        @media (max-width: 480px) {
+            h1.brand-name { font-size: 3rem; letter-spacing: -1px; }
+            .aquiles-logo { max-width: 140px; }
+            .gym-cisar-text { font-size: 1.1rem; letter-spacing: 3px; }
+            .main-container { padding: 20px; }
+            .id-input-field { padding: 18px; font-size: 1.5rem; }
+            .id-input-field::placeholder { font-size: 1.3rem; }
         }
     </style>
 </head>
 <body>
 
-    <div class="contenedor-logo">
-        <img src="{% static 'img/logo_aquiles_solo_casco.png' %}" class="casco-vikingo" alt="Logo">
-        <h1 class="brand-name">AQUILES</h1>
-        <div class="brand-sub">GYM CISAR</div>
-        <div class="recepcion-tag">RECEPCIÓN</div>
-    </div>
+    <div class="main-container">
+        <div class="logo-block">
+            <img src="logo_aquiles.png" alt="Aquiles Gym Logo" class="aquiles-logo">
+            
+            <h1 class="brand-name">AQUILES</h1>
+            
+            <div class="gym-divider">
+                <span class="gym-line"></span>
+                <span class="gym-cisar-text">GYM CISAR</span>
+                <span class="gym-line"></span>
+            </div>
+        </div>
+        
+        <span class="section-label">Recepción</span>
 
-    <form method="POST" class="form-recepcion" id="form_recepcion">
-        {% csrf_token %}
-        <input type="text" name="codigo" id="codigo_input" 
-               class="input-codigo" placeholder="ID SOCIO" 
-               autocomplete="off" autofocus>
-    </form>
-
-    {% if mensaje %}
-    <div class="alerta-contenedor">
-        <div class="mensaje-alerta {{ clase_alerta }}">
-            {{ mensaje }}
+        <div class="id-socio-container">
+            <input type="text" class="id-input-field" placeholder="ID SOCIO" autofocus>
         </div>
     </div>
-    {% endif %}
 
-    <div class="instruccion">Esperando lectura de código...</div>
-
-    <script>
-        const input = document.getElementById('codigo_input');
-        input.focus();
-        document.addEventListener('click', () => input.focus());
-        input.onpaste = e => e.preventDefault();
-
-        {% if mensaje %}
-        setTimeout(() => {
-            window.location.href = "{% url 'recepcion' %}";
-        }, 3500);
-        {% endif %}
-    </script>
 </body>
 </html>
