@@ -5,208 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recepción - Aquiles Gym</title>
     <style>
-        /* ==============================
-           1. Reset y Estilos Base
-           ============================== */
-        :root {
-            --color-neon: #a3ff00; /* Verde neón característico */
-            --color-fondo: #000000;
-            --color-input: #111111;
-            --color-borde: #222222;
-            --color-texto-oscuro: #555555;
-            --font-main: 'Oswald', 'Segoe UI', Roboto, Helvetica, sans-serif; /* Usamos Oswald para un toque más deportivo */
-        }
-
-        /* Importamos una fuente más "deportiva" y gruesa para los títulos */
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700;900&display=swap');
-
-        * {
-            box-sizing: border-box;
+        /* Fondo y Centrado Principal */
+        body {
             margin: 0;
             padding: 0;
-        }
-
-        body {
-            background-color: var(--color-fondo);
+            background-color: #000;
             color: #fff;
-            font-family: var(--font-main);
+            font-family: 'Segoe UI', Roboto, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             overflow: hidden;
-            text-rendering: optimizeLegibility;
         }
 
-        /* ==============================
-           2. Contenedor y Proporciones
-           ============================== */
-        .main-container {
+        .container {
             text-align: center;
             width: 90%;
-            /* Aumentamos el ancho máximo para que la PC no se vea "chica" */
-            max-width: 650px; 
-            padding: 40px;
-            /* Añadimos un sutil efecto de "fresnel" en los bordes para profundidad */
-            border-radius: 20px;
-            box-shadow: inset 0 0 100px rgba(163, 255, 0, 0.03); 
+            max-width: 600px;
         }
 
-        /* ==============================
-           3. Logo e Identidad
-           ============================== */
-        .logo-block {
-            margin-bottom: 50px; /* Espacio generoso bajo el logo */
-        }
-
-        .aquiles-logo {
-            /* Usamos 'max-width' para el logo específico que nos diste.
-               '220px' es un tamaño que se siente grande y dominante sin ser tosco. */
-            max-width: 220px;
+        /* El Logo: Aquí es donde ajustamos el tamaño */
+        .logo-principal {
+            width: 100%; /* Ocupa el ancho del contenedor */
+            max-width: 500px; /* Tamaño máximo para que no se pixele */
             height: auto;
+            margin-bottom: 40px;
+            /* Efecto de brillo suave para que resalte sobre el negro */
+            filter: drop-shadow(0 0 15px rgba(163, 255, 0, 0.2));
+        }
+
+        /* Etiqueta Recepción */
+        .recepcion-label {
             display: block;
-            margin: 0 auto;
-            /* Un pequeño resplandor neón para el logo */
-            filter: drop-shadow(0 0 10px rgba(163, 255, 0, 0.2));
-        }
-
-        /* ==============================
-           4. Textos y Títulos
-           ============================== */
-        h1.brand-name {
-            font-size: 5rem; /* Tamaño MUY grande para "AQUILES" */
-            font-weight: 900;
-            color: var(--color-neon);
-            margin: 0;
-            letter-spacing: -3px; /* Juntamos las letras para más impacto */
+            font-size: 1.1rem;
+            color: #555;
             text-transform: uppercase;
-            line-height: 1;
-        }
-
-        .gym-divider {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: -5px;
+            letter-spacing: 5px;
             margin-bottom: 30px;
+            font-weight: 300;
         }
 
-        .gym-line {
-            height: 3px;
-            background-color: var(--color-neon);
-            flex-grow: 1;
-            border-radius: 2px;
-        }
-
-        .gym-cisar-text {
-            font-size: 1.4rem;
-            letter-spacing: 6px;
-            color: var(--color-neon);
-            text-transform: uppercase;
-            padding: 0 15px;
-            font-weight: 700;
-        }
-
-        /* Mantenemos el texto 'recepción' del template original */
-        .section-label {
-            display: block;
-            font-size: 1rem;
-            color: var(--color-texto-oscuro);
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin-bottom: 25px;
-            font-weight: 400;
-        }
-
-        /* ==============================
-           5. ID Socio - Input/Boton
-           ============================== */
-        .id-socio-container {
-            position: relative;
+        /* Input de ID SOCIO */
+        .id-input {
             width: 100%;
-        }
-
-        /* Mantenemos la estructura de botón/input pero mejoramos el diseño */
-        .id-input-field {
-            width: 100%;
-            background-color: var(--color-input);
-            border: 2px solid var(--color-borde);
-            border-radius: 18px; /* Bordes más redondeados y modernos */
-            padding: 28px; /* Más acolchado para un toque premium */
-            font-size: 2.2rem; /* Texto de ID muy grande y legible */
-            font-weight: 900;
+            background-color: #111;
+            border: 2px solid #222;
+            border-radius: 15px;
+            padding: 25px;
+            font-size: 1.8rem;
             color: #fff;
             text-align: center;
             text-transform: uppercase;
             box-sizing: border-box;
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
             outline: none;
-            letter-spacing: 2px;
-            cursor: pointer; /* Lo hacemos parecer un botón también */
+            font-weight: bold;
         }
 
-        /* Efectos al interactuar (Focus) */
-        .id-input-field:focus {
-            border-color: var(--color-neon);
-            background-color: rgba(163, 255, 0, 0.05);
-            box-shadow: 0 0 30px rgba(163, 255, 0, 0.2);
+        .id-input:focus {
+            border-color: #a3ff00;
+            box-shadow: 0 0 20px rgba(163, 255, 0, 0.15);
+            background-color: #151515;
         }
 
-        /* Efecto al pasar el mouse (para que se sienta interactivo) */
-        .id-input-field:hover {
-            border-color: #333;
-        }
-
-        /* Personalización del placeholder (ID SOCIO) */
-        .id-input-field::placeholder {
+        /* Placeholder oscuro para que no distraiga */
+        .id-input::placeholder {
             color: #333;
-            font-weight: 700;
-            font-size: 2rem;
-            letter-spacing: 1px;
         }
 
-        /* ==============================
-           6. Media Queries (Responsivo)
-           ============================== */
-        /* Ajustes para tablets y móviles */
-        @media (max-width: 768px) {
-            h1.brand-name { font-size: 3.8rem; }
-            .aquiles-logo { max-width: 180px; }
-            .id-input-field { padding: 22px; font-size: 1.8rem; }
-            .id-input-field::placeholder { font-size: 1.6rem; }
-        }
-
-        /* Ajustes para móviles pequeños */
+        /* Ajustes para pantallas chicas */
         @media (max-width: 480px) {
-            h1.brand-name { font-size: 3rem; letter-spacing: -1px; }
-            .aquiles-logo { max-width: 140px; }
-            .gym-cisar-text { font-size: 1.1rem; letter-spacing: 3px; }
-            .main-container { padding: 20px; }
-            .id-input-field { padding: 18px; font-size: 1.5rem; }
-            .id-input-field::placeholder { font-size: 1.3rem; }
+            .logo-principal { max-width: 300px; }
+            .id-input { padding: 18px; font-size: 1.4rem; }
         }
     </style>
 </head>
 <body>
 
-    <div class="main-container">
-        <div class="logo-block">
-            <img src="logo_aquiles.png" alt="Aquiles Gym Logo" class="aquiles-logo">
-            
-            <h1 class="brand-name">AQUILES</h1>
-            
-            <div class="gym-divider">
-                <span class="gym-line"></span>
-                <span class="gym-cisar-text">GYM CISAR</span>
-                <span class="gym-line"></span>
-            </div>
-        </div>
+    <div class="container">
+        <img src="img/logo_aquiles.png" alt="Aquiles Gym" class="logo-principal">
         
-        <span class="section-label">Recepción</span>
+        <span class="recepcion-label">Recepción</span>
 
-        <div class="id-socio-container">
-            <input type="text" class="id-input-field" placeholder="ID SOCIO" autofocus>
-        </div>
+        <input type="text" class="id-input" placeholder="ID SOCIO" autofocus>
     </div>
 
 </body>
