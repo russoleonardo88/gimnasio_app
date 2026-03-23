@@ -82,14 +82,24 @@ def dashboard(request):
         porcentaje = int((completados / total * 100)) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
+    # Mapeo de días para obtener la rutina de HOY
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes',
         'Saturday': 'Lunes', 'Sunday': 'Lunes'
     }
 
-    dia_hoy_esp = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
+    # Determinamos qué día es hoy para mostrar la rutina específica en el panel
+    dia_hoy_nombre = timezone.now().strftime('%A')
+    dia_hoy_esp = traduccion_dias.get(dia_hoy_nombre, 'Lunes')
+    
+    # Filtramos los ejercicios que se verán en el panel "Último Entrenamiento" (ahora Entrenamiento de Hoy)
     ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
+
+    # Cálculo de progreso específico de hoy para la barra de progreso del panel
+    total_hoy = ejercicios_hoy.count()
+    completados_hoy = ejercicios_hoy.filter(completado=True).count()
+    progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
     asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
@@ -99,7 +109,6 @@ def dashboard(request):
     hoy = timezone.now()
 
     # --- NUEVA LÓGICA: DISTRIBUCIÓN DE ENTRENAMIENTO ---
-    # Contamos tipos de ejercicio en la rutina total del alumno
     total_e = todos_ejercicios.count()
     c_fuerza = todos_ejercicios.filter(tipo='FUERZA').count()
     c_aero = todos_ejercicios.filter(tipo='AEROBICO').count()
@@ -112,7 +121,7 @@ def dashboard(request):
 
     datos_distribucion = [p_fuerza, p_aero]
 
-    # --- RENDIMIENTO POR SEMANA (Se mantiene igual) ---
+    # --- RENDIMIENTO POR SEMANA ---
     rendimiento = []
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
 
@@ -143,16 +152,17 @@ def dashboard(request):
         rendimiento.append(porcentaje)
 
     return render(request, 'alumnos/dashboard.html', {
-        'datos_distribucion': json.dumps(datos_distribucion),  # Reemplaza asistencias_por_mes
+        'datos_distribucion': json.dumps(datos_distribucion),
         'rendimiento': json.dumps(rendimiento),
         'alumno': alumno,
         'progreso_dias': progreso_dias,
         'asistencias': asistencias_recientes,
         'ejercicios_hoy': ejercicios_hoy,
+        'dia_actual_nombre': dia_hoy_esp,
+        'progreso_hoy': progreso_hoy,
         'asistencias_semana': asistencias_semana,
         'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
     })
-
 
 
 @login_required

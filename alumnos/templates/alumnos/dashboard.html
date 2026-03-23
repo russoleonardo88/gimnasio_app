@@ -92,14 +92,13 @@
         .check-estetico {
             width: 24px;
             height: 24px;
-            background-color: var(--verde-neon);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--negro-fondo);
             font-size: 14px;
             font-weight: bold;
+            transition: all 0.2s ease;
         }
 
         .contenedor-graficos {
@@ -170,18 +169,42 @@
         <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-casco">
     </div>
 
-    <h3 class="seccion-titulo">Último Entrenamiento</h3>
+    <h3 class="seccion-titulo">Entrenamiento de {{ dia_actual_nombre }}</h3>
     <div class="card-seccion">
-        {% if dia_ultimo and dia_ultimo != "Sin actividad" %}
+        {% if ejercicios_hoy %}
+            {% for ejercicio in ejercicios_hoy %}
             <div class="actividad-item">
-                <div>
-                    <strong style="color: var(--blanco); text-transform: uppercase;">{{ dia_ultimo }}</strong>
-                    <p style="color: var(--gris-texto); margin: 3px 0 0 0; font-size: 12px;">Completaste el {{ progreso_ultimo }}% de tu rutina.</p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 18px;">
+                        {% if ejercicio.tipo == 'FUERZA' %}💪{% elif ejercicio.tipo == 'AEROBICO' %}🏃{% else %}🏋️{% endif %}
+                    </span>
+                    <div>
+                        <strong style="color: var(--blanco); text-transform: uppercase; font-size: 13px;">{{ ejercicio.nombre }}</strong>
+                        <p style="color: var(--gris-texto); margin: 2px 0 0 0; font-size: 11px;">
+                            {{ ejercicio.series }}x{{ ejercicio.repeticiones }} — {{ ejercicio.tipo|title }}
+                        </p>
+                    </div>
                 </div>
-                <div class="check-estetico">✓</div>
+                
+                <a href="{% url 'marcar_completado' ejercicio.id %}" style="text-decoration: none;">
+                    <div class="check-estetico" style="{% if ejercicio.completado %}background-color: var(--verde-neon); color: var(--negro-fondo);{% else %}background-color: #222; color: #444; border: 1px solid #333;{% endif %}">
+                        {% if ejercicio.completado %}✓{% else %}○{% endif %}
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+
+            <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--gris-borde);">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 800; margin-bottom: 5px;">
+                    <span style="color: var(--gris-texto);">PROGRESO DE HOY</span>
+                    <span style="color: var(--verde-neon);">{{ progreso_hoy }}%</span>
+                </div>
+                <div style="width: 100%; height: 4px; background: #222; border-radius: 2px; overflow: hidden;">
+                    <div style="width: {{ progreso_hoy }}%; height: 100%; background: var(--verde-neon); transition: width 0.3s ease;"></div>
+                </div>
             </div>
         {% else %}
-            <p style="color: #444; text-align: center; font-size: 12px;">Sin actividad registrada esta semana.</p>
+            <p style="color: #444; text-align: center; font-size: 12px; margin: 0;">Hoy es día de descanso. 🧘</p>
         {% endif %}
     </div>
 
