@@ -90,7 +90,7 @@ def dashboard(request):
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
     # 3. FRASE MOTIVADORA
-    frase_motivadora = f"¡A darle con todo hoy! 🔥"
+    frase_motivadora = f"Llevás 5 días esta semana. ¡A darle! 🔥"
 
     # 4. GRÁFICO DE DISTRIBUCIÓN
     realizados_hoy = ejercicios_hoy.filter(completado=True)
@@ -98,7 +98,7 @@ def dashboard(request):
     
     total_d = fuente_datos.count() or 1
     p_fuerza = round((fuente_datos.filter(tipo='FUERZA').count() / total_d) * 100)
-    p_aero = round((fuente_datos.filter(tipo__in=['AEROBICO', 'AERÓBICO']).count() / total_d) * 100)
+    p_aero = round((fuente_datos.filter(tipo='AEROBICO').count() / total_d) * 100)
     p_media = round((fuente_datos.filter(tipo='ZONA_MEDIA').count() / total_d) * 100)
     
     datos_distribucion = [p_fuerza, p_aero, p_media]
@@ -144,6 +144,9 @@ def dashboard(request):
 @csrf_exempt
 @login_required
 def marcar_completado(request, ejercicio_id):
+    """
+    Esta es la vista que maneja el AJAX para animar los gráficos.
+    """
     if request.method == 'POST' or request.headers.get('x-requested-with') == 'XMLHttpRequest':
         try:
             ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id, alumno__user=request.user)
@@ -167,10 +170,11 @@ def marcar_completado(request, ejercicio_id):
 
             # 3. Recalcular Datos Distribución (Dona)
             realizados_hoy = ejercicios_hoy.filter(completado=True)
+            # Si no hay nada hoy, usamos toda la rutina como fallback
             fuente_d = realizados_hoy if realizados_hoy.exists() else Ejercicio.objects.filter(alumno=alumno)
             t_d = fuente_d.count() or 1
             p_fuerza = round((fuente_d.filter(tipo='FUERZA').count() / t_d) * 100)
-            p_aero = round((fuente_d.filter(tipo__in=['AEROBICO', 'AERÓBICO']).count() / t_d) * 100)
+            p_aero = round((fuente_d.filter(tipo='AEROBICO').count() / t_d) * 100)
             p_media = round((fuente_d.filter(tipo='ZONA_MEDIA').count() / t_d) * 100)
             
             # 4. Recalcular Rendimiento Semanal (Línea)
@@ -201,6 +205,7 @@ def marcar_completado(request, ejercicio_id):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     
+    # Fallback por si entran por URL directo
     return redirect('dashboard_alumno')
 
 @login_required
@@ -323,7 +328,7 @@ def gestion_gym(request):
 @login_required
 def detalle_alumno(request, alumno_id):
     alumno = get_object_or_404(Alumno, id=alumno_id)
-    dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+    dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     rutina = {dia: Ejercicio.objects.filter(alumno=alumno, dia_semana=dia).distinct() for dia in dias}
     return render(request, 'alumnos/detalle_alumno.html', {'alumno': alumno, 'rutina': rutina, 'dias': dias})
 
@@ -445,6 +450,7 @@ def renovar_cuota(request, alumno_id):
     if not request.user.is_staff: return redirect('dashboard_alumno')
     alumno = get_object_or_404(Alumno, id=alumno_id)
     alumno.cuota_pagada = True
+    alumno.fecha_pago = timezone.now().date()
     alumno.save()
     return redirect('gestion_gym')
 
@@ -459,25 +465,7 @@ def agregar_ejercicio(request, alumno_id):
             dia_semana=request.POST.get('dia'),
             series=request.POST.get('series') or 0,
             repeticiones=request.POST.get('reps') or "0",
-            peso_sugerido=request.POST.get('peso') or 0,
-            timer=request.POST.get('timer')
+            peso_sugerido=request.POST.get('peso') or 0
         )
         messages.success(request, "Ejercicio agregado correctamente.")
-    return redirect('detalle_alumno', alumno_id=alumno_id)
-
-@login_required
-def agregar_ejercicio_v2(request, alumno_id):
-    if request.method == 'POST':
-        alumno = get_object_or_404(Alumno, id=alumno_id)
-        Ejercicio.objects.create(
-            alumno=alumno,
-            nombre=request.POST.get('nombre'),
-            tipo=request.POST.get('tipo'),
-            dia_semana=request.POST.get('dia'),
-            series=request.POST.get('series') or 0,
-            repeticiones=request.POST.get('reps') or "0",
-            peso_sugerido=request.POST.get('peso') or 0,
-            timer=request.POST.get('timer')
-        )
-        messages.success(request, "Ejercicio asignado correctamente.")
     return redirect('detalle_alumno', alumno_id=alumno_id)
