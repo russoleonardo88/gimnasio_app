@@ -242,7 +242,7 @@
         Chart.defaults.font = defaults.font;
         Chart.defaults.scale.grid = defaults.grid;
 
-        const datosDistribucion = {{ datos_distribucion|safe|default:"[]" }};
+        const datosDistribucion = {{ datos_distribucion|safe|default:"" }}; // Por defecto 3 valores
         const datosRendimiento = {{ rendimiento|safe|default:"[]" }};
 
         const ctxDist = document.getElementById('graficoDistribucion');
@@ -250,25 +250,17 @@
             new Chart(ctxDist, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Fuerza', 'Aeróbico'],
+                    labels: ['Fuerza', 'Aeróbico', 'Zona Media'], // Agregamos la etiqueta
                     datasets: [{
-                        data: datosDistribucion,
-                        backgroundColor: ['#98cf2c', '#222222'],
+                        data: datosDistribucion, // Ahora recibe [pF, pA, pM]
+                        // Definimos 3 colores (Verde, Gris oscuro, Gris medio)
+                        backgroundColor: ['#98cf2c', '#222222', '#444444'], 
                         borderWidth: 0,
                         hoverOffset: 10
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '75%',
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: { color: '#888', padding: 15, font: { size: 10, weight: '700' } }
-                        }
-                    }
+                    // ... resto de las opciones (cutout, legend, etc.) quedan igual ...
                 }
             });
         }

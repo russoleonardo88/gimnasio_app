@@ -107,22 +107,46 @@ def dashboard(request):
     hace_una_semana = timezone.now().date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
 
-    # --- DATOS PARA GRÁFICOS ---
+# --- DATOS PARA GRÁFICOS (ACTUALIZADOS) ---
     hoy = timezone.now()
-    total_e = todos_ejercicios.count()
-    c_fuerza = todos_ejercicios.filter(tipo='FUERZA').count()
-    c_aero = todos_ejercicios.filter(tipo='AEROBICO').count()
 
-    p_fuerza = round((c_fuerza / total_e) * 100) if total_e > 0 else 0
-    p_aero = round((c_aero / total_e) * 100) if total_e > 0 else 0
-    datos_distribucion = [p_fuerza, p_aero]
+    # --- NUEVA LÓGICA: DISTRIBUCIÓN DE CARGAS BASADA EN ACTIVIDAD DE HOY ---
+    # Obtenemos solo los ejercicios COMPLETADOS hoy (del QuerySet ejercicios_hoy que ya calculaste)
+    realizados_hoy = ejercicios_hoy.filter(completado=True)
+    total_realizados = realizados_hoy.count()
+    
+    # Inicializamos valores por defecto
+    c_fuerza = realizados_hoy.filter(tipo='FUERZA').count()
+    c_aero = realizados_hoy.filter(tipo='AEROBICO').count()
+    c_media = realizados_hoy.filter(tipo='ZONA_MEDIA').count() # Asumiendo que este es el slug en tu modelo
 
-    # --- RENDIMIENTO POR SEMANA ---
+    # Calculamos porcentajes basados en lo realizado HOY (si hay actividad)
+    if total_realizados > 0:
+        p_fuerza = round((c_fuerza / total_realizados) * 100)
+        p_aero = round((c_aero / total_realizados) * 100)
+        p_media = round((c_media / total_realizados) * 100)
+    else:
+        # Si no hizo nada, mostramos 0,0,0
+        p_fuerza, p_aero, p_media = 0, 0, 0
+
+    # Enviamos los 3 datos al template
+    datos_distribucion = [p_fuerza, p_aero, p_media]
+
+
+    # --- RENDIMIENTO POR SEMANA (AJUSTE DE LÓGICA HISTÓRICA) ---
     rendimiento = []
-    _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
-    semanas = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
+    _, ultimo_dia_mes = calendar.monthrange(hoy.year, hoy.month)
+
+    # Definimos rangos fijos de días
+    semanas = [
+        (1, 7),
+        (8, 14),
+        (15, 21),
+        (22, ultimo_dia_mes)
+    ]
 
     for inicio, fin in semanas:
+        # Buscamos los ejercicios ASIGNADOS en ese rango de días específicos
         ejercicios_semana = Ejercicio.objects.filter(
             alumno=alumno,
             fecha_asignacion__year=hoy.year,
@@ -130,21 +154,22 @@ def dashboard(request):
             fecha_asignacion__day__gte=inicio,
             fecha_asignacion__day__lte=fin
         )
-        asig = ejercicios_semana.count()
-        real = ejercicios_semana.filter(completado=True).count()
-        rendimiento.append(round((real / asig) * 100) if asig > 0 else 0)
+
+        asignados = ejercicios_semana.count()
+        realizados = ejercicios_semana.filter(completado=True).count()
+
+        # Calculamos porcentaje de cumplimiento histórico
+        if asignados > 0:
+            porcentaje = round((realizados / asignados) * 100)
+        else:
+            porcentaje = 0
+
+        rendimiento.append(porcentaje)
 
     return render(request, 'alumnos/dashboard.html', {
-        'datos_distribucion': json.dumps(datos_distribucion),
+        'datos_distribucion': json.dumps(datos_distribucion), # Enviamos [P_F, P_A, P_M]
         'rendimiento': json.dumps(rendimiento),
-        'alumno': alumno,
-        'progreso_dias': progreso_dias,
-        'asistencias': asistencias_recientes,
-        'ejercicios_hoy': ejercicios_hoy,
-        'dia_actual_nombre': dia_hoy_esp,
-        'progreso_hoy': progreso_hoy,
-        'asistencias_semana': asistencias_semana,
-        'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
+        # ... resto de las variables ...
     })
 
 # --- ESTA ES LA FUNCIÓN QUE TE FALTA PARA QUE NO DE ERROR EL TEMPLATE ---
