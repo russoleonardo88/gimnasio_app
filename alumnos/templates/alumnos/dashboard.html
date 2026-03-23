@@ -68,21 +68,6 @@
             box-sizing: border-box;
         }
 
-        .progreso-link {
-            text-decoration: none;
-            color: inherit;
-            display: block;
-            transition: transform 0.2s ease, opacity 0.2s ease;
-        }
-
-        .progreso-link:active {
-            transform: scale(0.97);
-        }
-
-        .progreso-link:hover {
-            opacity: 0.9;
-        }
-
         .seccion-titulo {
             font-size: 11px;
             font-weight: 700;
@@ -92,33 +77,6 @@
             letter-spacing: 1px;
             width: 100%;
             max-width: 800px;
-        }
-
-        .progreso-item {
-            margin-bottom: 15px;
-        }
-
-        .progreso-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-
-        .barra-fondo {
-            background: #222;
-            height: 6px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .barra-relleno {
-            background: var(--verde-neon);
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.5s ease-in-out;
         }
 
         .actividad-item {
@@ -212,25 +170,6 @@
         <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-casco">
     </div>
 
-    <h3 class="seccion-titulo">Mi Rutina Semanal (L-V)</h3>
-    <div class="card-seccion">
-        {% for item in progreso_dias %}
-        <a href="{% url 'mi_rutina' %}?dia={{ item.nombre }}" class="progreso-link">
-            <div class="progreso-item">
-                <div class="progreso-info">
-                    <span>{{ item.nombre }}</span>
-                    <span style="color: var(--verde-neon);">{{ item.porcentaje }}%</span>
-                </div>
-                <div class="barra-fondo">
-                    <div class="barra-relleno" style="width: {{ item.porcentaje }}%;"></div>
-                </div>
-            </div>
-        </a>
-        {% empty %}
-        <p style="color: #444; text-align: center; font-size: 12px;">Sin rutina asignada.</p>
-        {% endfor %}
-    </div>
-
     <h3 class="seccion-titulo">Último Entrenamiento</h3>
     <div class="card-seccion">
         {% if dia_ultimo and dia_ultimo != "Sin actividad" %}
@@ -272,24 +211,17 @@
     document.addEventListener('DOMContentLoaded', function () {
         const defaults = {
             color: '#888888',
-            font: { 
-                family: "'Inter', sans-serif", 
-                size: 10 
-            },
-            grid: { 
-                color: '#222222' 
-            }
+            font: { family: "'Inter', sans-serif", size: 10 },
+            grid: { color: '#222222' }
         };
 
         Chart.defaults.color = defaults.color;
         Chart.defaults.font = defaults.font;
         Chart.defaults.scale.grid = defaults.grid;
 
-        // Datos seguros desde Django
         const datosDistribucion = {{ datos_distribucion|safe|default:"[]" }};
         const datosRendimiento = {{ rendimiento|safe|default:"[]" }};
 
-        // Gráfico de Distribución (Dona)
         const ctxDist = document.getElementById('graficoDistribucion');
         if (ctxDist) {
             new Chart(ctxDist, {
@@ -311,18 +243,13 @@
                         legend: {
                             display: true,
                             position: 'bottom',
-                            labels: {
-                                color: '#888',
-                                padding: 15,
-                                font: { size: 10, weight: '700' }
-                            }
+                            labels: { color: '#888', padding: 15, font: { size: 10, weight: '700' } }
                         }
                     }
                 }
             });
         }
 
-        // Gráfico de Intensidad / Rendimiento (Línea)
         const ctxInt = document.getElementById('graficoIntensidad');
         if (ctxInt) {
             new Chart(ctxInt, {
@@ -343,21 +270,11 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'RENDIMIENTO (%)',
-                            color: '#fff'
-                        }
+                        title: { display: true, text: 'RENDIMIENTO (%)', color: '#fff' }
                     },
                     scales: {
-                        y: { 
-                            min: 0,
-                            max: 100,
-                            ticks: { color: '#fff' }
-                        },
-                        x: {
-                            ticks: { color: '#fff' }
-                        }
+                        y: { min: 0, max: 100, ticks: { color: '#fff' } },
+                        x: { ticks: { color: '#fff' } }
                     }
                 }
             });
