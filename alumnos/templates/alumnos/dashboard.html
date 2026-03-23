@@ -131,7 +131,50 @@
             height: 220px;
         }
 
-        .footer-links { text-align: center; padding: 20px 0; width: 100%; }
+        /* --- FOOTER Y BOTONES --- */
+        .footer-links { 
+            text-align: center; 
+            padding: 30px 0; 
+             width: 100%; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .link-config {
+             display: inline-block;
+            color: var(--verde-neon);
+            text-decoration: none;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 10px 20px;
+            background: rgba(152, 207, 44, 0.05);
+            border: 1px solid var(--gris-borde);
+            border-radius: 8px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .link-config:hover {
+             border-color: var(--verde-neon);
+             background: rgba(152, 207, 44, 0.1);
+        }
+
+        .link-logout {
+            color: var(--gris-texto);
+            text-decoration: none;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+
+        .link-logout:hover {
+            opacity: 1;
+            color: #ff4444; /* Un toque rojo sutil para el logout */
+        }
         .link-perfil {
             display: inline-block;
             color: var(--verde-neon);
