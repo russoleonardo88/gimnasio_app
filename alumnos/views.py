@@ -66,12 +66,11 @@ def dashboard(request):
     try:
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
-        # Si el usuario no tiene un perfil de Alumno creado
         return render(request, 'alumnos/dashboard.html', {
             'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
         })
 
-    # Lógica de progreso semanal
+    # 1. Lógica de progreso semanal (Barras de arriba)
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
     todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
@@ -83,70 +82,46 @@ def dashboard(request):
         porcentaje = int((completados / total * 100)) if total > 0 else 0
         progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
 
-    # Mapeo de días para obtener la rutina de HOY
+    # 2. Determinar qué día es hoy para mostrar la rutina
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes',
-        'Saturday': 'Lunes', 'Sunday': 'Lunes' # Redirigimos finde a Lunes o lo que prefieras
+        'Saturday': 'Lunes', 'Sunday': 'Lunes'
     }
-
-    # Determinamos qué día es hoy
-    dia_hoy_nombre = timezone.now().strftime('%A')
-    dia_hoy_esp = traduccion_dias.get(dia_hoy_nombre, 'Lunes')
+    hoy = timezone.now()
+    dia_hoy_esp = traduccion_dias.get(hoy.strftime('%A'), 'Lunes')
     
-    # Ejercicios de hoy
+    # Lista de ejercicios que se ven en los cuadritos con el check
     ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
 
-    # Cálculo de progreso hoy
+    # Cálculo de la barra de progreso de HOY
     total_hoy = ejercicios_hoy.count()
     completados_hoy = ejercicios_hoy.filter(completado=True).count()
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
-    # Asistencias
-    asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
-    hace_una_semana = timezone.now().date() - timedelta(days=7)
-    asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
-
-# --- DATOS PARA GRÁFICOS (ACTUALIZADOS) ---
-    hoy = timezone.now()
-
-    # --- NUEVA LÓGICA: DISTRIBUCIÓN DE CARGAS BASADA EN ACTIVIDAD DE HOY ---
-    # Obtenemos solo los ejercicios COMPLETADOS hoy (del QuerySet ejercicios_hoy que ya calculaste)
+    # 3. Datos para Gráfico de Distribución (Torta)
     realizados_hoy = ejercicios_hoy.filter(completado=True)
-    total_realizados = realizados_hoy.count()
-    
-    # Inicializamos valores por defecto
-    c_fuerza = realizados_hoy.filter(tipo='FUERZA').count()
-    c_aero = realizados_hoy.filter(tipo='AEROBICO').count()
-    c_media = realizados_hoy.filter(tipo='ZONA_MEDIA').count() # Asumiendo que este es el slug en tu modelo
-
-    # Calculamos porcentajes basados en lo realizado HOY (si hay actividad)
-    if total_realizados > 0:
-        p_fuerza = round((c_fuerza / total_realizados) * 100)
-        p_aero = round((c_aero / total_realizados) * 100)
-        p_media = round((c_media / total_realizados) * 100)
+    if realizados_hoy.exists():
+        # Si hoy marcó algo, mostrar lo de hoy
+        total_r = realizados_hoy.count()
+        p_fuerza = round((realizados_hoy.filter(tipo='FUERZA').count() / total_r) * 100)
+        p_aero = round((realizados_hoy.filter(tipo='AEROBICO').count() / total_r) * 100)
+        p_media = round((realizados_hoy.filter(tipo='ZONA_MEDIA').count() / total_r) * 100)
     else:
-        # Si no hizo nada, mostramos 0,0,0
-        p_fuerza, p_aero, p_media = 0, 0, 0
+        # Si no marcó nada hoy, mostrar la distribución total de su plan para que el gráfico no esté vacío
+        total_t = todos_ejercicios.count() or 1
+        p_fuerza = round((todos_ejercicios.filter(tipo='FUERZA').count() / total_t) * 100)
+        p_aero = round((todos_ejercicios.filter(tipo='AEROBICO').count() / total_t) * 100)
+        p_media = round((todos_ejercicios.filter(tipo='ZONA_MEDIA').count() / total_t) * 100)
 
-    # Enviamos los 3 datos al template
     datos_distribucion = [p_fuerza, p_aero, p_media]
 
-
-    # --- RENDIMIENTO POR SEMANA (AJUSTE DE LÓGICA HISTÓRICA) ---
+    # 4. Datos para Gráfico de Rendimiento (Línea)
     rendimiento = []
     _, ultimo_dia_mes = calendar.monthrange(hoy.year, hoy.month)
-
-    # Definimos rangos fijos de días
-    semanas = [
-        (1, 7),
-        (8, 14),
-        (15, 21),
-        (22, ultimo_dia_mes)
-    ]
+    semanas = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia_mes)]
 
     for inicio, fin in semanas:
-        # Buscamos los ejercicios ASIGNADOS en ese rango de días específicos
         ejercicios_semana = Ejercicio.objects.filter(
             alumno=alumno,
             fecha_asignacion__year=hoy.year,
@@ -154,22 +129,19 @@ def dashboard(request):
             fecha_asignacion__day__gte=inicio,
             fecha_asignacion__day__lte=fin
         )
+        asig = ejercicios_semana.count()
+        real = ejercicios_semana.filter(completado=True).count()
+        rendimiento.append(round((real / asig * 100)) if asig > 0 else 0)
 
-        asignados = ejercicios_semana.count()
-        realizados = ejercicios_semana.filter(completado=True).count()
-
-        # Calculamos porcentaje de cumplimiento histórico
-        if asignados > 0:
-            porcentaje = round((realizados / asignados) * 100)
-        else:
-            porcentaje = 0
-
-        rendimiento.append(porcentaje)
-
+    # --- EL RETURN CON TODAS LAS VARIABLES (Esto es lo que arregla todo) ---
     return render(request, 'alumnos/dashboard.html', {
-        'datos_distribucion': json.dumps(datos_distribucion), # Enviamos [P_F, P_A, P_M]
+        'alumno': alumno,
+        'ejercicios_hoy': ejercicios_hoy,      # Devuelve la lista de ejercicios
+        'progreso_hoy': progreso_hoy,          # Devuelve la barra de progreso verde
+        'progreso_dias': progreso_dias,        # Devuelve las 5 barras de arriba
+        'datos_distribucion': json.dumps(datos_distribucion),
         'rendimiento': json.dumps(rendimiento),
-        # ... resto de las variables ...
+        'dia_hoy': dia_hoy_esp,
     })
 
 # --- ESTA ES LA FUNCIÓN QUE TE FALTA PARA QUE NO DE ERROR EL TEMPLATE ---
