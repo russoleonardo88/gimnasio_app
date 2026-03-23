@@ -81,43 +81,35 @@ def dashboard(request):
     dia_hoy_nombre = hoy.strftime('%A')
     dia_hoy_esp = traduccion_dias.get(dia_hoy_nombre, 'Lunes')
     
-    # Ejercicios que aparecen en la lista con check
+    # IMPORTANTE: Filtramos ejercicios de hoy
     ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
     
-    # Cálculo de progreso diario
+    # Cálculo de progreso diario (se mantiene intacto)
     total_hoy = ejercicios_hoy.count()
     completados_hoy = ejercicios_hoy.filter(completado=True).count()
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
-    # 3. FRASE MOTIVADORA (Basada en días seguidos o aleatoria)
-    # Aquí puedes personalizarla, por ahora recuperamos una estándar para que no quede vacío
-    frase_motivadora = f"Llevás {asistencias_semana if 'asistencias_semana' in locals() else 5} días esta semana. ¡A darle! 🔥"
+    # 3. FRASE MOTIVADORA
+    # Mantenemos tu lógica actual de asistencias
+    asistencias_semana = 5 # Aquí podrías sumar tus logs de asistencia reales
+    frase_motivadora = f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥"
 
-    # 4. GRÁFICO DE DISTRIBUCIÓN (IZQUIERDA)
-    # Si hay algo hecho hoy, mostramos hoy. Si no, el plan general.
-    realizados_hoy = ejercicios_hoy.filter(completado=True)
-    fuente_datos = realizados_hoy if realizados_hoy.exists() else todos_ejercicios
+    # 4. GRÁFICO DE DISTRIBUCIÓN (Ajustado para coincidir con las 3 categorías del nuevo diseño)
+    # Usamos todos los ejercicios del alumno para que el gráfico no esté vacío si hoy no entrenó
+    total_d = todos_ejercicios.count() or 1
+    p_fuerza = round((todos_ejercicios.filter(tipo='FUERZA').count() / total_d) * 100)
+    p_aero = round((todos_ejercicios.filter(tipo='AEROBICO').count() / total_d) * 100)
+    p_media = round((todos_ejercicios.filter(tipo='ZONA_MEDIA').count() / total_d) * 100)
     
-    total_d = fuente_datos.count() or 1
-    p_fuerza = round((fuente_datos.filter(tipo='FUERZA').count() / total_d) * 100)
-    p_aero = round((fuente_datos.filter(tipo='AEROBICO').count() / total_d) * 100)
-    p_media = round((fuente_datos.filter(tipo='ZONA_MEDIA').count() / total_d) * 100)
-    
+    # Este orden [Fuerza, Aerobico, Zona Media] debe coincidir con el JS del template
     datos_distribucion = [p_fuerza, p_aero, p_media]
 
-    # 5. GRÁFICO DE RENDIMIENTO SEMANAL (DERECHA) - CORRECCIÓN CRÍTICA
+    # 5. GRÁFICO DE RENDIMIENTO SEMANAL (Se mantiene intacto)
     rendimiento = []
-    # Usamos calendarios para no pifiarle a los días del mes actual
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
-    
-    # Definimos las semanas estrictas por número de día del mes
-    semanas_rangos = [
-        (1, 7), (8, 14), (15, 21), (22, ultimo_dia)
-    ]
+    semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
 
     for inicio, fin in semanas_rangos:
-        # Buscamos ejercicios cuya fecha_asignacion caiga en este rango
-        # IMPORTANTE: Si tus ejercicios NO tienen fecha_asignacion, esto dará 0%.
         ejercicios_segmento = Ejercicio.objects.filter(
             alumno=alumno,
             fecha_asignacion__year=hoy.year,
@@ -125,17 +117,11 @@ def dashboard(request):
             fecha_asignacion__day__gte=inicio,
             fecha_asignacion__day__lte=fin
         )
-        
-        total_seg = ejercicios_segmento.count()
-        hechos_seg = ejercicios_segmento.filter(completado=True).count()
-        
-        if total_seg > 0:
-            porc = round((hechos_seg / total_seg) * 100)
-        else:
-            porc = 0
-        rendimiento.append(porc)
+        t_seg = ejercicios_segmento.count()
+        h_seg = ejercicios_segmento.filter(completado=True).count()
+        rendimiento.append(round((h_seg / t_seg) * 100) if t_seg > 0 else 0)
 
-    # 6. VARIABLES ADICIONALES (Barras de arriba)
+    # 6. VARIABLES ADICIONALES
     dias_label = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
     for d in dias_label:
@@ -151,10 +137,9 @@ def dashboard(request):
         'progreso_dias': progreso_dias,
         'datos_distribucion': json.dumps(datos_distribucion),
         'rendimiento': json.dumps(rendimiento),
-        'dia_hoy': dia_hoy_esp,             # Esto arregla el título "Entrenamiento de Lunes"
-        'frase_motivadora': frase_motivadora # Esto recupera el mensaje de arriba
+        'dia_hoy': dia_hoy_esp,
+        'frase_motivadora': frase_motivadora
     })
-
 # --- ESTA ES LA FUNCIÓN QUE TE FALTA PARA QUE NO DE ERROR EL TEMPLATE ---
 @login_required
 def marcar_completado(request, ejercicio_id):
