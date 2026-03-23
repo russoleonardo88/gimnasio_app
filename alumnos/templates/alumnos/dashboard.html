@@ -342,32 +342,29 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'ok') {
-                        // 1. Alternar clase visual
-                        if (data.completado) {
-                            this.classList.add('completado');
-                        } else {
-                            this.classList.remove('completado');
-                        }
+                // 1. Alternar clase visual
+                if (data.completado) {
+                    this.classList.add('completado');
+                } else {
+                    this.classList.remove('completado');
+                }
 
-                        // 2. Actualizar Barra de Progreso
-                        document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
-                        document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
+                // 2. Actualizar Barra de Progreso
+                document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
+                document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
 
-                        // 3. Actualizar Gráfico de Dona (Distribución)
-                    if (chartDistribucion) {
-                        // Seteamos los nuevos datos en el primer dataset
-                        chartDistribucion.data.datasets.data = data.datos_distribucion;
-                        // 'active' fuerza a que la animación de giro/crecimiento se ejecute
-                        chartDistribucion.update('active'); 
-                    }
+                // 3. Actualizar Gráfico de Dona (Distribución)
+                if (chartDistribucion) {
+                    chartDistribucion.data.datasets[0].data = data.datos_distribucion;
+                    chartDistribucion.update('active'); 
+                }
 
-                        // 4. Actualizar Gráfico de Línea (Rendimiento)
-                        if (chartRendimiento) {
-                         // Seteamos los nuevos datos en el primer dataset
-                            chartRendimiento.data.datasets.data = data.rendimiento;
-                        // Esto hará que la línea suba o baje con animación
-                        chartRendimiento.update('active');
-                    }
+                // 4. Actualizar Gráfico de Línea (Rendimiento)
+                if (chartRendimiento) {
+                    chartRendimiento.data.datasets[0].data = data.rendimiento;
+                    chartRendimiento.update('active');
+                }
+                }
                 })
                 .catch(error => console.error('Error:', error));
             });
