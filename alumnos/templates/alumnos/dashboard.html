@@ -73,6 +73,7 @@
             text-decoration: none;
             transition: all 0.3s ease;
             position: relative;
+            cursor: pointer;
         }
 
         .ejercicio-card.completado {
@@ -170,17 +171,6 @@
             opacity: 1;
             color: #ff4444;
         }
-
-        .link-perfil {
-            display: inline-block;
-            color: var(--verde-neon);
-            text-decoration: none;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 10px 20px;
-            background: rgba(152, 207, 44, 0.05);
-            border-radius: 8px;
-        }
     </style>
 </head>
 <body>
@@ -201,33 +191,33 @@
             <div class="fila-tipo">Zona Media</div>
             {% for ejercicio in ejercicios_hoy %}
                 {% if ejercicio.tipo == 'ZONA_MEDIA' %}
-                <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
+                <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
                     <span style="font-size: 20px;">🏋️</span>
                     <strong>{{ ejercicio.nombre }}</strong>
                     <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </a>
+                </div>
                 {% endif %}
             {% endfor %}
 
             <div class="fila-tipo">Fuerza</div>
             {% for ejercicio in ejercicios_hoy %}
                 {% if ejercicio.tipo == 'FUERZA' %}
-                <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
+                <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
                     <span style="font-size: 20px;">💪</span>
                     <strong>{{ ejercicio.nombre }}</strong>
                     <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </a>
+                </div>
                 {% endif %}
             {% endfor %}
 
             <div class="fila-tipo">Aeróbico</div>
             {% for ejercicio in ejercicios_hoy %}
                 {% if ejercicio.tipo == 'AEROBICO' %}
-                <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
+                <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
                     <span style="font-size: 20px;">🏃</span>
                     <strong>{{ ejercicio.nombre }}</strong>
                     <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </a>
+                </div>
                 {% endif %}
             {% endfor %}
 
@@ -239,10 +229,10 @@
     <div style="width: 100%; max-width: 800px; margin-bottom: 25px;">
         <div style="display: flex; justify-content: space-between; font-size: 9px; font-weight: 800; margin-bottom: 5px;">
             <span style="color: var(--gris-texto);">PROGRESO DE HOY</span>
-            <span style="color: var(--verde-neon);">{{ progreso_hoy }}%</span>
+            <span id="texto-progreso" style="color: var(--verde-neon);">{{ progreso_hoy }}%</span>
         </div>
         <div style="width: 100%; height: 4px; background: #222; border-radius: 2px; overflow: hidden;">
-            <div style="width: {{ progreso_hoy }}%; height: 100%; background: var(--verde-neon); transition: width 0.3s ease;"></div>
+            <div id="barra-progreso" style="width: {{ progreso_hoy }}%; height: 100%; background: var(--verde-neon); transition: width 0.5s ease;"></div>
         </div>
     </div>
 
@@ -270,6 +260,10 @@
     </div>
 
     <script>
+    // Variables globales para los gráficos
+    let chartDistribucion;
+    let chartRendimiento;
+
     document.addEventListener('DOMContentLoaded', function () {
         const defaults = { 
             color: '#888888', 
@@ -282,7 +276,8 @@
         const datosDistribucion = JSON.parse('{{ datos_distribucion|safe|escapejs }}');
         const datosRendimiento = JSON.parse('{{ rendimiento|safe|escapejs }}');
 
-        new Chart(document.getElementById('graficoDistribucion'), {
+        // Inicializar Gráfico de Distribución
+        chartDistribucion = new Chart(document.getElementById('graficoDistribucion'), {
             type: 'doughnut',
             data: {
                 labels: ['Fuerza', 'Aeróbico', 'Zona Media'],
@@ -302,7 +297,8 @@
             }
         });
 
-        new Chart(document.getElementById('graficoIntensidad'), {
+        // Inicializar Gráfico de Rendimiento
+        chartRendimiento = new Chart(document.getElementById('graficoIntensidad'), {
             type: 'line',
             data: {
                 labels: ['S1', 'S2', 'S3', 'S4'],
@@ -316,6 +312,7 @@
             },
             options: {
                 maintainAspectRatio: false,
+                animation: { duration: 1000, easing: 'easeOutQuart' },
                 plugins: {
                     legend: { display: false },
                     title: { display: true, text: 'RENDIMIENTO POR SEMANA (%)', color: '#fff' }
@@ -325,6 +322,45 @@
                     x: { ticks: { color: '#fff' } }
                 }
             }
+        });
+
+        // Lógica de actualización AJAX
+        document.querySelectorAll('.btn-ejercicio').forEach(card => {
+            card.addEventListener('click', function() {
+                const ejercicioId = this.getAttribute('data-id');
+                const url = `/marcar_completado/${ejercicioId}/`; 
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        // 1. Alternar clase visual
+                        if (data.completado) {
+                            this.classList.add('completado');
+                        } else {
+                            this.classList.remove('completado');
+                        }
+
+                        // 2. Actualizar Barra de Progreso
+                        document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
+                        document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
+
+                        // 3. Actualizar Gráficos con animación
+                        chartDistribucion.data.datasets.data = data.datos_distribucion;
+                        chartDistribucion.update();
+
+                        chartRendimiento.data.datasets.data = data.rendimiento;
+                        chartRendimiento.update();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
         });
     });
     </script>

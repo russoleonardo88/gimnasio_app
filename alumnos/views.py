@@ -90,7 +90,6 @@ def dashboard(request):
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
     # 3. FRASE MOTIVADORA
-    # Nota: asistencias_semana no estaba definido, se usa un valor por defecto o lógica previa
     frase_motivadora = f"Llevás 5 días esta semana. ¡A darle! 🔥"
 
     # 4. GRÁFICO DE DISTRIBUCIÓN
@@ -107,7 +106,6 @@ def dashboard(request):
     # 5. GRÁFICO DE RENDIMIENTO SEMANAL
     rendimiento = []
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
-    
     semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
 
     for inicio, fin in semanas_rangos:
@@ -118,10 +116,8 @@ def dashboard(request):
             fecha_asignacion__day__gte=inicio,
             fecha_asignacion__day__lte=fin
         )
-        
         total_seg = ejercicios_segmento.count()
         hechos_seg = ejercicios_segmento.filter(completado=True).count()
-        
         porc = round((hechos_seg / total_seg) * 100) if total_seg > 0 else 0
         rendimiento.append(porc)
 
@@ -145,11 +141,71 @@ def dashboard(request):
         'frase_motivadora': frase_motivadora
     })
 
+@csrf_exempt
 @login_required
 def marcar_completado(request, ejercicio_id):
-    ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id, alumno__user=request.user)
-    ejercicio.completado = not ejercicio.completado
-    ejercicio.save()
+    """
+    Esta es la vista que maneja el AJAX para animar los gráficos.
+    """
+    if request.method == 'POST' or request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        try:
+            ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id, alumno__user=request.user)
+            alumno = ejercicio.alumno
+            
+            # 1. Cambiar estado
+            ejercicio.completado = not ejercicio.completado
+            ejercicio.ultima_vez_hecho = timezone.now()
+            ejercicio.save()
+            
+            # 2. Recalcular Progreso de Hoy
+            ejercicios_hoy = Ejercicio.objects.filter(alumno=alumno, dia_semana=ejercicio.dia_semana).distinct()
+            total_h = ejercicios_hoy.count()
+            hechos_h = ejercicios_hoy.filter(completado=True).count()
+            nuevo_progreso = int((hechos_h / total_h * 100)) if total_h > 0 else 0
+            
+            # Guardar asistencia automáticamente
+            asistencia, _ = Asistencia.objects.get_or_create(alumno=alumno, fecha=timezone.now().date())
+            asistencia.porcentaje_completado = nuevo_progreso
+            asistencia.save()
+
+            # 3. Recalcular Datos Distribución (Dona)
+            realizados_hoy = ejercicios_hoy.filter(completado=True)
+            # Si no hay nada hoy, usamos toda la rutina como fallback (igual que en tu dashboard)
+            fuente_d = realizados_hoy if realizados_hoy.exists() else Ejercicio.objects.filter(alumno=alumno)
+            t_d = fuente_d.count() or 1
+            p_fuerza = round((fuente_d.filter(tipo='FUERZA').count() / t_d) * 100)
+            p_aero = round((fuente_d.filter(tipo='AEROBICO').count() / t_d) * 100)
+            p_media = round((fuente_d.filter(tipo='ZONA_MEDIA').count() / t_d) * 100)
+            
+            # 4. Recalcular Rendimiento Semanal (Línea)
+            hoy = timezone.now()
+            rendimiento_lista = []
+            _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
+            semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
+
+            for inicio, fin in semanas_rangos:
+                ejercicios_segmento = Ejercicio.objects.filter(
+                    alumno=alumno,
+                    fecha_asignacion__year=hoy.year,
+                    fecha_asignacion__month=hoy.month,
+                    fecha_asignacion__day__gte=inicio,
+                    fecha_asignacion__day__lte=fin
+                )
+                ts = ejercicios_segmento.count()
+                hs = ejercicios_segmento.filter(completado=True).count()
+                rendimiento_lista.append(round((hs / ts) * 100) if ts > 0 else 0)
+
+            return JsonResponse({
+                'status': 'ok',
+                'completado': ejercicio.completado,
+                'progreso_hoy': nuevo_progreso,
+                'datos_distribucion': [p_fuerza, p_aero, p_media],
+                'rendimiento': rendimiento_lista
+            })
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    
+    # Fallback por si entran por URL directo (no debería con AJAX)
     return redirect('dashboard_alumno')
 
 @login_required
@@ -175,6 +231,7 @@ def mi_rutina(request):
 @csrf_exempt
 @login_required
 def marcar_ejercicio_hecho(request, ejercicio_id):
+    # Esta función es redundante con marcar_completado, pero la mantengo por si la usas en otra parte.
     if request.method == 'POST':
         try:
             ejercicio = Ejercicio.objects.get(id=ejercicio_id, alumno__user=request.user)
