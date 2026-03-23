@@ -81,9 +81,14 @@
         }
         
         @media (max-width: 600px) {
-            .contenedor-graficos { grid-template-columns: 1fr; }
+            .contenedor-graficos { 
+                grid-template-columns: 1fr; 
+                gap: 35px; /* Esto separa los gráficos cuando se ponen uno arriba del otro */
+            }
+            .grafico-card {
+                margin-bottom: 10px; /* Refuerzo de separación inferior */
+            }
         }
-
         .grafico-card { background: var(--negro-card); border: 1px solid var(--gris-borde); border-radius: 16px; padding: 15px; height: 250px; }
 
         .footer-links { text-align: center; margin-top: auto; padding: 20px 0; width: 100%; max-width: 800px; }
