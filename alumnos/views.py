@@ -70,35 +70,34 @@ def dashboard(request):
             'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
         })
 
-    # Lógica de progreso semanal
-    dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
-    progreso_dias = []
-    todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
-
-    for dia in dias_semana:
-        ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).distinct()
-        total = ejercicios_dia.count()
-        completados = ejercicios_dia.filter(completado=True).count()
-        porcentaje = int((completados / total * 100)) if total > 0 else 0
-        progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
-
+    # =========================================================================
+    # RECONSTRUCCIÓN DINÁMICA DE EJERCICIOS Y CHECKS
+    # =========================================================================
+    hoy = timezone.now()
+    
+    # 1. Diccionario para traducir el día de hoy (Sábado y Domingo redirigen a Lunes)
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes', 
         'Saturday': 'Lunes', 'Sunday': 'Lunes'
     }
-    dia_hoy_esp = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
-    ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
+    
+    # 2. Obtener el día actual en español (ej: "Lunes")
+    dia_hoy_esp = traduccion_dias.get(hoy.strftime('%A'), 'Lunes')
 
-    asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
-    hace_una_semana = timezone.now().date() - timedelta(days=7)
-    asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
+    # 3. Filtrar y ordenar los ejercicios de HOY por tipo (para el Grid responsivo)
+    # Obtenemos los ejercicios del día actual para mostrarlos uno abajo del otro
+    ejercicios_hoy = Ejercicio.objects.filter(
+        alumno=alumno, 
+        dia_semana=dia_hoy_esp
+    ).order_by('tipo') # Ordenar por tipo para que la cuadrícula se vea más organizada
 
-    # --- DATOS PARA LOS GRÁFICOS ---
-    hoy = timezone.now()
+    # =========================================================================
+    # LÓGICA DE ESTADÍSTICAS Y GRÁFICOS (Mantenida intacta)
+    # =========================================================================
 
-    # --- NUEVA LÓGICA: DISTRIBUCIÓN DE ENTRENAMIENTO ---
-    # Corrección de indentación y uso de la variable 'alumno' ya definida arriba
+    # --- DATOS PARA DISTRIBUCIÓN DE ENTRENAMIENTO (Dona) ---
+    todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
     ejercicios_hechos = todos_ejercicios.filter(completado=True)
     total_completados = ejercicios_hechos.count()
 
@@ -112,15 +111,12 @@ def dashboard(request):
 
     datos_distribucion = [p_fuerza, p_aero]
 
-    # --- RENDIMIENTO POR SEMANA ---
+    # --- DATOS PARA RENDIMIENTO POR SEMANA (Línea) ---
     rendimiento = []
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
 
     semanas = [
-        (1, 7),
-        (8, 14),
-        (15, 21),
-        (22, ultimo_dia)
+        (1, 7), (8, 14), (15, 21), (22, ultimo_dia)
     ]
 
     for inicio, fin in semanas:
@@ -142,13 +138,16 @@ def dashboard(request):
 
         rendimiento.append(porcentaje)
 
+    # Lógica de progreso semanal que ya tenías (ej: Llevás 4 días esta semana)
+    hace_una_semana = hoy.date() - timedelta(days=7)
+    asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
+
     return render(request, 'alumnos/dashboard.html', {
         'datos_distribucion': json.dumps(datos_distribucion), 
         'rendimiento': json.dumps(rendimiento),
         'alumno': alumno,
-        'progreso_dias': progreso_dias,
-        'asistencias': asistencias_recientes,
-        'ejercicios_hoy': ejercicios_hoy,
+        'dia_hoy_esp': dia_hoy_esp, # Pasamos el día actual para el título
+        'ejercicios_hoy': ejercicios_hoy, # Pasamos la lista de ejercicios del día
         'asistencias_semana': asistencias_semana,
         'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
     })
