@@ -116,12 +116,19 @@ def dashboard(request):
 
     datos_distribucion = [p_fuerza, p_aero, p_media]
 
-    # 4. Datos para Gráfico de Rendimiento (Línea)
+    # --- RENDIMIENTO POR SEMANA (CORREGIDO) ---
     rendimiento = []
-    _, ultimo_dia_mes = calendar.monthrange(hoy.year, hoy.month)
-    semanas = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia_mes)]
+    
+    # Definimos los rangos de días para cada punto del gráfico
+    semanas = [
+        (1, 7),   # S1
+        (8, 14),  # S2
+        (15, 21), # S3
+        (22, 31)  # S4 (Ajustado al fin de mes)
+    ]
 
     for inicio, fin in semanas:
+        # Filtramos ejercicios que pertenezcan EXACTAMENTE a ese rango de días del mes actual
         ejercicios_semana = Ejercicio.objects.filter(
             alumno=alumno,
             fecha_asignacion__year=hoy.year,
@@ -129,9 +136,17 @@ def dashboard(request):
             fecha_asignacion__day__gte=inicio,
             fecha_asignacion__day__lte=fin
         )
-        asig = ejercicios_semana.count()
-        real = ejercicios_semana.filter(completado=True).count()
-        rendimiento.append(round((real / asig * 100)) if asig > 0 else 0)
+
+        total_semana = ejercicios_semana.count()
+        # Solo contamos los que REALMENTE están marcados como completado=True
+        completados_semana = ejercicios_semana.filter(completado=True).count()
+
+        if total_semana > 0:
+            porcentaje = round((completados_semana / total_semana) * 100)
+        else:
+            porcentaje = 0
+        
+        rendimiento.append(porcentaje)
 
     # --- EL RETURN CON TODAS LAS VARIABLES (Esto es lo que arregla todo) ---
     return render(request, 'alumnos/dashboard.html', {
