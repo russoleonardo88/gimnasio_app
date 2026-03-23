@@ -200,45 +200,84 @@
     <h3 class="seccion-titulo">Entrenamiento de {{ dia_hoy|upper }}</h3>
     
     <div class="contenedor-ejercicios">
-        {% if ejercicios_hoy %}
+    {% if ejercicios_hoy %}
+        
+        <div class="fila-tipo">Zona Media</div>
+        {% for ejercicio in ejercicios_hoy %}
+            {% if ejercicio.tipo == 'ZONA_MEDIA' %}
+            <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
+                
+                <svg class="icono-ejercicio-neon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M44.5 16C44.5 19.3137 41.8137 22 38.5 22C35.1863 22 32.5 19.3137 32.5 16C32.5 12.6863 35.1863 10 38.5 10C41.8137 10 44.5 12.6863 44.5 16Z" stroke="#98cf2c" stroke-width="2"/>
+                    <path d="M12 40V44M12 44H16M12 44L8 48M28 28H24V32M24 32V36M24 32H20M52 40L56 44M52 40H48V44M52 40L48 36" stroke="#98cf2c" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M4 32C4 47.464 16.536 60 32 60C47.464 60 60 47.464 60 32C60 16.536 47.464 4 32 4C16.536 4 4 16.536 4 32Z" stroke="#98cf2c" stroke-width="1" stroke-dasharray="2 2"/>
+                    <path d="M38.5 22V28M38.5 28H44.5M38.5 28H32.5M38.5 22H32.5M32.5 28V36M32.5 36V44M32.5 44H38.5M38.5 44V36M32.5 36H28" stroke="#98cf2c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+
+                <strong>{{ ejercicio.nombre }}</strong>
+                <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
+            </a>
+            {% endif %}
+        {% endfor %}
+
+        <div class="fila-tipo">Fuerza</div>
+        {% for ejercicio in ejercicios_hoy %}
+            {% if ejercicio.tipo == 'FUERZA' %}
+            <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
+                
+                <svg class="icono-ejercicio-neon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M48 32C48 36.4183 44.4183 40 40 40C35.5817 40 32 36.4183 32 32C32 27.5817 35.5817 24 40 24C44.4183 24 48 27.5817 48 32Z" stroke="#98cf2c" stroke-width="2"/>
+                    <path d="M16 32C16 36.4183 19.5817 40 24 40C28.4183 40 32 36.4183 32 32C32 27.5817 28.4183 24 24 24C19.5817 24 16 27.5817 16 32Z" stroke="#98cf2c" stroke-width="2"/>
+                    <path d="M32 32H40M32 32H24M32 32V24M32 32V16M32 32V8" stroke="#98cf2c" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M8 32H16M56 32H48M4 32C4 47.464 16.536 60 32 60C47.464 60 60 47.464 60 32C60 16.536 47.464 4 32 4C16.536 4 4 16.536 4 32Z" stroke="#98cf2c" stroke-width="1" stroke-dasharray="2 2"/>
+                </svg>
+
+                <strong>{{ ejercicio.nombre }}</strong>
+                <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
+            </a>
+            {% endif %}
+        {% endfor %}
+
+        <div class="fila-tipo">Aeróbico</div>
+        {% for ejercicio in ejercicios_hoy %}
+            {% if ejercicio.tipo == 'AEROBICO' %}
+            <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
+                
+                <svg class="icono-ejercicio-neon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M30 14C30 17.3137 27.3137 20 24 20C20.6863 20 18 17.3137 18 14C18 10.6863 20.6863 8 24 8C27.3137 8 30 10.6863 30 14Z" stroke="#98cf2c" stroke-width="2"/>
+                    <path d="M12 40L8 36M12 40H16M12 40L16 44M32 32L36 36M32 32V28M32 32H28M48 24L44 20M48 24H52M48 24V28" stroke="#98cf2c" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M4 32C4 47.464 16.536 60 32 60C47.464 60 60 47.464 60 32C60 16.536 47.464 4 32 4C16.536 4 4 16.536 4 32Z" stroke="#98cf2c" stroke-width="1" stroke-dasharray="2 2"/>
+                    <path d="M24 20V28M24 28H18M24 28H30M18 28V36M18 36V44M18 44H24M24 44V36M18 36H14" stroke="#98cf2c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M32 32L24 28" stroke="#98cf2c" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+
+                <strong>{{ ejercicio.nombre }}</strong>
+                <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
+            </a>
+            {% endif %}
+        {% endfor %}
+
+    {% else %}
+        <div style="grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 20px;">
             
-            <div class="fila-tipo">Zona Media</div>
-            {% for ejercicio in ejercicios_hoy %}
-                {% if ejercicio.tipo == 'ZONA_MEDIA' %}
-                <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
-                    <span style="font-size: 20px;">🏋️</span>
-                    <strong>{{ ejercicio.nombre }}</strong>
-                    <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </a>
-                {% endif %}
-            {% endfor %}
+            <svg class="icono-descanso-neon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M30 14C30 17.3137 27.3137 20 24 20C20.6863 20 18 17.3137 18 14C18 10.6863 20.6863 8 24 8C27.3137 8 30 10.6863 30 14Z" stroke="#98cf2c" stroke-width="2"/>
+                <path d="M12 40L8 36M12 40H16M12 40L16 44" stroke="#98cf2c" stroke-width="2" stroke-linecap="round"/>
+                <path d="M4 32C4 47.464 16.536 60 32 60C47.464 60 60 47.464 60 32C60 16.536 47.464 4 32 4C16.536 4 4 16.536 4 32Z" stroke="#98cf2c" stroke-width="1" stroke-dasharray="2 2"/>
+                <path d="M24 20V28M24 28H18M24 28H30M18 28V36M18 36V44M18 44H24" stroke="#98cf2c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M18 36H14" stroke="#98cf2c" stroke-width="2" stroke-linecap="round"/>
+                <path d="M28 28H24V32M24 32V36M24 32H20" stroke="#98cf2c" stroke-width="2" stroke-linecap="round"/>
+                <path d="M38.5 22V28M38.5 28H44.5M38.5 28H32.5M38.5 22H32.5M32.5 28V36M32.5 36V44M32.5 44H38.5M38.5 44V36M32.5 36H28" stroke="#98cf2c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M32 20C32.5 18 33.5 17 35 17" stroke="#98cf2c" stroke-width="1" stroke-dasharray="2 2"/>
+                <path d="M22 17C20.5 17 19.5 18 19 20" stroke="#98cf2c" stroke-width="1" stroke-dasharray="2 2"/>
+            </svg>
 
-            <div class="fila-tipo">Fuerza</div>
-            {% for ejercicio in ejercicios_hoy %}
-                {% if ejercicio.tipo == 'FUERZA' %}
-                <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
-                    <span style="font-size: 20px;">💪</span>
-                    <strong>{{ ejercicio.nombre }}</strong>
-                    <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </a>
-                {% endif %}
-            {% endfor %}
-
-            <div class="fila-tipo">Aeróbico</div>
-            {% for ejercicio in ejercicios_hoy %}
-                {% if ejercicio.tipo == 'AEROBICO' %}
-                <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
-                    <span style="font-size: 20px;">🏃</span>
-                    <strong>{{ ejercicio.nombre }}</strong>
-                    <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </a>
-                {% endif %}
-            {% endfor %}
-
-        {% else %}
-            <p style="grid-column: 1/-1; color: #444; text-align: center; font-size: 12px;">Hoy es día de descanso. 🧘</p>
-        {% endif %}
-    </div>
+            <p style="color: var(--gris-texto); text-align: center; font-size: 11px; margin: 0; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                Hoy es día de descanso. ¡Disfrutá tus laureles! 🌿
+            </p>
+        </div>
+    {% endif %}
+</div>
 
     <div style="width: 100%; max-width: 800px; margin-bottom: 25px;">
         <div style="display: flex; justify-content: space-between; font-size: 9px; font-weight: 800; margin-bottom: 5px;">
