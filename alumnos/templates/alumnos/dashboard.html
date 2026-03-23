@@ -4,107 +4,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aquiles Gym - Mi Entrenamiento</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>Dashboard - Aquiles Gym</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --negro-fondo: #000000;
-            --negro-card: #121212;
+            --negro-fondo: #0a0a0a;
+            --negro-card: #141414;
             --verde-neon: #98cf2c;
-            --gris-texto: #a0a0a0;
             --blanco: #ffffff;
+            --gris-texto: #888888;
+            --gris-borde: #222222;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--negro-fondo);
             color: var(--blanco);
-            margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
-        }
-
-        /* HEADER ESTILO RECEPCIÓN */
-        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .header h1 { font-size: 22px; font-weight: 900; text-transform: uppercase; margin: 0; letter-spacing: 1px; }
-        .header p { color: var(--verde-neon); font-size: 12px; margin: 5px 0 0 0; text-transform: uppercase; font-weight: 700; }
-        .logo-casco { width: 45px; height: 45px; filter: drop-shadow(0 0 5px var(--verde-neon)); }
-
-        .seccion-titulo { 
-            font-size: 11px; font-weight: 900; color: var(--gris-texto); 
-            margin: 20px 0 15px 0; text-transform: uppercase; letter-spacing: 2px; 
-            width: 100%; max-width: 800px; border-left: 3px solid var(--verde-neon); padding-left: 10px;
-        }
-
-        /* GRID DE EJERCICIOS (2 POR FILA) */
-        .ejercicios-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            width: 100%;
-            max-width: 800px;
-        }
-
-        .ejercicio-card {
-            background: var(--negro-card);
-            border: 1px solid #222;
-            border-radius: 20px;
+            margin: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
-            position: relative;
-            transition: all 0.3s ease;
-            cursor: pointer;
         }
 
-        /* ICONOS SVG DINÁMICOS */
-        .icon-svg {
-            width: 40px; height: 40px;
-            color: var(--verde-neon);
-            margin-bottom: 12px;
-            filter: drop-shadow(0 0 8px rgba(152, 207, 44, 0.4));
+        .header {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
         }
 
-        .ejercicio-info h3 { font-size: 13px; margin: 0; text-transform: uppercase; font-weight: 900; }
-        .ejercicio-info p { font-size: 11px; color: var(--gris-texto); margin: 5px 0 0 0; font-weight: 700; }
-
-        /* ESTADO COMPLETADO */
-        .ejercicio-card.completado {
-            border-color: var(--verde-neon);
-            background: #050505;
-            opacity: 0.6;
+        .header h1 {
+            font-size: 20px;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin: 0;
         }
-        .ejercicio-card.completado .icon-svg { color: #333; filter: none; }
-        .ejercicio-card.completado h3 { text-decoration: line-through; color: #444; }
 
-        /* INDICADOR CHECK */
-        .check-badge {
-            position: absolute; top: 10px; right: 10px;
-            width: 18px; height: 18px;
-            border: 2px solid #333; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 10px; color: transparent;
+        .header p {
+            color: var(--gris-texto);
+            font-size: 13px;
+            margin: 5px 0 0 0;
         }
-        .completado .check-badge { background: var(--verde-neon); border-color: var(--verde-neon); color: #000; }
 
-        /* GRÁFICOS COMPACTOS */
-        .contenedor-graficos { 
-            width: 100%; max-width: 800px; 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px;
+        .logo-casco {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            opacity: 0.8;
         }
-        .grafico-card { background: var(--negro-card); border: 1px solid #222; border-radius: 16px; padding: 15px; height: 200px; }
+
+        .card-seccion {
+            width: 100%;
+            max-width: 800px;
+            background: var(--negro-card);
+            border: 1px solid var(--gris-borde);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-sizing: border-box;
+        }
+
+        .progreso-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .progreso-link:active {
+            transform: scale(0.97);
+        }
+
+        .progreso-link:hover {
+            opacity: 0.9;
+        }
+
+        .seccion-titulo {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gris-texto);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .progreso-item {
+            margin-bottom: 15px;
+        }
+
+        .progreso-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .barra-fondo {
+            background: #222;
+            height: 6px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .barra-relleno {
+            background: var(--verde-neon);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .actividad-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .check-estetico {
+            width: 24px;
+            height: 24px;
+            background-color: var(--verde-neon);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--negro-fondo);
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .contenedor-graficos {
+            width: 100%;
+            max-width: 800px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
 
         @media (max-width: 600px) {
-            .contenedor-graficos { grid-template-columns: 1fr; }
+            .contenedor-graficos {
+                grid-template-columns: 1fr;
+                gap: 35px;
+            }
+            .grafico-card {
+                margin-bottom: 10px;
+            }
         }
 
-        .footer-btns { margin-top: 40px; display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 800px; }
-        .btn-secundario { 
-            text-align: center; text-decoration: none; color: var(--gris-texto); 
-            font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 15px;
-            border: 1px solid #222; border-radius: 10px;
+        .grafico-card {
+            background: var(--negro-card);
+            border: 1px solid var(--gris-borde);
+            border-radius: 16px;
+            padding: 15px;
+            height: 250px;
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: auto;
+            padding: 20px 0;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .link-perfil {
+            display: inline-block;
+            color: var(--verde-neon);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 10px 20px;
+            background: rgba(152, 207, 44, 0.05);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .link-logout {
+            display: block;
+            color: #444;
+            text-decoration: none;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -113,44 +207,51 @@
     <div class="header">
         <div>
             <h1>HOLA, {{ user.first_name|upper }}</h1>
-            <p>HOY ES {{ dia|upper }} • MI RUTINA</p>
+            <p>{{ mensaje_motivador }}</p>
         </div>
-        <img src="{% static 'img/logo_aquiles.png' %}" class="logo-casco">
+        <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-casco">
     </div>
 
-    <h3 class="seccion-titulo">Ejercicios de Hoy</h3>
-    
-    <div class="ejercicios-grid">
-        {% for ejercicio in ejercicios %}
-        <div class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}" 
-             id="check-{{ ejercicio.id }}" 
-             onclick="toggleEjercicio('{{ ejercicio.id }}')">
-            
-            <div class="check-badge">✓</div>
-
-            <div class="categoria-icon">
-                {% if ejercicio.tipo == 'FUERZA' %}
-                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 20h12M6 4h12M12 4v16M8 8h8M8 16h8"/></svg>
-                {% elif ejercicio.tipo == 'AERÓBICO' or ejercicio.tipo == 'AEROBICO' %}
-                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                {% else %}
-                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-                {% endif %}
+    <h3 class="seccion-titulo">Mi Rutina Semanal (L-V)</h3>
+    <div class="card-seccion">
+        {% for item in progreso_dias %}
+        <a href="{% url 'mi_rutina' %}?dia={{ item.nombre }}" class="progreso-link">
+            <div class="progreso-item">
+                <div class="progreso-info">
+                    <span>{{ item.nombre }}</span>
+                    <span style="color: var(--verde-neon);">{{ item.porcentaje }}%</span>
+                </div>
+                <div class="barra-fondo">
+                    <div class="barra-relleno" style="width: {{ item.porcentaje }}%;"></div>
+                </div>
             </div>
-
-            <div class="ejercicio-info">
-                <h3>{{ ejercicio.nombre }}</h3>
-                <p>{{ ejercicio.series }}x{{ ejercicio.reps }} | {{ ejercicio.peso }}kg</p>
-            </div>
-        </div>
+        </a>
         {% empty %}
-            <p style="grid-column: span 2; text-align: center; color: var(--gris-texto);">Hoy es día de descanso. 🧘‍♂️</p>
+        <p style="color: #444; text-align: center; font-size: 12px;">Sin rutina asignada.</p>
         {% endfor %}
     </div>
 
-    <h3 class="seccion-titulo">Estadísticas Semanales</h3>
+    <h3 class="seccion-titulo">Último Entrenamiento</h3>
+    <div class="card-seccion">
+        {% if dia_ultimo and dia_ultimo != "Sin actividad" %}
+            <div class="actividad-item">
+                <div>
+                    <strong style="color: var(--blanco); text-transform: uppercase;">{{ dia_ultimo }}</strong>
+                    <p style="color: var(--gris-texto); margin: 3px 0 0 0; font-size: 12px;">Completaste el {{ progreso_ultimo }}% de tu rutina.</p>
+                </div>
+                <div class="check-estetico">✓</div>
+            </div>
+        {% else %}
+            <p style="color: #444; text-align: center; font-size: 12px;">Sin actividad registrada esta semana.</p>
+        {% endif %}
+    </div>
+
+    <h3 class="seccion-titulo">Estadísticas</h3>
     <div class="contenedor-graficos">
         <div class="grafico-card">
+            <h4 style="color: #fff; text-align: center; font-size: 11px; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                Distribución de Cargas (%)
+            </h4>
             <canvas id="graficoDistribucion"></canvas>
         </div>
         <div class="grafico-card">
@@ -158,121 +259,121 @@
         </div>
     </div>
 
-    <div class="footer-btns">
-        <a href="{% url 'cambiar_password' %}" class="btn-secundario">Cambiar Contraseña</a>
-        <a href="{% url 'logout' %}" class="btn-secundario" style="color: #666;">Cerrar Sesión</a>
+    <div class="footer-links">
+        <a href="{% url 'cambiar_password' %}" class="link-perfil">
+            ⚙️ CAMBIAR CLAVE
+        </a>
+        <a href="{% url 'logout' %}" class="link-logout">
+            CERRAR SESIÓN DE {{ user.first_name|upper }}
+        </a>
     </div>
 
     <script>
-    function toggleEjercicio(ejercicioId) {
-        const card = document.getElementById(`check-${ejercicioId}`);
-        if (!card) return;
-
-        card.style.pointerEvents = 'none';
-
-        fetch(`/marcar-hecho/${ejercicioId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'ok') {
-                if (data.completado) {
-                    card.classList.add('completado');
-                } else {
-                    card.classList.remove('completado');
-                }
-            }
-            card.style.pointerEvents = 'auto';
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            card.style.pointerEvents = 'auto';
-        });
-    }
-
-    // --- LÓGICA DE GRÁFICOS (Mantenida de tu dashboard original) ---
     document.addEventListener('DOMContentLoaded', function () {
-        const ctxDist = document.getElementById('graficoDistribucion');
-        const ctxInt = document.getElementById('graficoIntensidad');
-        
         const defaults = {
-        color: '#888888',
-        font: { family: "'Inter', sans-serif", size: 10 },
-        grid: { color: '#222222' }
-    };
-
-    Chart.defaults.color = defaults.color;
-    Chart.defaults.font = defaults.font;
-    Chart.defaults.scale.grid = defaults.grid;
-
-    // Estos son los datos que vienen del servidor (Django)
-    const datosDistribucion = {{ datos_distribucion|safe }};
-    const datosRendimiento = {{ rendimiento|safe }};
-
-    // --- GRÁFICO DE DONA (DISTRIBUCIÓN) ---
-    const ctxDist = document.getElementById('graficoDistribucion');
-    if (ctxDist) {
-        new Chart(ctxDist, {
-            type: 'doughnut',
-            data: {
-                labels: ['Fuerza', 'Aeróbico'],
-                datasets: [{
-                    data: datosDistribucion,
-                    backgroundColor: ['#98cf2c', '#1a1a1a'], // Verde Aquiles y Gris Oscuro
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
+            color: '#888888',
+            font: { 
+                family: "'Inter', sans-serif", 
+                size: 10 
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '75%',
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: { color: '#888', font: { size: 10, weight: '700' } }
+            grid: { 
+                color: '#222222' 
+            }
+        };
+
+        Chart.defaults.color = defaults.color;
+        Chart.defaults.font = defaults.font;
+        Chart.defaults.scale.grid = defaults.grid;
+
+        // Datos seguros desde Django
+        const datosDistribucion = {{ datos_distribucion|safe|default:"[]" }};
+        const datosRendimiento = {{ rendimiento|safe|default:"[]" }};
+
+        // Gráfico de Distribución (Dona)
+        const ctxDist = document.getElementById('graficoDistribucion');
+        if (ctxDist) {
+            new Chart(ctxDist, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Fuerza', 'Aeróbico'],
+                    datasets: [{
+                        data: datosDistribucion,
+                        backgroundColor: ['#98cf2c', '#222222'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                color: '#888',
+                                padding: 15,
+                                font: { size: 10, weight: '700' }
+                            }
+                        }
                     }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    // --- GRÁFICO DE LÍNEA (RENDIMIENTO) ---
-    const ctxInt = document.getElementById('graficoIntensidad');
-    if (ctxInt) {
-        new Chart(ctxInt, {
-            type: 'line',
-            data: {
-                labels: ['S1', 'S2', 'S3', 'S4'],
-                datasets: [{
-                    label: 'Rendimiento %',
-                    data: datosRendimiento,
-                    borderColor: '#98cf2c',
-                    backgroundColor: '#98cf2c',
-                    tension: 0.3,
-                    fill: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    title: { display: true, text: 'RENDIMIENTO MENSUAL (%)', color: '#fff', font: { size: 10, weight: '900' } }
+        // Gráfico de Intensidad / Rendimiento (Línea)
+        const ctxInt = document.getElementById('graficoIntensidad');
+        if (ctxInt) {
+            new Chart(ctxInt, {
+                type: 'line',
+                data: {
+                    labels: ['S1', 'S2', 'S3', 'S4'],
+                    datasets: [{
+                        label: 'Intensidad %',
+                        data: datosRendimiento,
+                        borderColor: '#98cf2c',
+                        backgroundColor: '#98cf2c',
+                        tension: 0.3,
+                        fill: false
+                    }]
                 },
-                scales: {
-                    y: { min: 0, max: 100, ticks: { color: '#666' } },
-                    x: { ticks: { color: '#666' } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'RENDIMIENTO (%)',
+                            color: '#fff'
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            min: 0,
+                            max: 100,
+                            ticks: { color: '#fff' }
+                        },
+                        x: {
+                            ticks: { color: '#fff' }
+                        }
+                    }
                 }
-            }
-        });
-    }
-});
+            });
+        }
+    });
+    </script>
+
+    <script>
+        (function () {
+            window.addEventListener('pageshow', function (event) {
+                if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {
+                    window.location.reload();
+                }
+            });
+            window.onunload = function () {};
+        })();
     </script>
 </body>
 </html>
