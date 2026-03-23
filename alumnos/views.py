@@ -66,6 +66,7 @@ def dashboard(request):
     try:
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
+        # Si el usuario no tiene un perfil de Alumno creado
         return render(request, 'alumnos/dashboard.html', {
             'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
         })
@@ -86,51 +87,40 @@ def dashboard(request):
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes',
-        'Saturday': 'Lunes', 'Sunday': 'Lunes'
+        'Saturday': 'Lunes', 'Sunday': 'Lunes' # Redirigimos finde a Lunes o lo que prefieras
     }
 
-    # Determinamos qué día es hoy para mostrar la rutina específica en el panel
+    # Determinamos qué día es hoy
     dia_hoy_nombre = timezone.now().strftime('%A')
     dia_hoy_esp = traduccion_dias.get(dia_hoy_nombre, 'Lunes')
     
-    # Filtramos los ejercicios que se verán en el panel "Último Entrenamiento" (ahora Entrenamiento de Hoy)
+    # Ejercicios de hoy
     ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
 
-    # Cálculo de progreso específico de hoy para la barra de progreso del panel
+    # Cálculo de progreso hoy
     total_hoy = ejercicios_hoy.count()
     completados_hoy = ejercicios_hoy.filter(completado=True).count()
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
+    # Asistencias
     asistencias_recientes = Asistencia.objects.filter(alumno=alumno).order_by('-fecha')[:5]
     hace_una_semana = timezone.now().date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
 
-    # --- DATOS PARA LOS GRÁFICOS ---
+    # --- DATOS PARA GRÁFICOS ---
     hoy = timezone.now()
-
-    # --- NUEVA LÓGICA: DISTRIBUCIÓN DE ENTRENAMIENTO ---
     total_e = todos_ejercicios.count()
     c_fuerza = todos_ejercicios.filter(tipo='FUERZA').count()
     c_aero = todos_ejercicios.filter(tipo='AEROBICO').count()
 
-    if total_e > 0:
-        p_fuerza = round((c_fuerza / total_e) * 100)
-        p_aero = round((c_aero / total_e) * 100)
-    else:
-        p_fuerza, p_aero = 0, 0
-
+    p_fuerza = round((c_fuerza / total_e) * 100) if total_e > 0 else 0
+    p_aero = round((c_aero / total_e) * 100) if total_e > 0 else 0
     datos_distribucion = [p_fuerza, p_aero]
 
     # --- RENDIMIENTO POR SEMANA ---
     rendimiento = []
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
-
-    semanas = [
-        (1, 7),
-        (8, 14),
-        (15, 21),
-        (22, ultimo_dia)
-    ]
+    semanas = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
 
     for inicio, fin in semanas:
         ejercicios_semana = Ejercicio.objects.filter(
@@ -140,16 +130,9 @@ def dashboard(request):
             fecha_asignacion__day__gte=inicio,
             fecha_asignacion__day__lte=fin
         )
-
-        asignados = ejercicios_semana.count()
-        realizados = ejercicios_semana.filter(completado=True).count()
-
-        if asignados > 0:
-            porcentaje = round((realizados / asignados) * 100)
-        else:
-            porcentaje = 0
-
-        rendimiento.append(porcentaje)
+        asig = ejercicios_semana.count()
+        real = ejercicios_semana.filter(completado=True).count()
+        rendimiento.append(round((real / asig) * 100) if asig > 0 else 0)
 
     return render(request, 'alumnos/dashboard.html', {
         'datos_distribucion': json.dumps(datos_distribucion),
@@ -163,6 +146,14 @@ def dashboard(request):
         'asistencias_semana': asistencias_semana,
         'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
     })
+
+# --- ESTA ES LA FUNCIÓN QUE TE FALTA PARA QUE NO DE ERROR EL TEMPLATE ---
+@login_required
+def marcar_completado(request, ejercicio_id):
+    ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id, alumno__user=request.user)
+    ejercicio.completado = not ejercicio.completado
+    ejercicio.save()
+    return redirect('dashboard')
 
 
 @login_required
