@@ -67,7 +67,6 @@ def dashboard(request):
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
         return render(request, 'alumnos/dashboard.html', {
-        'ejercicios_hoy': ejercicios_hoy, # <--- Este nombre es clave
             'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
         })
 
@@ -76,29 +75,29 @@ def dashboard(request):
     # =========================================================================
     hoy = timezone.now()
     
-    # 1. Diccionario para traducir el día de hoy (Sábado y Domingo redirigen a Lunes)
+    # 1. Diccionario para traducir el día de hoy
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes', 
         'Saturday': 'Lunes', 'Sunday': 'Lunes'
     }
     
-    # 2. Obtener el día actual en español (ej: "Lunes")
+    # 2. Obtener el día actual en español
     dia_hoy_esp = traduccion_dias.get(hoy.strftime('%A'), 'Lunes')
 
-    # 3. Filtrar y ordenar los ejercicios de HOY por tipo (para el Grid responsivo)
-    # Obtenemos los ejercicios del día actual para mostrarlos uno abajo del otro
-    ejercicios_hoy = todos_ejercicios.filter(dia_semana__iexact=dia_hoy_esp)
-        alumno=alumno, 
-        dia_semana=dia_hoy_esp
-    ).order_by('tipo') # Ordenar por tipo para que la cuadrícula se vea más organizada
+    # 3. Definir todos los ejercicios del alumno primero
+    todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
+
+    # 4. Filtrar los ejercicios de HOY (Corregido: sintaxis limpia)
+    ejercicios_hoy = todos_ejercicios.filter(
+        dia_semana__iexact=dia_hoy_esp
+    ).order_by('tipo')
 
     # =========================================================================
-    # LÓGICA DE ESTADÍSTICAS Y GRÁFICOS (Mantenida intacta)
+    # LÓGICA DE ESTADÍSTICAS Y GRÁFICOS
     # =========================================================================
 
     # --- DATOS PARA DISTRIBUCIÓN DE ENTRENAMIENTO (Dona) ---
-    todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
     ejercicios_hechos = todos_ejercicios.filter(completado=True)
     total_completados = ejercicios_hechos.count()
 
@@ -121,8 +120,7 @@ def dashboard(request):
     ]
 
     for inicio, fin in semanas:
-        ejercicios_semana = Ejercicio.objects.filter(
-            alumno=alumno,
+        ejercicios_semana = todos_ejercicios.filter(
             fecha_asignacion__year=hoy.year,
             fecha_asignacion__month=hoy.month,
             fecha_asignacion__day__gte=inicio,
@@ -139,7 +137,7 @@ def dashboard(request):
 
         rendimiento.append(porcentaje)
 
-    # Lógica de progreso semanal que ya tenías (ej: Llevás 4 días esta semana)
+    # Lógica de progreso semanal
     hace_una_semana = hoy.date() - timedelta(days=7)
     asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
 
@@ -147,12 +145,11 @@ def dashboard(request):
         'datos_distribucion': json.dumps(datos_distribucion), 
         'rendimiento': json.dumps(rendimiento),
         'alumno': alumno,
-        'dia_hoy_esp': dia_hoy_esp, # Pasamos el día actual para el título
-        'ejercicios_hoy': ejercicios_hoy, # Pasamos la lista de ejercicios del día
+        'dia_hoy_esp': dia_hoy_esp,
+        'ejercicios_hoy': ejercicios_hoy,
         'asistencias_semana': asistencias_semana,
         'mensaje_motivador': f"Llevás {asistencias_semana} días esta semana. ¡A darle! 🔥",
     })
-
 
 
 @login_required
