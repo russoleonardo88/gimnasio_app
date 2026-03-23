@@ -1,5 +1,6 @@
 import json
 import calendar
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
@@ -140,17 +141,39 @@ def dashboard(request):
         'dia_hoy': dia_hoy_esp,
         'frase_motivadora': frase_motivadora
     })
-# --- ESTA ES LA FUNCIÓN QUE TE FALTA PARA QUE NO DE ERROR EL TEMPLATE ---
+
 @login_required
 def marcar_completado(request, ejercicio_id):
+    # 1. Buscamos el ejercicio de forma segura
     ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id, alumno__user=request.user)
+    
+    # 2. Cambiamos el estado
     ejercicio.completado = not ejercicio.completado
     ejercicio.save()
     
-       
-    # Redirigimos al nombre correcto de tu URL :)
-    return redirect('dashboard_alumno')
+    # 3. Calculamos el PROGRESO DE HOY para que el JS actualice la barra y el gráfico
+    hoy = timezone.now()
+    traduccion_dias = {
+        'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
+        'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday': 'Domingo'
+    }
+    dia_hoy_esp = traduccion_dias.get(hoy.strftime('%A'), 'Lunes')
+    
+    ejercicios_hoy = Ejercicio.objects.filter(alumno__user=request.user, dia_semana=dia_hoy_esp)
+    total_hoy = ejercicios_hoy.count()
+    completados_hoy = ejercicios_hoy.filter(completado=True).count()
+    progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
+    # 4. RESPUESTA MÁGICA: En lugar de redirect, mandamos los datos
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'status': 'success',
+            'completado': ejercicio.completado,
+            'progreso_hoy': progreso_hoy
+        })
+    
+    # Si por alguna razón entran por URL directa, mantenemos el redirect por seguridad
+    return redirect('dashboard_alumno')
 
 @login_required
 def mi_rutina(request):
