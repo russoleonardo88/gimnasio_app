@@ -326,12 +326,14 @@
 
         // Lógica de actualización AJAX
         document.querySelectorAll('.btn-ejercicio').forEach(card => {
-            card.addEventListener('click', function() {
-                const ejercicioId = this.getAttribute('data-id');
-                const url = `/marcar_completado/${ejercicioId}/`; 
+    card.addEventListener('click', function() {
+        const ejercicioId = this.getAttribute('data-id');
+        
+        // Esta es la forma más segura de armar la URL en Django
+        const url = `/marcar_completado/${ejercicioId}/`; 
 
-                fetch(url, {
-                    method: 'POST',
+        fetch(url, {
+            method: 'POST',
                     headers: {
                         'X-CSRFToken': '{{ csrf_token }}',
                         'X-Requested-With': 'XMLHttpRequest'
