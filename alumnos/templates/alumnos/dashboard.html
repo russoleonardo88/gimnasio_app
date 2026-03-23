@@ -201,48 +201,48 @@
             <div class="fila-tipo">Zona Media</div>
             {% for ejercicio in ejercicios_hoy %}
                 {% if ejercicio.tipo == 'ZONA_MEDIA' %}
-                <div onclick="marcarEjercicio(this, {{ ejercicio.id }})" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}" style="cursor: pointer;">
-                    <img src="{% static 'img/zona_media_griego.png' %}" style="width: 80px; height: auto;" alt="Zona Media">
+                <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
+                    <span style="font-size: 20px;">🏋️</span>
                     <strong>{{ ejercicio.nombre }}</strong>
                     <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </div>
+                </a>
                 {% endif %}
             {% endfor %}
 
             <div class="fila-tipo">Fuerza</div>
             {% for ejercicio in ejercicios_hoy %}
                 {% if ejercicio.tipo == 'FUERZA' %}
-                <div onclick="marcarEjercicio(this, {{ ejercicio.id }})" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}" style="cursor: pointer;">
-                    <img src="{% static 'img/fuerza_griego.png' %}" style="width: 80px; height: auto;" alt="Fuerza">
+                <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
+                    <span style="font-size: 20px;">💪</span>
                     <strong>{{ ejercicio.nombre }}</strong>
                     <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </div>
+                </a>
                 {% endif %}
             {% endfor %}
 
             <div class="fila-tipo">Aeróbico</div>
             {% for ejercicio in ejercicios_hoy %}
                 {% if ejercicio.tipo == 'AEROBICO' %}
-                <div onclick="marcarEjercicio(this, {{ ejercicio.id }})" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}" style="cursor: pointer;">
-                    <img src="{% static 'img/aerobico_griego.png' %}" style="width: 80px; height: auto;" alt="Aeróbico">
+                <a href="{% url 'marcar_completado' ejercicio.id %}" class="ejercicio-card {% if ejercicio.completado %}completado{% endif %}">
+                    <span style="font-size: 20px;">🏃</span>
                     <strong>{{ ejercicio.nombre }}</strong>
                     <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </div>
+                </a>
                 {% endif %}
             {% endfor %}
 
         {% else %}
-            <p style="grid-column: 1/-1; color: #444; text-align: center; font-size: 12px;">Hoy es día de descanso. 🛌</p>
+            <p style="grid-column: 1/-1; color: #444; text-align: center; font-size: 12px;">Hoy es día de descanso. 🧘</p>
         {% endif %}
     </div>
 
     <div style="width: 100%; max-width: 800px; margin-bottom: 25px;">
         <div style="display: flex; justify-content: space-between; font-size: 9px; font-weight: 800; margin-bottom: 5px;">
             <span style="color: var(--gris-texto);">PROGRESO DE HOY</span>
-            <span id="texto-progreso" style="color: var(--verde-neon);">{{ progreso_hoy }}%</span>
+            <span style="color: var(--verde-neon);">{{ progreso_hoy }}%</span>
         </div>
         <div style="width: 100%; height: 4px; background: #222; border-radius: 2px; overflow: hidden;">
-            <div id="barra-progreso" style="width: {{ progreso_hoy }}%; height: 100%; background: var(--verde-neon); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+            <div style="width: {{ progreso_hoy }}%; height: 100%; background: var(--verde-neon); transition: width 0.3s ease;"></div>
         </div>
     </div>
 
@@ -270,15 +270,18 @@
     </div>
 
     <script>
-   let chartRendimiento; // Variable global para poder actualizarlo
-
     document.addEventListener('DOMContentLoaded', function () {
-        // ... (tus defaults se mantienen igual) ...
+        const defaults = { 
+            color: '#888888', 
+            font: { family: "'Inter', sans-serif", size: 9 }
+        };
 
-        const datosDistribucion = {{ datos_distribucion|safe|default:"[]" }};
-        const datosRendimiento = {{ rendimiento|safe|default:"[]" }};
+        Chart.defaults.color = defaults.color;
+        Chart.defaults.font = defaults.font;
 
-        // Gráfico Distribución (se queda estático o lo actualizás si querés)
+        const datosDistribucion = JSON.parse('{{ datos_distribucion|safe|escapejs }}');
+        const datosRendimiento = JSON.parse('{{ rendimiento|safe|escapejs }}');
+
         new Chart(document.getElementById('graficoDistribucion'), {
             type: 'doughnut',
             data: {
@@ -289,11 +292,17 @@
                     borderWidth: 0
                 }]
             },
-            options: { maintainAspectRatio: false, cutout: '80%', plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 8, color: '#fff' } }, title: { display: true, text: 'DISTRIBUCIÓN (%)', color: '#fff' } } }
+            options: {
+                maintainAspectRatio: false,
+                cutout: '80%',
+                plugins: {
+                    legend: { display: true, position: 'bottom', labels: { boxWidth: 8, color: '#fff' } },
+                    title: { display: true, text: 'DISTRIBUCIÓN (%)', color: '#fff' }
+                }
+            }
         });
 
-        // Gráfico Intensidad (Lo guardamos en la variable para animarlo)
-        chartRendimiento = new Chart(document.getElementById('graficoIntensidad'), {
+        new Chart(document.getElementById('graficoIntensidad'), {
             type: 'line',
             data: {
                 labels: ['S1', 'S2', 'S3', 'S4'],
@@ -305,42 +314,19 @@
                     pointRadius: 3
                 }]
             },
-            options: { 
-                animation: { duration: 1000 }, // Animación suave de la línea
-                maintainAspectRatio: false, 
-                plugins: { legend: { display: false }, title: { display: true, text: 'RENDIMIENTO POR SEMANA (%)', color: '#fff' } },
-                scales: { y: { min: 0, max: 100, ticks: { color: '#fff' } }, x: { ticks: { color: '#fff' } } }
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'RENDIMIENTO POR SEMANA (%)', color: '#fff' }
+                },
+                scales: {
+                    y: { min: 0, max: 100, ticks: { color: '#fff' } },
+                    x: { ticks: { color: '#fff' } }
+                }
             }
         });
     });
-
-    // FUNCIÓN DE MARCADO ULTRA RÁPIDO
-    function marcarEjercicio(elemento, id) {
-        // 1. Efecto visual instantáneo
-        elemento.classList.toggle('completado');
-
-        // 2. Fetch silencioso al servidor
-        fetch(`/marcar_completado_ajax/${id}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // 3. Animación de la barra de progreso
-                document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
-                document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
-
-                // 4. Actualizar la línea del gráfico sin parpadear
-                // Actualizamos el último punto (semana actual) con el nuevo progreso
-                chartRendimiento.data.datasets.data = data.progreso_hoy; 
-                chartRendimiento.update(); // Esto hace que la línea suba o baje suavemente
-            }
-        });
-    }
     </script>
 </body>
 </html>
