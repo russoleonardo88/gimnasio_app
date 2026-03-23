@@ -15,23 +15,29 @@
             --negro-fondo: #000000;
         }
 
+        /* 1. Corrección de parpadeo: Fade-in suave al cargar */
         body { 
             background-color: var(--negro-fondo);
             color: #ffffff;
             font-family: 'Inter', sans-serif;
             text-align: center;
-            padding-top: 5vh; /* Bajamos un poco el padding para dar espacio al logo */
+            padding-top: 5vh;
             margin: 0;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
+            animation: fadeInBody 0.4s ease-in-out;
         }
 
-        /* DISEÑO DEL LOGO (PNG) */
+        @keyframes fadeInBody {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         .logo-img {
             width: 100%;
-            max-width: 500px; /* Tamaño imponente para el logo */
+            max-width: 500px;
             height: auto;
             margin-bottom: 20px;
             filter: drop-shadow(0 0 15px rgba(152, 207, 44, 0.2));
@@ -46,9 +52,10 @@
             text-transform: uppercase;
         }
 
-        /* INPUT DE CÓDIGO GIGANTE */
+        /* 2. Corrección visual: Ocultar form si hay mensaje para evitar el "salto" del input vacío */
         .form-recepcion { 
             margin-bottom: 40px; 
+            display: {% if mensaje %} none {% else %} block {% endif %};
         }
 
         .input-codigo { 
@@ -58,13 +65,17 @@
             padding: 30px;
             font-size: 60px;
             text-align: center;
-            width: 550px; /* Un poco más ancho para estética */
+            width: 550px;
             border-radius: 25px;
             outline: none;
             transition: all 0.3s ease;
             font-family: 'Inter', sans-serif;
             font-weight: 900;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .input-codigo::placeholder {
+            color: #1a1a1a; /* Placeholder más discreto para evitar distracciones */
         }
 
         .input-codigo:focus {
@@ -138,18 +149,23 @@
     <script>
         const input = document.getElementById('codigo_input');
 
-        // Mantiene el foco automático
-        input.focus();
-        document.addEventListener('click', () => input.focus());
+        // Solo damos foco si no hay mensaje (para no interrumpir la lectura del resultado)
+        {% if not mensaje %}
+            input.focus();
+            document.addEventListener('click', () => input.focus());
+        {% endif %}
 
-        // Bloquea el pegado
         input.onpaste = e => e.preventDefault();
 
-        // Si hay mensaje, recarga la página a los 3.5 segundos
+        // Si hay mensaje, aplicamos una salida suave antes de recargar
         {% if mensaje %}
         setTimeout(() => {
-            window.location.href = "{% url 'recepcion' %}";
-        }, 3500);
+            document.body.style.transition = "opacity 0.5s ease";
+            document.body.style.opacity = "0";
+            setTimeout(() => {
+                window.location.href = "{% url 'recepcion' %}";
+            }, 500);
+        }, 2500); // Reducido a 2.5s para que sea más ágil
         {% endif %}
     </script>
 </body>
