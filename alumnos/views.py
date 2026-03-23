@@ -66,6 +66,8 @@ def dashboard(request):
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
         return render(request, 'alumnos/dashboard.html', {
+        'ejercicios_hoy': Ejercicio.objects.all(), # ESTO MUESTRA LOS EJERCICIOS DE TODO EL GIMNASIO
+        'alumno': alumno,
             'error': 'No tienes un perfil de alumno asignado.'
         })
 
