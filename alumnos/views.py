@@ -81,7 +81,7 @@ def dashboard(request):
     todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
 
     # CORRECCIÓN: Filtramos solo por día de la semana para que aparezcan siempre
-    ejercicios_hoy = todos_ejercicios.filter(dia_semana__iexact=dia_hoy_esp).order_by('tipo')
+    ejercicios_hoy = todos_ejercicios.all()
 
     # --- ESTADÍSTICAS ---
     ejercicios_hechos = todos_ejercicios.filter(completado=True)
