@@ -67,6 +67,7 @@ def dashboard(request):
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
         return render(request, 'alumnos/dashboard.html', {
+        'ejercicios_hoy': ejercicios_hoy, # <--- Este nombre es clave
             'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
         })
 
@@ -87,7 +88,7 @@ def dashboard(request):
 
     # 3. Filtrar y ordenar los ejercicios de HOY por tipo (para el Grid responsivo)
     # Obtenemos los ejercicios del día actual para mostrarlos uno abajo del otro
-    ejercicios_hoy = Ejercicio.objects.filter(
+    ejercicios_hoy = todos_ejercicios.filter(dia_semana__iexact=dia_hoy_esp)
         alumno=alumno, 
         dia_semana=dia_hoy_esp
     ).order_by('tipo') # Ordenar por tipo para que la cuadrícula se vea más organizada
