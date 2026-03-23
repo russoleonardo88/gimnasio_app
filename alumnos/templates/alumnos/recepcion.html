@@ -2,91 +2,80 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recepción - Aquiles Gym</title>
     <style>
-        /* Fondo y Centrado Principal */
         body {
             margin: 0;
-            padding: 0;
             background-color: #000;
             color: #fff;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            overflow: hidden;
         }
 
         .container {
             text-align: center;
             width: 90%;
-            max-width: 600px;
+            max-width: 550px;
         }
 
-        /* El Logo: Aquí es donde ajustamos el tamaño */
+        /* AJUSTE DEL LOGO: Ahora más grande y protagonista */
         .logo-principal {
-            width: 100%; /* Ocupa el ancho del contenedor */
-            max-width: 500px; /* Tamaño máximo para que no se pixele */
+            width: 100%; 
+            max-width: 480px; /* Tamaño ideal para que destaque */
             height: auto;
-            margin-bottom: 40px;
-            /* Efecto de brillo suave para que resalte sobre el negro */
-            filter: drop-shadow(0 0 15px rgba(163, 255, 0, 0.2));
-        }
-
-        /* Etiqueta Recepción */
-        .recepcion-label {
+            margin-bottom: 20px;
             display: block;
-            font-size: 1.1rem;
-            color: #555;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            margin-bottom: 30px;
-            font-weight: 300;
+            margin-left: auto;
+            margin-right: auto;
+            /* Resplandor neón sutil */
+            filter: drop-shadow(0 0 15px rgba(163, 255, 0, 0.3));
         }
 
-        /* Input de ID SOCIO */
+        .recepcion-text {
+            display: block;
+            font-size: 0.9rem;
+            color: #444; 
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            margin-bottom: 35px;
+            font-weight: bold;
+        }
+
+        /* CAMPO ID SOCIO */
         .id-input {
             width: 100%;
-            background-color: #111;
-            border: 2px solid #222;
-            border-radius: 15px;
-            padding: 25px;
-            font-size: 1.8rem;
+            background-color: #0a0a0a;
+            border: 2px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 22px;
+            font-size: 1.6rem;
             color: #fff;
             text-align: center;
-            text-transform: uppercase;
-            box-sizing: border-box;
-            transition: all 0.3s ease;
             outline: none;
-            font-weight: bold;
+            transition: all 0.3s ease;
         }
 
         .id-input:focus {
             border-color: #a3ff00;
-            box-shadow: 0 0 20px rgba(163, 255, 0, 0.15);
-            background-color: #151515;
+            box-shadow: 0 0 20px rgba(163, 255, 0, 0.1);
+            background-color: #111;
         }
 
-        /* Placeholder oscuro para que no distraiga */
         .id-input::placeholder {
-            color: #333;
-        }
-
-        /* Ajustes para pantallas chicas */
-        @media (max-width: 480px) {
-            .logo-principal { max-width: 300px; }
-            .id-input { padding: 18px; font-size: 1.4rem; }
+            color: #222;
+            letter-spacing: 2px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <img src="img/logo_aquiles.png" alt="Aquiles Gym" class="logo-principal">
+        <img src="../static/img/logo_aquiles.png" alt="Aquiles Gym Logo" class="logo-principal">
         
-        <span class="recepcion-label">Recepción</span>
+        <span class="recepcion-text">RECEPCIÓN</span>
 
         <input type="text" class="id-input" placeholder="ID SOCIO" autofocus>
     </div>
