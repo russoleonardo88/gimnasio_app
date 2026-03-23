@@ -353,12 +353,20 @@
                         document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
                         document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
 
-                        // 3. Actualizar Gráficos con animación
+                        // 3. Actualizar Gráfico de Dona (Distribución)
+                    if (chartDistribucion) {
+                        // Seteamos los nuevos datos en el primer dataset
                         chartDistribucion.data.datasets.data = data.datos_distribucion;
-                        chartDistribucion.update();
+                        // 'active' fuerza a que la animación de giro/crecimiento se ejecute
+                        chartDistribucion.update('active'); 
+                    }
 
-                        chartRendimiento.data.datasets.data = data.rendimiento;
-                        chartRendimiento.update();
+                        // 4. Actualizar Gráfico de Línea (Rendimiento)
+                        if (chartRendimiento) {
+                         // Seteamos los nuevos datos en el primer dataset
+                            chartRendimiento.data.datasets.data = data.rendimiento;
+                        // Esto hará que la línea suba o baje con animación
+                        chartRendimiento.update('active');
                     }
                 })
                 .catch(error => console.error('Error:', error));
