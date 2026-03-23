@@ -153,7 +153,10 @@ def marcar_completado(request, ejercicio_id):
     ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id, alumno__user=request.user)
     ejercicio.completado = not ejercicio.completado
     ejercicio.save()
-    return redirect('dashboard')
+    
+       
+    # Redirigimos al nombre correcto de tu URL
+    return redirect('dashboard_alumno')
 
 
 @login_required
