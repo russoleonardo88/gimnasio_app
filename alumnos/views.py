@@ -59,7 +59,6 @@ def cambiar_password(request):
 # --- VISTAS DEL ALUMNO ---
 @login_required
 def dashboard(request):
-    # SEGURIDAD: Staff fuera del dashboard de alumnos
     if request.user.is_staff:
         return redirect('gestion_gym')
 
@@ -67,37 +66,24 @@ def dashboard(request):
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
         return render(request, 'alumnos/dashboard.html', {
-            'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
+            'error': 'No tienes un perfil de alumno asignado.'
         })
 
-    # =========================================================================
-    # RECONSTRUCCIÓN DINÁMICA DE EJERCICIOS Y CHECKS
-    # =========================================================================
     hoy = timezone.now()
     
-    # 1. Diccionario para traducir el día de hoy
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes', 
         'Saturday': 'Lunes', 'Sunday': 'Lunes'
     }
     
-    # 2. Obtener el día actual en español
     dia_hoy_esp = traduccion_dias.get(hoy.strftime('%A'), 'Lunes')
-
-    # 3. Definir todos los ejercicios del alumno primero
     todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
 
-    # 4. Filtrar los ejercicios de HOY (Corregido: sintaxis limpia)
-    ejercicios_hoy = todos_ejercicios.filter(
-        dia_semana__iexact=dia_hoy_esp
-    ).order_by('tipo')
+    # CORRECCIÓN: Filtramos solo por día de la semana para que aparezcan siempre
+    ejercicios_hoy = todos_ejercicios.filter(dia_semana__iexact=dia_hoy_esp).order_by('tipo')
 
-    # =========================================================================
-    # LÓGICA DE ESTADÍSTICAS Y GRÁFICOS
-    # =========================================================================
-
-    # --- DATOS PARA DISTRIBUCIÓN DE ENTRENAMIENTO (Dona) ---
+    # --- ESTADÍSTICAS ---
     ejercicios_hechos = todos_ejercicios.filter(completado=True)
     total_completados = ejercicios_hechos.count()
 
@@ -111,35 +97,26 @@ def dashboard(request):
 
     datos_distribucion = [p_fuerza, p_aero]
 
-    # --- DATOS PARA RENDIMIENTO POR SEMANA (Línea) ---
+    # --- RENDIMIENTO (Mantenemos tu lógica pero aseguramos que devuelva 0 si no hay coincidencia) ---
     rendimiento = []
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
-
-    semanas = [
-        (1, 7), (8, 14), (15, 21), (22, ultimo_dia)
-    ]
+    semanas = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
 
     for inicio, fin in semanas:
-        ejercicios_semana = todos_ejercicios.filter(
+        ej_sem = todos_ejercicios.filter(
             fecha_asignacion__year=hoy.year,
             fecha_asignacion__month=hoy.month,
             fecha_asignacion__day__gte=inicio,
             fecha_asignacion__day__lte=fin
         )
+        asignados = ej_sem.count()
+        realizados = ej_sem.filter(completado=True).count()
+        rendimiento.append(round((realizados / asignados) * 100) if asignados > 0 else 0)
 
-        asignados = ejercicios_semana.count()
-        realizados = ejercicios_semana.filter(completado=True).count()
-
-        if asignados > 0:
-            porcentaje = round((realizados / asignados) * 100)
-        else:
-            porcentaje = 0
-
-        rendimiento.append(porcentaje)
-
-    # Lógica de progreso semanal
-    hace_una_semana = hoy.date() - timedelta(days=7)
-    asistencias_semana = Asistencia.objects.filter(alumno=alumno, fecha__gte=hace_una_semana).count()
+    asistencias_semana = Asistencia.objects.filter(
+        alumno=alumno, 
+        fecha__gte=hoy.date() - timedelta(days=7)
+    ).count()
 
     return render(request, 'alumnos/dashboard.html', {
         'datos_distribucion': json.dumps(datos_distribucion), 
