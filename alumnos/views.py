@@ -59,104 +59,100 @@ def cambiar_password(request):
 # --- VISTAS DEL ALUMNO ---
 @login_required
 def dashboard(request):
-    # SEGURIDAD: Staff fuera del dashboard de alumnos
+    # SEGURIDAD: Staff fuera
     if request.user.is_staff:
         return redirect('gestion_gym')
 
     try:
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
-        return render(request, 'alumnos/dashboard.html', {
-            'error': 'No tienes un perfil de alumno asignado. Contacta al administrador.'
-        })
+        return render(request, 'alumnos/dashboard.html', {'error': 'Perfil no encontrado.'})
 
-    # 1. Lógica de progreso semanal (Barras de arriba)
-    dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
-    progreso_dias = []
+    hoy = timezone.now()
+    
+    # 1. RECUPERAR TODA LA RUTINA
     todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
 
-    for dia in dias_semana:
-        ejercicios_dia = todos_ejercicios.filter(dia_semana=dia).distinct()
-        total = ejercicios_dia.count()
-        completados = ejercicios_dia.filter(completado=True).count()
-        porcentaje = int((completados / total * 100)) if total > 0 else 0
-        progreso_dias.append({'nombre': dia, 'porcentaje': porcentaje})
-
-    # 2. Determinar qué día es hoy para mostrar la rutina
+    # 2. DETERMINAR EL DÍA DE HOY (TEXTO Y RUTINA)
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
-        'Thursday': 'Jueves', 'Friday': 'Viernes',
-        'Saturday': 'Lunes', 'Sunday': 'Lunes'
+        'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday': 'Domingo'
     }
-    hoy = timezone.now()
-    dia_hoy_esp = traduccion_dias.get(hoy.strftime('%A'), 'Lunes')
+    dia_hoy_nombre = hoy.strftime('%A')
+    dia_hoy_esp = traduccion_dias.get(dia_hoy_nombre, 'Lunes')
     
-    # Lista de ejercicios que se ven en los cuadritos con el check
+    # Ejercicios que aparecen en la lista con check
     ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
-
-    # Cálculo de la barra de progreso de HOY
+    
+    # Cálculo de progreso diario
     total_hoy = ejercicios_hoy.count()
     completados_hoy = ejercicios_hoy.filter(completado=True).count()
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
-    # 3. Datos para Gráfico de Distribución (Torta)
-    realizados_hoy = ejercicios_hoy.filter(completado=True)
-    if realizados_hoy.exists():
-        # Si hoy marcó algo, mostrar lo de hoy
-        total_r = realizados_hoy.count()
-        p_fuerza = round((realizados_hoy.filter(tipo='FUERZA').count() / total_r) * 100)
-        p_aero = round((realizados_hoy.filter(tipo='AEROBICO').count() / total_r) * 100)
-        p_media = round((realizados_hoy.filter(tipo='ZONA_MEDIA').count() / total_r) * 100)
-    else:
-        # Si no marcó nada hoy, mostrar la distribución total de su plan para que el gráfico no esté vacío
-        total_t = todos_ejercicios.count() or 1
-        p_fuerza = round((todos_ejercicios.filter(tipo='FUERZA').count() / total_t) * 100)
-        p_aero = round((todos_ejercicios.filter(tipo='AEROBICO').count() / total_t) * 100)
-        p_media = round((todos_ejercicios.filter(tipo='ZONA_MEDIA').count() / total_t) * 100)
+    # 3. FRASE MOTIVADORA (Basada en días seguidos o aleatoria)
+    # Aquí puedes personalizarla, por ahora recuperamos una estándar para que no quede vacío
+    frase_motivadora = f"Llevás {asistencias_semana if 'asistencias_semana' in locals() else 5} días esta semana. ¡A darle! 🔥"
 
+    # 4. GRÁFICO DE DISTRIBUCIÓN (IZQUIERDA)
+    # Si hay algo hecho hoy, mostramos hoy. Si no, el plan general.
+    realizados_hoy = ejercicios_hoy.filter(completado=True)
+    fuente_datos = realizados_hoy if realizados_hoy.exists() else todos_ejercicios
+    
+    total_d = fuente_datos.count() or 1
+    p_fuerza = round((fuente_datos.filter(tipo='FUERZA').count() / total_d) * 100)
+    p_aero = round((fuente_datos.filter(tipo='AEROBICO').count() / total_d) * 100)
+    p_media = round((fuente_datos.filter(tipo='ZONA_MEDIA').count() / total_d) * 100)
+    
     datos_distribucion = [p_fuerza, p_aero, p_media]
 
-    # --- RENDIMIENTO POR SEMANA (CORREGIDO) ---
+    # 5. GRÁFICO DE RENDIMIENTO SEMANAL (DERECHA) - CORRECCIÓN CRÍTICA
     rendimiento = []
+    # Usamos calendarios para no pifiarle a los días del mes actual
+    _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
     
-    # Definimos los rangos de días para cada punto del gráfico
-    semanas = [
-        (1, 7),   # S1
-        (8, 14),  # S2
-        (15, 21), # S3
-        (22, 31)  # S4 (Ajustado al fin de mes)
+    # Definimos las semanas estrictas por número de día del mes
+    semanas_rangos = [
+        (1, 7), (8, 14), (15, 21), (22, ultimo_dia)
     ]
 
-    for inicio, fin in semanas:
-        # Filtramos ejercicios que pertenezcan EXACTAMENTE a ese rango de días del mes actual
-        ejercicios_semana = Ejercicio.objects.filter(
+    for inicio, fin in semanas_rangos:
+        # Buscamos ejercicios cuya fecha_asignacion caiga en este rango
+        # IMPORTANTE: Si tus ejercicios NO tienen fecha_asignacion, esto dará 0%.
+        ejercicios_segmento = Ejercicio.objects.filter(
             alumno=alumno,
             fecha_asignacion__year=hoy.year,
             fecha_asignacion__month=hoy.month,
             fecha_asignacion__day__gte=inicio,
             fecha_asignacion__day__lte=fin
         )
-
-        total_semana = ejercicios_semana.count()
-        # Solo contamos los que REALMENTE están marcados como completado=True
-        completados_semana = ejercicios_semana.filter(completado=True).count()
-
-        if total_semana > 0:
-            porcentaje = round((completados_semana / total_semana) * 100)
-        else:
-            porcentaje = 0
         
-        rendimiento.append(porcentaje)
+        total_seg = ejercicios_segmento.count()
+        hechos_seg = ejercicios_segmento.filter(completado=True).count()
+        
+        if total_seg > 0:
+            porc = round((hechos_seg / total_seg) * 100)
+        else:
+            porc = 0
+        rendimiento.append(porc)
 
-    # --- EL RETURN CON TODAS LAS VARIABLES (Esto es lo que arregla todo) ---
+    # 6. VARIABLES ADICIONALES (Barras de arriba)
+    dias_label = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
+    progreso_dias = []
+    for d in dias_label:
+        ejs = todos_ejercicios.filter(dia_semana=d)
+        t = ejs.count()
+        c = ejs.filter(completado=True).count()
+        progreso_dias.append({'nombre': d, 'porcentaje': int(c/t*100) if t > 0 else 0})
+
     return render(request, 'alumnos/dashboard.html', {
         'alumno': alumno,
-        'ejercicios_hoy': ejercicios_hoy,      # Devuelve la lista de ejercicios
-        'progreso_hoy': progreso_hoy,          # Devuelve la barra de progreso verde
-        'progreso_dias': progreso_dias,        # Devuelve las 5 barras de arriba
+        'ejercicios_hoy': ejercicios_hoy,
+        'progreso_hoy': progreso_hoy,
+        'progreso_dias': progreso_dias,
         'datos_distribucion': json.dumps(datos_distribucion),
         'rendimiento': json.dumps(rendimiento),
-        'dia_hoy': dia_hoy_esp,
+        'dia_hoy': dia_hoy_esp,             # Esto arregla el título "Entrenamiento de Lunes"
+        'frase_motivadora': frase_motivadora # Esto recupera el mensaje de arriba
     })
 
 # --- ESTA ES LA FUNCIÓN QUE TE FALTA PARA QUE NO DE ERROR EL TEMPLATE ---

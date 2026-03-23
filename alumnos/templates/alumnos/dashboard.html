@@ -115,9 +115,6 @@
                 grid-template-columns: 1fr;
                 gap: 35px;
             }
-            .grafico-card {
-                margin-bottom: 10px;
-            }
         }
 
         .grafico-card {
@@ -164,12 +161,12 @@
     <div class="header">
         <div>
             <h1>HOLA, {{ user.first_name|upper }}</h1>
-            <p>{{ mensaje_motivador }}</p>
-        </div>
+            <p>{{ frase_motivadora }}</p> </div>
         <img src="{% static 'img/logo_aquiles.png' %}" alt="Logo Aquiles" class="logo-casco">
     </div>
 
-    <h3 class="seccion-titulo">Entrenamiento de {{ dia_actual_nombre }}</h3>
+    <h3 class="seccion-titulo">Entrenamiento de {{ dia_hoy|upper }}</h3>
+    
     <div class="card-seccion">
         {% if ejercicios_hoy %}
             {% for ejercicio in ejercicios_hoy %}
@@ -242,25 +239,38 @@
         Chart.defaults.font = defaults.font;
         Chart.defaults.scale.grid = defaults.grid;
 
-        const datosDistribucion = {{ datos_distribucion|safe|default:"" }}; // Por defecto 3 valores
-        const datosRendimiento = {{ rendimiento|safe|default:"[]" }};
+        // Recuperamos datos de Django
+        const datosDistribucion = {{ datos_distribucion|safe }};
+        const datosRendimiento = {{ rendimiento|safe }};
 
         const ctxDist = document.getElementById('graficoDistribucion');
         if (ctxDist) {
             new Chart(ctxDist, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Fuerza', 'Aeróbico', 'Zona Media'], // Agregamos la etiqueta
+                    labels: ['Fuerza', 'Aeróbico', 'Zona Media'],
                     datasets: [{
-                        data: datosDistribucion, // Ahora recibe [pF, pA, pM]
-                        // Definimos 3 colores (Verde, Gris oscuro, Gris medio)
-                        backgroundColor: ['#98cf2c', '#222222', '#444444'], 
+                        data: datosDistribucion,
+                        backgroundColor: ['#98cf2c', '#333333', '#666666'], // 3 Colores claros para cada tipo
                         borderWidth: 0,
                         hoverOffset: 10
                     }]
                 },
                 options: {
-                    // ... resto de las opciones (cutout, legend, etc.) quedan igual ...
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                color: '#fff'
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -272,12 +282,14 @@
                 data: {
                     labels: ['S1', 'S2', 'S3', 'S4'],
                     datasets: [{
-                        label: 'Intensidad %',
+                        label: 'Rendimiento %',
                         data: datosRendimiento,
                         borderColor: '#98cf2c',
                         backgroundColor: '#98cf2c',
-                        tension: 0.3,
-                        fill: false
+                        tension: 0.4,
+                        fill: false,
+                        pointBackgroundColor: '#98cf2c',
+                        pointRadius: 4
                     }]
                 },
                 options: {
@@ -285,27 +297,27 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
-                        title: { display: true, text: 'RENDIMIENTO (%)', color: '#fff' }
+                        title: { 
+                            display: true, 
+                            text: 'RENDIMIENTO POR SEMANA (%)', 
+                            color: '#fff',
+                            font: { size: 11, weight: '700' }
+                        }
                     },
                     scales: {
-                        y: { min: 0, max: 100, ticks: { color: '#fff' } },
-                        x: { ticks: { color: '#fff' } }
+                        y: { 
+                            min: 0, 
+                            max: 100, 
+                            ticks: { stepSize: 20, color: '#fff' } 
+                        },
+                        x: { 
+                            ticks: { color: '#fff' } 
+                        }
                     }
                 }
             });
         }
     });
-    </script>
-
-    <script>
-        (function () {
-            window.addEventListener('pageshow', function (event) {
-                if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {
-                    window.location.reload();
-                }
-            });
-            window.onunload = function () {};
-        })();
     </script>
 </body>
 </html>
