@@ -155,7 +155,7 @@ def marcar_completado(request, ejercicio_id):
     ejercicio.save()
     
        
-    # Redirigimos al nombre correcto de tu URL
+    # Redirigimos al nombre correcto de tu URL :)
     return redirect('dashboard_alumno')
 
 
