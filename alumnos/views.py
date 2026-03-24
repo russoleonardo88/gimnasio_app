@@ -85,16 +85,21 @@ def dashboard(request):
 
     # Gráfico de Distribución (Dona)
     realizados_hoy = ejercicios_hoy.filter(completado=True)
-    total_r = realizados_hoy.count()
     
-    if total_r > 0:
-        datos_distribucion = [
-            round((realizados_hoy.filter(tipo='FUERZA').count() / total_r) * 100),
-            round((realizados_hoy.filter(tipo='AEROBICO').count() / total_r) * 100),
-            round((realizados_hoy.filter(tipo='ZONA_MEDIA').count() / total_r) * 100),
-        ]
+    # Si hay ejercicios completados, usamos esos. 
+    # Si no, usamos todos los del día para mostrar la "promesa" de la rutina.
+    fuente_datos = realizados_hoy if realizados_hoy.exists() else ejercicios_hoy
+    
+    total_d = fuente_datos.count()
+    
+    if total_d > 0:
+        p_fuerza = round((fuente_datos.filter(tipo='FUERZA').count() / total_d) * 100)
+        p_aero = round((fuente_datos.filter(tipo='AEROBICO').count() / total_d) * 100)
+        p_media = round((fuente_datos.filter(tipo='ZONA_MEDIA').count() / total_d) * 100)
+        datos_distribucion = [p_fuerza, p_aero, p_media]
     else:
-        datos_distribucion =
+        # Si el alumno no tiene NINGÚN ejercicio asignado hoy
+        datos_distribucion = [p_fuerza, p_aero, p_media]
 
     # Gráfico de Rendimiento Semanal (Línea)
     rendimiento = []
