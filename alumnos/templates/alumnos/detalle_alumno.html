@@ -89,14 +89,14 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid {% if ej.tipo == 'FUERZA' %}#98cf2c{% elif ej.tipo == 'AEROBICO' %}#44aaff{% else %}#ffbb33{% endif %};">
                             <div style="font-size: 13px; flex: 1; padding-right: 5px;">
                                 <strong style="color: #fff; display: block; margin-bottom: 3px; font-size: 12px;">{{ ej.nombre|upper }}</strong>
-                                {% if ej.tipo == 'ZONA_MEDIA' %}
-                                    <span style="color: #ffbb33; font-weight: bold;">🧘 {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
-                                {% elif ej.tipo == 'AEROBICO' %}
-                                    <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
-                                {% else %}
-                                    <span style="color: #98cf2c; font-weight: bold;">💪 {{ ej.series }}x{{ ej.repeticiones }}</span> 
+                            {% if ej.tipo == 'ZONA_MEDIA' %}
+                                <span style="color: #ffbb33; font-weight: bold;">🧘 {{ ej.repeticiones }} MIN {% if ej.timer %}{{ ej.timer }}{% endif %}</span>
+                            {% elif ej.tipo == 'AEROBICO' %}
+                                <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}{{ ej.timer }}{% endif %}</span>
+                            {% else %}
+                                <span style="color: #98cf2c; font-weight: bold;">💪 {{ ej.series }}x{{ ej.repeticiones }}</span> 
                                     {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">{{ ej.peso_sugerido }}kg</small>{% endif %}
-                                {% endif %}
+                            {% endif %}
                             </div>
                             <a href="{% url 'eliminar_ejercicio' ej.id %}" onclick="return confirm('¿Eliminar?')" style="color: #ff4d4d; text-decoration: none; font-size: 12px; background: #222; padding: 6px 8px; border-radius: 6px; border: 1px solid #333; flex-shrink: 0;">🗑️</a>
                         </div>
