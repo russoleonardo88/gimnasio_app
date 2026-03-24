@@ -150,73 +150,107 @@ def dashboard(request):
 
 @csrf_exempt
 @login_required
+from django.db.models import Avg
+from django.utils import timezone
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+
 def marcar_completado(request, ejercicio_id):
-    if request.method == 'POST' or request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        try:
-            ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id, alumno__user=request.user)
-            alumno = ejercicio.alumno
-            
-            # 1. Cambiar estado
-            ejercicio.completado = not ejercicio.completado
-            ejercicio.ultima_vez_hecho = timezone.now()
-            ejercicio.save()
-            
-            # 2. Recalcular Progreso de Hoy
-            ejercicios_hoy = Ejercicio.objects.filter(alumno=alumno, dia_semana=ejercicio.dia_semana).distinct()
-            total_h = ejercicios_hoy.count()
-            hechos_h = ejercicios_hoy.filter(completado=True).count()
-            nuevo_progreso = int((hechos_h / total_h * 100)) if total_h > 0 else 0
-            
-            # Guardar asistencia automáticamente
-            asistencia, _ = Asistencia.objects.get_or_create(alumno=alumno, fecha=timezone.now().date())
-            asistencia.porcentaje_completado = nuevo_progreso
-            asistencia.save()
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
-            # 3. Recalcular Datos Distribución (Dona) - CORREGIDO
-            realizados_hoy = ejercicios_hoy.filter(completado=True)
+    try:
+        ahora = timezone.now()
+        hoy = ahora.date()
 
-            if not realizados_hoy.exists():
-                datos_d =
-            else:
-                total_realizados = realizados_hoy.count()
-                t_d = max(1, total_realizados)
-                p_fuerza = round((realizados_hoy.filter(tipo='FUERZA').count() / t_d) * 100)
-                p_aero = round((realizados_hoy.filter(tipo='AEROBICO').count() / t_d) * 100)
-                p_media = round((realizados_hoy.filter(tipo='ZONA_MEDIA').count() / t_d) * 100)
-                datos_d = [p_fuerza, p_aero, p_media]
+        ejercicio = get_object_or_404(
+            Ejercicio,
+            id=ejercicio_id,
+            alumno__user=request.user
+        )
+        alumno = ejercicio.alumno
 
-            # 4. Recalcular Rendimiento Semanal (Línea) - CORREGIDO
-            mes_actual = timezone.now().month
-            anio_actual = timezone.now().year
-            rendimiento_lista = []
-            _, ultimo_dia = calendar.monthrange(anio_actual, mes_actual)
-            semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
+        # 1. Cambiar estado
+        ejercicio.completado = not ejercicio.completado
+        ejercicio.ultima_vez_hecho = ahora
+        ejercicio.save(update_fields=['completado', 'ultima_vez_hecho'])
 
-            for inicio, fin in semanas_rangos:
-                asistencias_segmento = Asistencia.objects.filter(
-                    alumno=alumno,
-                    fecha__year=anio_actual,
-                    fecha__month=mes_actual,
-                    fecha__day__gte=inicio,
-                    fecha__day__lte=fin
-                )
-                if asistencias_segmento.exists():
-                    promedio_asistencia = asistencias_segmento.aggregate(Avg('porcentaje_completado'))['porcentaje_completado__avg'] or 0
-                    rendimiento_lista.append(round(promedio_asistencia))
-                else:
-                    rendimiento_lista.append(0)
+        # 2. Progreso del día (más eficiente)
+        ejercicios_hoy = Ejercicio.objects.filter(
+            alumno=alumno,
+            dia_semana=ejercicio.dia_semana
+        )
 
-            return JsonResponse({
-                'status': 'ok',
-                'completado': ejercicio.completado,
-                'progreso_hoy': nuevo_progreso,
-                'datos_distribucion': datos_d,
-                'rendimiento': rendimiento_lista
-            })
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-    
-    return redirect('dashboard_alumno')
+        total_h = ejercicios_hoy.count()
+        hechos_h = ejercicios_hoy.filter(completado=True).count()
+
+        nuevo_progreso = round((hechos_h / total_h) * 100) if total_h else 0
+
+        # 3. Asistencia
+        asistencia, _ = Asistencia.objects.get_or_create(
+            alumno=alumno,
+            fecha=hoy,
+            defaults={'porcentaje_completado': 0}
+        )
+
+        asistencia.porcentaje_completado = nuevo_progreso
+        asistencia.save(update_fields=['porcentaje_completado'])
+
+        # 4. Distribución (gráfico dona)
+        realizados_hoy = ejercicios_hoy.filter(completado=True)
+        total_realizados = realizados_hoy.count()
+
+        if total_realizados == 0:
+            datos_d = [0, 0, 0]
+        else:
+            fuerza = realizados_hoy.filter(tipo='FUERZA').count()
+            aerobico = realizados_hoy.filter(tipo='AEROBICO').count()
+            zona_media = realizados_hoy.filter(tipo='ZONA_MEDIA').count()
+
+            datos_d = [
+                round((fuerza / total_realizados) * 100),
+                round((aerobico / total_realizados) * 100),
+                round((zona_media / total_realizados) * 100),
+            ]
+
+        # 5. Rendimiento mensual por semanas
+        mes_actual = ahora.month
+        anio_actual = ahora.year
+
+        _, ultimo_dia = calendar.monthrange(anio_actual, mes_actual)
+        semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
+
+        rendimiento_lista = []
+
+        for inicio, fin in semanas_rangos:
+            promedio = Asistencia.objects.filter(
+                alumno=alumno,
+                fecha__year=anio_actual,
+                fecha__month=mes_actual,
+                fecha__day__range=(inicio, fin)
+            ).aggregate(
+                avg=Avg('porcentaje_completado')
+            )['avg']
+
+            rendimiento_lista.append(round(promedio) if promedio else 0)
+
+        return JsonResponse({
+            'status': 'ok',
+            'completado': ejercicio.completado,
+            'progreso_hoy': nuevo_progreso,
+            'datos_distribucion': datos_d,
+            'rendimiento': rendimiento_lista
+        })
+
+    except Exception as e:
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+    else:
+        return redirect('dashboard_alumno')
+
 
 @login_required
 def mi_rutina(request):
