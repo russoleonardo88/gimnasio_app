@@ -99,11 +99,17 @@ class Ejercicio(models.Model):
         return f"{self.nombre} ({self.get_tipo_display()}) - {self.alumno.codigo}"
 
 # 4. Registro de Asistencia
-class Asistencia(models.Model):
-    alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE, related_name='asistencias')
-    alumno = models.ForeignKey(Alumno, on_delete=CASCADE, related_name='asistencias_registro')
+class Asistencia(models.Model):  # Corregido: Debe heredar de models.Model
+    alumno = models.ForeignKey(
+        'Alumno', 
+        on_delete=models.CASCADE, 
+        related_name='asistencias_registro'
+    )
     fecha = models.DateField(auto_now_add=True)
     hora_entrada = models.TimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('alumno', 'fecha') # Evita duplicar presentes el mismo día
+        unique_together = ('alumno', 'fecha')  # Evita duplicar presentes el mismo día
+        
+    def __str__(self):
+        return f"{self.alumno} - {self.fecha}"

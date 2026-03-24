@@ -59,7 +59,8 @@ WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 # --- BASE DE DATOS (NEON) ---
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
+        # Si no hay DATABASE_URL (estás en tu PC), usa SQLite
+        default='sqlite:///db.sqlite3',
         conn_max_age=600
     )
 }
