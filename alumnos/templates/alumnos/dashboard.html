@@ -272,9 +272,11 @@
         Chart.defaults.color = defaults.color;
         Chart.defaults.font = defaults.font;
 
-        const datosDistribucion = JSON.parse('{{ datos_distribucion|safe|escapejs }}');
-        const datosRendimiento = JSON.parse('{{ rendimiento|safe|escapejs }}');
+        // Carga inicial de datos
+        const datosDistribucion = {{ datos_distribucion|safe }};
+        const datosRendimiento = {{ rendimiento|safe }};
 
+        // Gráfico de Dona
         chartDistribucion = new Chart(document.getElementById('graficoDistribucion'), {
             type: 'doughnut',
             data: {
@@ -295,6 +297,7 @@
             }
         });
 
+        // Gráfico de Línea
         chartRendimiento = new Chart(document.getElementById('graficoIntensidad'), {
             type: 'line',
             data: {
@@ -321,10 +324,12 @@
             }
         });
 
+        // Manejo de clic en los ejercicios
         document.querySelectorAll('.btn-ejercicio').forEach(card => {
             card.addEventListener('click', function() {
                 const ejercicioId = this.getAttribute('data-id');
-                const url = `/marcar_completado/${ejercicioId}/`;
+                // IMPORTANTE: Asegúrate de que esta URL coincida con tu urls.py
+                const url = `/marcar_completado/${ejercicioId}/`; 
 
                 fetch(url, {
                     method: 'POST',
@@ -336,17 +341,18 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'ok') {
+                        // Cambiar estilo de la card
                         if (data.completado) {
                             this.classList.add('completado');
                         } else {
                             this.classList.remove('completado');
                         }
 
-                        // Actualización de barra de progreso superior
+                        // Actualizar barra de progreso
                         document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
                         document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
 
-                        // CORRECCIÓN: Actualización profunda de datos en Chart.js
+                        // ACTUALIZAR GRÁFICOS (Corrección del índice del dataset)
                         if (chartDistribucion) {
                             chartDistribucion.data.datasets.data = data.datos_distribucion;
                             chartDistribucion.update();
