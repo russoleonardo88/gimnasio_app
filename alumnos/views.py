@@ -233,8 +233,13 @@ def gestion_gym(request):
         return redirect('dashboard_alumno')
     
     hoy = timezone.now().date()
-    alumnos_activos = Alumno.objects.filter(activo=True).select_related('user')
-    alumnos_baja = Alumno.objects.filter(activo=False).select_related('user')
+    
+    # --- CAMBIO 1: Ordenamos alumnos activos por código ---
+    alumnos_activos = Alumno.objects.filter(activo=True).select_related('user').order_by('codigo')
+    
+    # --- CAMBIO 2: Separamos y ordenamos las bajas por género y código ---
+    bajas_hombres = Alumno.objects.filter(activo=False, genero='H').select_related('user').order_by('codigo')
+    bajas_mujeres = Alumno.objects.filter(activo=False, genero='M').select_related('user').order_by('codigo')
     
     stats_hombres, stats_mujeres = [], []
     traduccion_dias = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles', 'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Lunes', 'Sunday': 'Lunes'}
@@ -258,8 +263,12 @@ def gestion_gym(request):
         }
         stats_hombres.append(data) if alu.genero == 'H' else stats_mujeres.append(data)
             
+    # --- CAMBIO 3: Enviamos las nuevas variables de bajas al template ---
     return render(request, 'alumnos/gestion.html', {
-        'stats_hombres': stats_hombres, 'stats_mujeres': stats_mujeres, 'alumnos_baja': alumnos_baja
+        'stats_hombres': stats_hombres, 
+        'stats_mujeres': stats_mujeres, 
+        'bajas_hombres': bajas_hombres,
+        'bajas_mujeres': bajas_mujeres
     })
 
 @login_required

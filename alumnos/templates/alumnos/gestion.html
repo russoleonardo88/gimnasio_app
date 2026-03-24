@@ -341,21 +341,32 @@
         </div>
 
         <div class="columna-bajas">
-    <div class="seccion-card">
-        <h3 class="seccion-titulo" style="color: var(--rojo-error);">Bajas</h3>
-        {% for baja in alumnos_baja %}
-        <div class="item-baja">
-            <span style="color: var(--blanco); font-size: 13px; font-weight: 700;">{{ baja.user.last_name|upper }}, {{ baja.user.first_name|upper }}</span>
-            <span style="color: var(--gris-texto); font-size: 11px;">Cód: {{ baja.codigo }}</span>
-            
-            <a href="{% url 'cambiar_estado_alumno' baja.id %}" class="btn-reactivar">Reactivar socio</a>
-            
+            <div class="seccion-card">
+                <h3 class="seccion-titulo" style="color: var(--rojo-error);">Bajas</h3>
+                
+                <p style="color: var(--gris-texto); font-size: 10px; font-weight: 800; border-bottom: 1px solid var(--gris-borde); padding-bottom: 5px; margin-bottom: 10px;">HOMBRES</p>
+                {% for baja in bajas_hombres %}
+                <div class="item-baja">
+                    <span style="color: var(--blanco); font-size: 13px; font-weight: 700;">{{ baja.user.last_name|upper }}, {{ baja.user.first_name|upper }}</span>
+                    <span style="color: var(--gris-texto); font-size: 11px;">Cód: {{ baja.codigo }}</span>
+                    <a href="{% url 'cambiar_estado_alumno' baja.id %}" class="btn-reactivar">Reactivar socio</a>
+                </div>
+                {% empty %}
+                <p style="color: var(--gris-texto); font-size: 11px; font-style: italic; margin-bottom: 15px;">Sin bajas masculinas.</p>
+                {% endfor %}
+
+                <p style="color: var(--gris-texto); font-size: 10px; font-weight: 800; border-bottom: 1px solid var(--gris-borde); padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;">MUJERES</p>
+                {% for baja in bajas_mujeres %}
+                <div class="item-baja">
+                    <span style="color: var(--blanco); font-size: 13px; font-weight: 700;">{{ baja.user.last_name|upper }}, {{ baja.user.first_name|upper }}</span>
+                    <span style="color: var(--gris-texto); font-size: 11px;">Cód: {{ baja.codigo }}</span>
+                    <a href="{% url 'cambiar_estado_alumno' baja.id %}" class="btn-reactivar">Reactivar socio</a>
+                </div>
+                {% empty %}
+                <p style="color: var(--gris-texto); font-size: 11px; font-style: italic;">Sin bajas femeninas.</p>
+                {% endfor %}
+            </div>
         </div>
-        {% empty %}
-        <p style="color: var(--gris-texto); font-size: 12px; text-align: center; padding: 20px;">No hay socios inactivos.</p>
-        {% endfor %}
-    </div>
-</div>
 
     </div>
 
