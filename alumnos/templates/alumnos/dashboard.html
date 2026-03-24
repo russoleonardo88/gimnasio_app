@@ -186,45 +186,45 @@
     <h3 class="seccion-titulo">Entrenamiento de {{ dia_hoy|upper }}</h3>
 
     <div class="contenedor-ejercicios">
-        {% if ejercicios_hoy %}
-            
-            <div class="fila-tipo">Zona Media</div>
-            {% for ejercicio in ejercicios_hoy %}
-                {% if ejercicio.tipo == 'ZONA_MEDIA' %}
-                <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
-                    <span style="font-size: 20px;">🏋️</span>
-                    <strong>{{ ejercicio.nombre }}</strong>
-                    <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </div>
-                {% endif %}
-            {% endfor %}
+    {% if ejercicios_hoy %}
+        
+        <div class="fila-tipo">Zona Media</div>
+        {% for ejercicio in ejercicios_hoy %}
+            {% if ejercicio.tipo == 'ZONA_MEDIA' %}
+            <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
+                <span style="font-size: 20px;">🧘</span>
+                <strong>{{ ejercicio.nombre }}</strong>
+                <p>{{ ejercicio.repeticiones }} MIN {% if ejercicio.timer %}| {{ ejercicio.timer }}{% endif %}</p>
+            </div>
+            {% endif %}
+        {% endfor %}
 
-            <div class="fila-tipo">Fuerza</div>
-            {% for ejercicio in ejercicios_hoy %}
-                {% if ejercicio.tipo == 'FUERZA' %}
-                <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
-                    <span style="font-size: 20px;">💪</span>
-                    <strong>{{ ejercicio.nombre }}</strong>
-                    <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </div>
-                {% endif %}
-            {% endfor %}
+        <div class="fila-tipo">Fuerza</div>
+        {% for ejercicio in ejercicios_hoy %}
+            {% if ejercicio.tipo == 'FUERZA' %}
+            <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
+                <span style="font-size: 20px;">💪</span>
+                <strong>{{ ejercicio.nombre }}</strong>
+                <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
+            </div>
+            {% endif %}
+        {% endfor %}
 
-            <div class="fila-tipo">Aeróbico</div>
-            {% for ejercicio in ejercicios_hoy %}
-                {% if ejercicio.tipo == 'AEROBICO' %}
-                <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
-                    <span style="font-size: 20px;">🏃</span>
-                    <strong>{{ ejercicio.nombre }}</strong>
-                    <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
-                </div>
-                {% endif %}
-            {% endfor %}
+        <div class="fila-tipo">Aeróbico</div>
+        {% for ejercicio in ejercicios_hoy %}
+            {% if ejercicio.tipo == 'AEROBICO' %}
+            <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
+                <span style="font-size: 20px;">🏃</span>
+                <strong>{{ ejercicio.nombre }}</strong>
+                <p>{{ ejercicio.repeticiones }} MIN {% if ejercicio.timer %}| {{ ejercicio.timer }}{% endif %}</p>
+            </div>
+            {% endif %}
+        {% endfor %}
 
-        {% else %}
-            <p style="grid-column: 1/-1; color: #444; text-align: center; font-size: 12px;">Hoy es día de descanso. 🧘</p>
-        {% endif %}
-    </div>
+    {% else %}
+        <p style="grid-column: 1/-1; color: #444; text-align: center; font-size: 12px;">Hoy es día de descanso. 🧘</p>
+    {% endif %}
+</div>
 
     <div style="width: 100%; max-width: 800px; margin-bottom: 25px;">
         <div style="display: flex; justify-content: space-between; font-size: 9px; font-weight: 800; margin-bottom: 5px;">
