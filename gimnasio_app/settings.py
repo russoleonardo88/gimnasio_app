@@ -1,5 +1,5 @@
 import os
-import dj_database_url 
+import dj_database_url
 from pathlib import Path
 
 # --- RUTAS BÁSICAS ---
@@ -56,10 +56,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 
-# --- BASE DE DATOS (Auto-detecta local o producción) ---
+# --- BASE DE DATOS (NEON) ---
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        default=os.environ.get('DATABASE_URL'),
         conn_max_age=600
     )
 }
@@ -75,7 +75,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# --- CONFIGURACIÓN DE LOGIN (CORREGIDO) ---
+# --- CONFIGURACIÓN DE LOGIN ---
+# Usamos los nombres de las URLs definidos en tus urls.py
 LOGIN_REDIRECT_URL = 'dashboard_alumno'
 LOGIN_URL = 'login'
 
@@ -95,19 +96,18 @@ CSRF_TRUSTED_ORIGINS = [
 if not DEBUG or os.environ.get('RENDER'):
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    
+
     # SameSite=None permite que el WebView de Android reciba la cookie desde el dominio de Render
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
-    
+
     # HttpOnly=True es más seguro, pero dejamos CSRF en False para evitar bloqueos en Android
     SESSION_COOKIE_HTTPONLY = True
-    CSRF_COOKIE_HTTPONLY = False 
-    
+    CSRF_COOKIE_HTTPONLY = False
+
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = False 
-    
-    APPEND_SLASH = True 
+    SECURE_SSL_REDIRECT = False
+    APPEND_SLASH = True
 else:
     # Desarrollo local
     SESSION_COOKIE_SECURE = False

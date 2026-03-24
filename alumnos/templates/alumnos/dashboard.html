@@ -190,9 +190,9 @@
             
             <div class="fila-tipo">Zona Media</div>
             {% for ejercicio in ejercicios_hoy %}
-                {% if ejercicio.tipo == 'ZONA_MEDIA' or ejercicio.tipo == 'ZONA MEDIA' %}
+                {% if ejercicio.tipo == 'ZONA_MEDIA' %}
                 <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
-                    <span style="font-size: 20px;">🧘</span>
+                    <span style="font-size: 20px;">🏋️</span>
                     <strong>{{ ejercicio.nombre }}</strong>
                     <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
                 </div>
@@ -212,7 +212,7 @@
 
             <div class="fila-tipo">Aeróbico</div>
             {% for ejercicio in ejercicios_hoy %}
-                {% if ejercicio.tipo == 'AEROBICO' or ejercicio.tipo == 'AERÓBICO' %}
+                {% if ejercicio.tipo == 'AEROBICO' %}
                 <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
                     <span style="font-size: 20px;">🏃</span>
                     <strong>{{ ejercicio.nombre }}</strong>
@@ -272,8 +272,8 @@
         Chart.defaults.color = defaults.color;
         Chart.defaults.font = defaults.font;
 
-        const datosDistribucion = JSON.parse('{{ datos_distribucion|safe }}');
-        const datosRendimiento = JSON.parse('{{ rendimiento|safe }}');
+        const datosDistribucion = JSON.parse('{{ datos_distribucion|safe|escapejs }}');
+        const datosRendimiento = JSON.parse('{{ rendimiento|safe|escapejs }}');
 
         chartDistribucion = new Chart(document.getElementById('graficoDistribucion'), {
             type: 'doughnut',

@@ -67,9 +67,9 @@
                         <label style="font-size: 11px; color: #888; text-transform: uppercase;">Kg</label>
                         <input type="number" name="peso" placeholder="0" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
-                    <div style="flex: 1; display: none;" id="campo_timer">
-                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Timer</label>
-                        <input type="text" name="timer" placeholder="P1" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    <div style="flex: 1; display: none;" id="campo_timmer">
+                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Timmer</label>
+                        <input type="text" name="timmer" placeholder="P1" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
                 </div>
 
@@ -90,9 +90,9 @@
                             <div style="font-size: 14px;">
                                 <strong style="color: #fff; display: block; margin-bottom: 3px;">{{ ej.nombre|upper }}</strong>
                                 {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' %}
-                                    <span style="color: #ffbb33; font-weight: bold;">🧘 {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
+                                    <span style="color: #ffbb33; font-weight: bold;">🧘 {{ ej.repeticiones }} MIN {% if ej.timmer %}| {{ ej.timmer }}{% endif %}</span>
                                 {% elif ej.tipo == 'AEROBICO' %}
-                                    <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
+                                    <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timmer %}| {{ ej.timmer }}{% endif %}</span>
                                 {% else %}
                                     <span style="color: #98cf2c; font-weight: bold;">💪 {{ ej.series }}x{{ ej.repeticiones }}</span> 
                                     {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">{{ ej.peso_sugerido }}kg</small>{% endif %}
@@ -113,21 +113,21 @@
         const tipo = document.getElementById('tipo_select').value;
         const colSets = document.getElementById('col_sets');
         const campoPeso = document.getElementById('campo_peso');
-        const campoTimer = document.getElementById('campo_timer');
+        const campoTimmer = document.getElementById('campo_timmer');
         const labelReps = document.getElementById('label_reps');
         const inputReps = document.getElementById('input_reps');
 
         if (tipo === 'AEROBICO' || tipo === 'ZONA_MEDIA') {
             colSets.style.display = 'none';
             campoPeso.style.display = 'none';
-            campoTimer.style.display = 'block';
+            campoTimmer.style.display = 'block';
             labelReps.innerText = 'MINUTOS';
             inputReps.placeholder = "20";
         } 
         else {
             colSets.style.display = 'block';
             campoPeso.style.display = 'block';
-            campoTimer.style.display = 'none';
+            campoTimmer.style.display = 'none';
             labelReps.innerText = 'REPS';
             inputReps.placeholder = "12";
         }
