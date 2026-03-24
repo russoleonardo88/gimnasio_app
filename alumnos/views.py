@@ -142,69 +142,42 @@ def dashboard(request):
 @csrf_exempt
 @login_required
 def marcar_completado(request, ejercicio_id):
-    """
-    Esta es la función principal que debe llamar tu JavaScript en el Dashboard.
-    """
-    if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+    if request.method == 'POST':
+        try:
+            ejercicio = Ejercicio.objects.get(id=ejercicio_id)
+            ejercicio.completado = not ejercicio.completado
+            ejercicio.save()
 
-    try:
-        ahora = timezone.now()
-        # Buscamos el ejercicio asegurándonos que pertenezca al alumno logueado
-        ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id, alumno__user=request.user)
-        alumno = ejercicio.alumno
+            # 1. Cálculo de progreso (Evitando división por cero)
+            ejercicios_hoy = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana)
+            total = ejercicios_hoy.count()
+            completados = ejercicios_hoy.filter(completado=True).count()
+            progreso = int((completados / total) * 100) if total > 0 else 0
 
-        # 1. Cambiar estado del ejercicio
-        ejercicio.completado = not ejercicio.completado
-        ejercicio.ultima_vez_hecho = ahora
-        ejercicio.save(update_fields=['completado', 'ultima_vez_hecho'])
+            # 2. Datos para la Dona (Fuerza, Aeróbico, Zona Media)
+            # El orden AQUÍ debe ser el mismo que en el JS
+            dist_data = [
+                ejercicios_hoy.filter(tipo='FUERZA', completado=True).count(),
+                ejercicios_hoy.filter(tipo='AEROBICO', completado=True).count(),
+                ejercicios_hoy.filter(tipo='ZONA_MEDIA', completado=True).count()
+            ]
 
-        # 2. Recalcular progreso del día actual
-        ejercicios_hoy = Ejercicio.objects.filter(alumno=alumno, dia_semana=ejercicio.dia_semana)
-        total_h = ejercicios_hoy.count()
-        hechos_h = ejercicios_hoy.filter(completado=True).count()
-        nuevo_progreso = int((hechos_h / total_h * 100)) if total_h > 0 else 0
+            # 3. Datos para la Línea (Rendimiento semanal)
+            # Mandamos el progreso actual en la última semana para que se mueva el punto
+            rendimiento = [0, 0, 0, progreso] 
 
-        # 3. ACTUALIZAR ASISTENCIA (Solo si ya existe la del día, no crear una nueva)
-        # Esto evita que el alumno se ponga "Presente" solo marcando ejercicios desde casa
-        asistencia = Asistencia.objects.filter(alumno=alumno, fecha=ahora.date()).first()
-        if asistencia:
-            asistencia.porcentaje_completado = nuevo_progreso
-            asistencia.save(update_fields=['porcentaje_completado'])
-
-        # 4. Datos para actualizar gráficos vía AJAX (Distribución y Rendimiento)
-        realizados_hoy = ejercicios_hoy.filter(completado=True)
-        t_d = max(1, realizados_hoy.count())
-        datos_d = [
-    round((realizados_hoy.filter(tipo='FUERZA').count() / t_d) * 100),
-    round((realizados_hoy.filter(tipo='AEROBICO').count() / t_d) * 100),
-    round((realizados_hoy.filter(tipo='ZONA_MEDIA').count() / t_d) * 100),
-] if realizados_hoy.exists() else [0, 0, 0]
-
-
-        # Rendimiento semanal
-        mes_actual, anio_actual = ahora.month, ahora.year
-        rendimiento_lista = []
-        _, ultimo_dia = calendar.monthrange(anio_actual, mes_actual)
-        semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
-
-        for inicio, fin in semanas_rangos:
-            asistencias_segmento = Asistencia.objects.filter(
-                alumno=alumno, fecha__year=anio_actual, fecha__month=mes_actual,
-                fecha__day__gte=inicio, fecha__day__lte=fin
-            )
-            prom_asist = asistencias_segmento.aggregate(Avg('porcentaje_completado'))['porcentaje_completado__avg'] or 0
-            rendimiento_lista.append(round(prom_asist))
-
-        return JsonResponse({
-            'status': 'ok',
-            'completado': ejercicio.completado,
-            'progreso_hoy': nuevo_progreso,
-            'datos_distribucion': datos_d,
-            'rendimiento': rendimiento_lista
-        })
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            return JsonResponse({
+                'status': 'ok',
+                'completado': ejercicio.completado,
+                'progreso_hoy': progreso,
+                'datos_distribucion': dist_data,
+                'rendimiento': rendimiento
+            })
+        except Exception as e:
+            # Esto te va a decir en la consola EXACTAMENTE qué falló si sigue dando 500
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'invalid method'}, status=400)
 
 @login_required
 def mi_rutina(request):

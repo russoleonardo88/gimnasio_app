@@ -339,35 +339,35 @@ document.addEventListener('DOMContentLoaded', function () {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('Error 500 del servidor');
+                return response.json();
+            })
             .then(data => {
                 if (data.status === 'ok') {
-                    // 2. Sincronizar estado real por si hubo error
-                    if (data.completado) {
-                        this.classList.add('completado');
-                    } else {
-                        this.classList.remove('completado');
-                    }
+                    // Sincronizar clases
+                    this.classList.toggle('completado', data.completado);
 
-                    // 3. Actualizar barra de progreso
-                    document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
-                    document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
+                    // Actualizar Barra
+                    const barra = document.getElementById('barra-progreso');
+                    const texto = document.getElementById('texto-progreso');
+                    if (barra) barra.style.width = data.progreso_hoy + '%';
+                    if (texto) texto.innerText = data.progreso_hoy + '%';
 
-                    // 4. ACTUALIZAR GRÁFICOS (Corregido: datasets)
+                    // ACTUALIZAR GRÁFICOS (Corrección definitiva:)
                     if (chartDistribucion && data.datos_distribucion) {
                         chartDistribucion.data.datasets.data = data.datos_distribucion;
-                        chartDistribucion.update('none'); // Update sin animar para que sea fluido
+                        chartDistribucion.update(); 
                     }
 
                     if (chartRendimiento && data.rendimiento) {
                         chartRendimiento.data.datasets.data = data.rendimiento;
-                        chartRendimiento.update('none');
+                        chartRendimiento.update();
                     }
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                // Revertir cambio visual si falló la red
                 this.classList.toggle('completado');
             });
         });
