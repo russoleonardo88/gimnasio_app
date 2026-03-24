@@ -87,17 +87,15 @@ def dashboard(request):
     ejercicios_completados_hoy = ejercicios_hoy.filter(completado=True)
 
     if not ejercicios_completados_hoy.exists():
-    # Si no hay ejercicios, definimos la lista directamente con ceros
+        # Si no hay ejercicios, definimos la lista directamente con ceros
         datos_distribucion = [0, 0, 0]
-
     else:
-            total_c = ejercicios_completados_hoy.count()
+        total_c = ejercicios_completados_hoy.count()
 
-            # Estas líneas DEBEN tener 8 espacios de sangría (dentro del else)
-            p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / total_c) * 100)
-            p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / total_c) * 100)
-            p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / total_c) * 100)
-            datos_distribucion = [p_fuerza, p_aero, p_media]
+        p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / total_c) * 100)
+        p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / total_c) * 100)
+        p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / total_c) * 100)
+        datos_distribucion = [p_fuerza, p_aero, p_media]
     
     # --- LÓGICA GRÁFICO DE RENDIMIENTO SEMANAL (Línea) ---
     rendimiento = []
@@ -169,7 +167,7 @@ def marcar_completado(request, ejercicio_id):
         # Recalcular Distribución para AJAX
         realizados_hoy = ejercicios_hoy.filter(completado=True)
         if not realizados_hoy.exists():
-             datos_d = [0, 0, 0]
+            datos_d = [0, 0, 0]
         else:
             t_d = max(1, realizados_hoy.count())
             datos_d = [
