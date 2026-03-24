@@ -96,7 +96,12 @@ def dashboard(request):
     ejercicios_completados_hoy = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_hoy_esp, completado=True)
 
     if not ejercicios_completados_hoy.exists():
-        datos_distribucion =
+        datos_distribucion = [
+        ejercicios_hoy.filter(tipo='FUERZA', completado=True).count(),
+        ejercicios_hoy.filter(tipo='AEROBICO', completado=True).count(),
+        ejercicios_hoy.filter(tipo='ZONA_MEDIA', completado=True).count(),
+    ]
+        rendimiento = [0, 0, 0, progreso_hoy] # O la lógica que prefieras para la línea
     else:
         total_completados = ejercicios_completados_hoy.count()
         t_d = max(1, total_completados) 
