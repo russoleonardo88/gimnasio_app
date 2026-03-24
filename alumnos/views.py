@@ -166,7 +166,7 @@ def marcar_completado(request, ejercicio_id):
         # Recalcular Distribución para AJAX
         realizados_hoy = ejercicios_hoy.filter(completado=True)
         if not realizados_hoy.exists():
-            datos_d =
+             datos_d = [0, 0, 0]
         else:
             t_d = max(1, realizados_hoy.count())
             datos_d = [
