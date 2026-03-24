@@ -38,12 +38,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'gimnasio_app.urls'
 
-# --- CONFIGURACIÓN DE TEMPLATES (MODIFICADO PARA QUE ENCUENTRE RECEPCION.HTML) ---
+# Buscá la sección TEMPLATES y dejala exactamente así:
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'alumnos', 'templates'), # Fuerza la búsqueda aquí
+            os.path.join(BASE_DIR, 'templates'), # Apunta a la carpeta que se ve en tu imagen
         ],
         'APP_DIRS': True,
         'OPTIONS': {

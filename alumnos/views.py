@@ -204,8 +204,7 @@ def control_acceso(request):
             # Buscamos al alumno por su código o DNI
             alumno = Alumno.objects.get(codigo=codigo)
             
-            # --- REGISTRO DE ASISTENCIA ---
-            # get_or_create evita que se sumen varias asistencias si pasa el código dos veces el mismo día
+            # Registro de asistencia (evita duplicados el mismo día)
             asistencia, creado = Asistencia.objects.get_or_create(
                 alumno=alumno,
                 fecha=timezone.now().date()
@@ -222,7 +221,8 @@ def control_acceso(request):
             mensaje = "CÓDIGO NO ENCONTRADO"
             clase_alerta = "danger"
 
-    return render(request, 'recepcion.html', {
+    # CAMBIO AQUÍ: Agregamos 'alumnos/' para que coincida con tu carpeta en VS Code
+    return render(request, 'alumnos/recepcion.html', {
         'mensaje': mensaje,
         'clase_alerta': clase_alerta
     })
