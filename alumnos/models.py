@@ -82,10 +82,9 @@ class Ejercicio(models.Model):
     
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='FUERZA')
     
-    series = models.IntegerField(default=1) 
+    series = models.IntegerField(default=1)
     repeticiones = models.CharField(max_length=50)
-    peso_sugerido = models.FloatField(null=True, blank=True) 
-    # Corregido: 'timmr' -> 'timmer' (opcional, pero corregí la sintaxis del campo)
+    peso_sugerido = models.FloatField(null=True, blank=True)
     timmer = models.CharField(max_length=10, blank=True, null=True, help_text="Ej: P1, P2, P3 o P4")
 
     # ESTADO
