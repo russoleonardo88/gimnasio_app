@@ -84,19 +84,19 @@ def dashboard(request):
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
     # --- LÓGICA GRÁFICO DE DISTRIBUCIÓN (Dona) ---
-    ejercicios_completados_hoy = ejercicios_hoy.filter(completado=True)
+ejercicios_completados_hoy = ejercicios_hoy.filter(completado=True)
 
-    if not ejercicios_completados_hoy.exists():
-        datos_distribucion = [p_fuerza, p_aero, p_media]
-    else:
-        total_completados = ejercicios_completados_hoy.count()
-        t_d = max(1, total_completados)
-        
-        p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / t_d) * 100)
-        p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / t_d) * 100)
-        p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / t_d) * 100)
-        datos_distribucion = [p_fuerza, p_aero, p_media]
-
+if not ejercicios_completados_hoy.exists():
+    # Si no hay ejercicios, definimos la lista directamente con ceros
+    datos_distribucion = [0, 0, 0]
+else:
+    total_c = ejercicios_completados_hoy.count()
+    # Definimos las variables aquí para que existan antes de usarlas
+    p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / total_c) * 100)
+    p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / total_c) * 100)
+    p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / total_c) * 100)
+    datos_distribucion = [p_fuerza, p_aero, p_media]
+    
     # --- LÓGICA GRÁFICO DE RENDIMIENTO SEMANAL (Línea) ---
     rendimiento = []
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
