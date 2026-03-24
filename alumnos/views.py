@@ -87,7 +87,7 @@ def dashboard(request):
     ejercicios_completados_hoy = ejercicios_hoy.filter(completado=True)
 
     if not ejercicios_completados_hoy.exists():
-        datos_distribucion =
+        datos_distribucion = [p_fuerza, p_aero, p_media]
     else:
         total_completados = ejercicios_completados_hoy.count()
         t_d = max(1, total_completados)
