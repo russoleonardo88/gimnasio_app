@@ -88,10 +88,10 @@ def dashboard(request):
 
     if not ejercicios_completados_hoy.exists():
     # Si no hay ejercicios, definimos la lista directamente con ceros
-    datos_distribucion = [0, 0, 0]
+        datos_distribucion = [0, 0, 0]
 
     else:
-    total_c = ejercicios_completados_hoy.count()
+        total_c = ejercicios_completados_hoy.count()
 
     # Definimos las variables aquí para que existan antes de usarlas
     p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / total_c) * 100)
