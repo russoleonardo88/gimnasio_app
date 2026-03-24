@@ -7,7 +7,10 @@ urlpatterns = [
     path('perfil/password/', views.cambiar_password, name='cambiar_password'),
     path('dashboard/', views.dashboard, name='dashboard_alumno'),
     path('mi-rutina/', views.mi_rutina, name='mi_rutina'),
-    path('marcar-hecho/<int:ejercicio_id>/', views.marcar_ejercicio_hecho, name='marcar_hecho'),
+    
+    # Esta línea se eliminó/comentó porque la función ya no existe en views.py
+    # path('marcar-hecho/<int:ejercicio_id>/', views.marcar_ejercicio_hecho, name='marcar_hecho'),
+    
     path('recepcion/', views.control_acceso, name='recepcion'),
     path('gestion/', views.gestion_gym, name='gestion_gym'),
     path('gestion/alumno/<int:alumno_id>/', views.detalle_alumno, name='detalle_alumno'),
@@ -20,5 +23,7 @@ urlpatterns = [
     path('cambiar-estado/<int:alumno_id>/', views.cambiar_estado_alumno, name='cambiar_estado_alumno'),
     path('historial/<int:alumno_id>/', views.historial_asistencias, name='historial_asistencias'),
     path('gestion/alumno/<int:alumno_id>/agregar/', views.agregar_ejercicio, name='agregar_ejercicio_v2'),
-    path('marcar_completado/<int:ejercicio_id>/', views.marcar_completado, name='marcar_completado'),
+    
+    # ESTA ES LA ÚNICA QUE NECESITAMOS PARA LOS CLICS:
+    path('marcar-completado/<int:ejercicio_id>/', views.marcar_completado, name='marcar_completado'),
 ]
