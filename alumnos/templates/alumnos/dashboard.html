@@ -224,7 +224,7 @@
     {% else %}
         <p style="grid-column: 1/-1; color: #444; text-align: center; font-size: 12px;">Hoy es día de descanso. 🧘</p>
     {% endif %}
-</div>
+    </div>
 
     <div style="width: 100%; max-width: 800px; margin-bottom: 25px;">
         <div style="display: flex; justify-content: space-between; font-size: 9px; font-weight: 800; margin-bottom: 5px;">
@@ -342,17 +342,19 @@
                             this.classList.remove('completado');
                         }
 
+                        // Actualización de barra de progreso superior
                         document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
                         document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
 
+                        // CORRECCIÓN: Actualización profunda de datos en Chart.js
                         if (chartDistribucion) {
                             chartDistribucion.data.datasets.data = data.datos_distribucion;
-                            chartDistribucion.update('active');
+                            chartDistribucion.update();
                         }
 
                         if (chartRendimiento) {
                             chartRendimiento.data.datasets.data = data.rendimiento;
-                            chartRendimiento.update('active');
+                            chartRendimiento.update();
                         }
                     }
                 })

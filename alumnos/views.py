@@ -92,34 +92,41 @@ def dashboard(request):
     # 3. FRASE MOTIVADORA
     frase_motivadora = f"Llevás 5 días esta semana. ¡A darle! 🔥"
 
-    # 4. GRÁFICO DE DISTRIBUCIÓN
-    realizados_hoy = ejercicios_hoy.filter(completado=True)
-    fuente_datos = realizados_hoy if realizados_hoy.exists() else todos_ejercicios
-    
-    total_d = fuente_datos.count() or 1
-    p_fuerza = round((fuente_datos.filter(tipo='FUERZA').count() / total_d) * 100)
-    p_aero = round((fuente_datos.filter(tipo='AEROBICO').count() / total_d) * 100)
-    p_media = round((fuente_datos.filter(tipo='ZONA_MEDIA').count() / total_d) * 100)
-    
-    datos_distribucion = [p_fuerza, p_aero, p_media]
+    # 4. GRÁFICO DE DISTRIBUCIÓN (Dona) - CORREGIDO
+    ejercicios_completados_hoy = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_hoy_esp, completado=True)
 
-    # 5. GRÁFICO DE RENDIMIENTO SEMANAL
+    if not ejercicios_completados_hoy.exists():
+        datos_distribucion =
+    else:
+        total_completados = ejercicios_completados_hoy.count()
+        t_d = max(1, total_completados) 
+        p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / t_d) * 100)
+        p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / t_d) * 100)
+        p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / t_d) * 100)
+        datos_distribucion = [p_fuerza, p_aero, p_media]
+
+    # 5. GRÁFICO DE RENDIMIENTO SEMANAL (Línea) - CORREGIDO
     rendimiento = []
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
     semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
 
+    mes_actual = hoy.month
+    anio_actual = hoy.year
+
     for inicio, fin in semanas_rangos:
-        ejercicios_segmento = Ejercicio.objects.filter(
+        asistencias_segmento = Asistencia.objects.filter(
             alumno=alumno,
-            fecha_asignacion__year=hoy.year,
-            fecha_asignacion__month=hoy.month,
-            fecha_asignacion__day__gte=inicio,
-            fecha_asignacion__day__lte=fin
+            fecha__year=anio_actual,
+            fecha__month=mes_actual,
+            fecha__day__gte=inicio,
+            fecha__day__lte=fin
         )
-        total_seg = ejercicios_segmento.count()
-        hechos_seg = ejercicios_segmento.filter(completado=True).count()
-        porc = round((hechos_seg / total_seg) * 100) if total_seg > 0 else 0
-        rendimiento.append(porc)
+        
+        if asistencias_segmento.exists():
+            promedio_asistencia = asistencias_segmento.aggregate(Avg('porcentaje_completado'))['porcentaje_completado__avg'] or 0
+            rendimiento.append(round(promedio_asistencia))
+        else:
+            rendimiento.append(0)
 
     # 6. VARIABLES ADICIONALES (Barras de arriba)
     dias_label = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
@@ -144,9 +151,6 @@ def dashboard(request):
 @csrf_exempt
 @login_required
 def marcar_completado(request, ejercicio_id):
-    """
-    Esta es la vista que maneja el AJAX para animar los gráficos.
-    """
     if request.method == 'POST' or request.headers.get('x-requested-with') == 'XMLHttpRequest':
         try:
             ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id, alumno__user=request.user)
@@ -168,44 +172,50 @@ def marcar_completado(request, ejercicio_id):
             asistencia.porcentaje_completado = nuevo_progreso
             asistencia.save()
 
-            # 3. Recalcular Datos Distribución (Dona)
+            # 3. Recalcular Datos Distribución (Dona) - CORREGIDO
             realizados_hoy = ejercicios_hoy.filter(completado=True)
-            # Si no hay nada hoy, usamos toda la rutina como fallback
-            fuente_d = realizados_hoy if realizados_hoy.exists() else Ejercicio.objects.filter(alumno=alumno)
-            t_d = fuente_d.count() or 1
-            p_fuerza = round((fuente_d.filter(tipo='FUERZA').count() / t_d) * 100)
-            p_aero = round((fuente_d.filter(tipo='AEROBICO').count() / t_d) * 100)
-            p_media = round((fuente_d.filter(tipo='ZONA_MEDIA').count() / t_d) * 100)
-            
-            # 4. Recalcular Rendimiento Semanal (Línea)
-            hoy = timezone.now()
+
+            if not realizados_hoy.exists():
+                datos_d =
+            else:
+                total_realizados = realizados_hoy.count()
+                t_d = max(1, total_realizados)
+                p_fuerza = round((realizados_hoy.filter(tipo='FUERZA').count() / t_d) * 100)
+                p_aero = round((realizados_hoy.filter(tipo='AEROBICO').count() / t_d) * 100)
+                p_media = round((realizados_hoy.filter(tipo='ZONA_MEDIA').count() / t_d) * 100)
+                datos_d = [p_fuerza, p_aero, p_media]
+
+            # 4. Recalcular Rendimiento Semanal (Línea) - CORREGIDO
+            mes_actual = timezone.now().month
+            anio_actual = timezone.now().year
             rendimiento_lista = []
-            _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
+            _, ultimo_dia = calendar.monthrange(anio_actual, mes_actual)
             semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
 
             for inicio, fin in semanas_rangos:
-                ejercicios_segmento = Ejercicio.objects.filter(
+                asistencias_segmento = Asistencia.objects.filter(
                     alumno=alumno,
-                    fecha_asignacion__year=hoy.year,
-                    fecha_asignacion__month=hoy.month,
-                    fecha_asignacion__day__gte=inicio,
-                    fecha_asignacion__day__lte=fin
+                    fecha__year=anio_actual,
+                    fecha__month=mes_actual,
+                    fecha__day__gte=inicio,
+                    fecha__day__lte=fin
                 )
-                ts = ejercicios_segmento.count()
-                hs = ejercicios_segmento.filter(completado=True).count()
-                rendimiento_lista.append(round((hs / ts) * 100) if ts > 0 else 0)
+                if asistencias_segmento.exists():
+                    promedio_asistencia = asistencias_segmento.aggregate(Avg('porcentaje_completado'))['porcentaje_completado__avg'] or 0
+                    rendimiento_lista.append(round(promedio_asistencia))
+                else:
+                    rendimiento_lista.append(0)
 
             return JsonResponse({
                 'status': 'ok',
                 'completado': ejercicio.completado,
                 'progreso_hoy': nuevo_progreso,
-                'datos_distribucion': [p_fuerza, p_aero, p_media],
+                'datos_distribucion': datos_d,
                 'rendimiento': rendimiento_lista
             })
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     
-    # Fallback por si entran por URL directo
     return redirect('dashboard_alumno')
 
 @login_required
@@ -365,7 +375,6 @@ def agregar_ejercicio(request, alumno_id):
     if request.method == 'POST':
         alumno = get_object_or_404(Alumno, id=alumno_id)
         
-        # Capturamos el timer y lo pasamos a mayúsculas si existe
         timer_raw = request.POST.get('timer', '')
         timer_final = timer_raw.upper().strip() if timer_raw else None
 
@@ -377,7 +386,7 @@ def agregar_ejercicio(request, alumno_id):
             series=request.POST.get('series') or 0,
             repeticiones=request.POST.get('reps') or "0",
             peso_sugerido=request.POST.get('peso') or 0,
-            timer=timer_final  # Ahora sí se guarda correctamente
+            timer=timer_final
         )
         messages.success(request, "Ejercicio agregado correctamente.")
     return redirect('detalle_alumno', alumno_id=alumno_id)
