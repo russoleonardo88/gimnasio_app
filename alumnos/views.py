@@ -67,6 +67,7 @@ def dashboard(request):
     try:
         alumno = Alumno.objects.select_related('user').get(user=request.user)
     except Alumno.DoesNotExist:
+        # Importante: Asegúrate de tener 'alumnos/dashboard.html' o la ruta correcta
         return render(request, 'alumnos/dashboard.html', {'error': 'Perfil no encontrado.'})
 
     hoy = timezone.now()
@@ -87,11 +88,10 @@ def dashboard(request):
     ejercicios_completados_hoy = ejercicios_hoy.filter(completado=True)
 
     if not ejercicios_completados_hoy.exists():
-        # Si no hay ejercicios, definimos la lista directamente con ceros
-        datos_distribucion = [0, 0, 0]
+        datos_distribucion =
     else:
         total_c = ejercicios_completados_hoy.count()
-
+        # Usamos los nombres de tipos que tengas en tu modelo (ej: 'FUERZA', 'AEROBICO', 'ZONA_MEDIA')
         p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / total_c) * 100)
         p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / total_c) * 100)
         p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / total_c) * 100)
@@ -100,12 +100,14 @@ def dashboard(request):
     # --- LÓGICA GRÁFICO DE RENDIMIENTO SEMANAL (Línea) ---
     rendimiento = []
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
+    # Definimos los rangos de días para las 4 semanas del mes
     semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
     mes_actual = hoy.month
     anio_actual = hoy.year
 
     for inicio, fin in semanas_rangos:
-        asistencias_segmento = Asistencia.objects.filter(
+        # Calculamos el rendimiento basado en ejercicios completados en ese rango de días
+        ejercicios_segmento = Ejercicio.objects.filter(
             alumno=alumno,
             fecha__year=anio_actual,
             fecha__month=mes_actual,
@@ -113,9 +115,12 @@ def dashboard(request):
             fecha__day__lte=fin
         )
         
-        if asistencias_segmento.exists():
-            promedio_asistencia = asistencias_segmento.aggregate(Avg('porcentaje_completado'))['porcentaje_completado__avg'] or 0
-            rendimiento.append(round(promedio_asistencia))
+        total_seg = ejercicios_segmento.count()
+        completados_seg = ejercicios_segmento.filter(completado=True).count()
+        
+        if total_seg > 0:
+            porcentaje_seg = (completados_seg / total_seg) * 100
+            rendimiento.append(round(porcentaje_seg))
         else:
             rendimiento.append(0)
 
@@ -128,7 +133,7 @@ def dashboard(request):
         c = ejs.filter(completado=True).count()
         progreso_dias.append({'nombre': d, 'porcentaje': int(c / t * 100) if t > 0 else 0})
 
-    # --- FIN DE LA FUNCIÓN DASHBOARD ---
+    # --- RENDERIZADO ---
     return render(request, 'alumnos/dashboard.html', {
         'alumno': alumno,
         'ejercicios_hoy': ejercicios_hoy,
@@ -421,11 +426,11 @@ def historial_asistencias(request, alumno_id):
     # Por ejemplo, si asistió 3 veces de 30 días, es 10%
     porcentaje_mes = (asistencias.count() / 30) * 100
 
-    return render(request, 'historial_asistencias.html', {
-        'alumno': alumno,
-        'asistencias': asistencias,
-        'porcentaje_mes': porcentaje_mes
-    })
+    return render(request, 'alumnos/historial_asistencias.html', { # Agregamos 'alumnos/'
+    'alumno': alumno,
+    'asistencias': asistencias,
+    'porcentaje_mes': porcentaje_mes
+})
 
 @login_required
 def renovar_cuota(request, alumno_id):
