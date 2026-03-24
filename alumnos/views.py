@@ -1,18 +1,19 @@
 import json
 import calendar
+from datetime import timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Alumno, Ejercicio, Asistencia, Entrenador
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Count, Avg, Q
 from django.db.models.functions import ExtractMonth
 from django.contrib import messages
-from datetime import timedelta
+
+from .models import Alumno, Ejercicio, Asistencia, Entrenador
 
 # --- VISTAS DE AUTENTICACIÓN ---
 
@@ -48,7 +49,7 @@ def cambiar_password(request):
         form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
             user = form.save()
-            update_session_auth_hash(request, user)  # Importante para no cerrar sesión
+            update_session_auth_hash(request, user)
             messages.success(request, '¡Tu contraseña fue actualizada con éxito!')
             return redirect('dashboard_alumno')
     else:
@@ -57,9 +58,9 @@ def cambiar_password(request):
     return render(request, 'alumnos/cambiar_password.html', {'form': form})
 
 # --- VISTAS DEL ALUMNO ---
+
 @login_required
 def dashboard(request):
-    # SEGURIDAD: Staff fuera
     if request.user.is_staff:
         return redirect('gestion_gym')
 
@@ -69,71 +70,47 @@ def dashboard(request):
         return render(request, 'alumnos/dashboard.html', {'error': 'Perfil no encontrado.'})
 
     hoy = timezone.now()
-    
-    # 1. RECUPERAR TODA LA RUTINA
-    todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
-
-    # 2. DETERMINAR EL DÍA DE HOY (TEXTO Y RUTINA)
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday': 'Domingo'
     }
-    dia_hoy_nombre = hoy.strftime('%A')
-    dia_hoy_esp = traduccion_dias.get(dia_hoy_nombre, 'Lunes')
+    dia_hoy_esp = traduccion_dias.get(hoy.strftime('%A'), 'Lunes')
     
-    # Ejercicios que aparecen en la lista con check
+    todos_ejercicios = Ejercicio.objects.filter(alumno=alumno)
     ejercicios_hoy = todos_ejercicios.filter(dia_semana=dia_hoy_esp).distinct()
     
-    # Cálculo de progreso diario
     total_hoy = ejercicios_hoy.count()
     completados_hoy = ejercicios_hoy.filter(completado=True).count()
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
-    # 3. FRASE MOTIVADORA
-    frase_motivadora = f"Llevás 5 días esta semana. ¡A darle! 🔥"
-
-    # 4. GRÁFICO DE DISTRIBUCIÓN (Dona) - CORREGIDO
-    ejercicios_completados_hoy = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_hoy_esp, completado=True)
-
-    if not ejercicios_completados_hoy.exists():
+    # Gráfico de Distribución (Dona)
+    realizados_hoy = ejercicios_hoy.filter(completado=True)
+    total_r = realizados_hoy.count()
+    
+    if total_r > 0:
         datos_distribucion = [
-        ejercicios_hoy.filter(tipo='FUERZA', completado=True).count(),
-        ejercicios_hoy.filter(tipo='AEROBICO', completado=True).count(),
-        ejercicios_hoy.filter(tipo='ZONA_MEDIA', completado=True).count(),
-    ]
-        rendimiento = [0, 0, 0, progreso_hoy] # O la lógica que prefieras para la línea
+            round((realizados_hoy.filter(tipo='FUERZA').count() / total_r) * 100),
+            round((realizados_hoy.filter(tipo='AEROBICO').count() / total_r) * 100),
+            round((realizados_hoy.filter(tipo='ZONA_MEDIA').count() / total_r) * 100),
+        ]
     else:
-        total_completados = ejercicios_completados_hoy.count()
-        t_d = max(1, total_completados) 
-        p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / t_d) * 100)
-        p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / t_d) * 100)
-        p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / t_d) * 100)
-        datos_distribucion = [p_fuerza, p_aero, p_media]
+        datos_distribucion =
 
-    # 5. GRÁFICO DE RENDIMIENTO SEMANAL (Línea) - CORREGIDO
+    # Gráfico de Rendimiento Semanal (Línea)
     rendimiento = []
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
     semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
 
-    mes_actual = hoy.month
-    anio_actual = hoy.year
-
     for inicio, fin in semanas_rangos:
-        asistencias_segmento = Asistencia.objects.filter(
+        promedio = Asistencia.objects.filter(
             alumno=alumno,
-            fecha__year=anio_actual,
-            fecha__month=mes_actual,
-            fecha__day__gte=inicio,
-            fecha__day__lte=fin
-        )
-        
-        if asistencias_segmento.exists():
-            promedio_asistencia = asistencias_segmento.aggregate(Avg('porcentaje_completado'))['porcentaje_completado__avg'] or 0
-            rendimiento.append(round(promedio_asistencia))
-        else:
-            rendimiento.append(0)
+            fecha__year=hoy.year,
+            fecha__month=hoy.month,
+            fecha__day__range=(inicio, fin)
+        ).aggregate(avg=Avg('porcentaje_completado'))['avg']
+        rendimiento.append(round(promedio) if promedio else 0)
 
-    # 6. VARIABLES ADICIONALES (Barras de arriba)
+    # Barras de días
     dias_label = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
     for d in dias_label:
@@ -150,93 +127,50 @@ def dashboard(request):
         'datos_distribucion': json.dumps(datos_distribucion),
         'rendimiento': json.dumps(rendimiento),
         'dia_hoy': dia_hoy_esp,
-        'frase_motivadora': frase_motivadora
+        'frase_motivadora': "¡A darle con todo! 🔥"
     })
 
 @csrf_exempt
 @login_required
-from django.db.models import Avg
-from django.utils import timezone
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-
 def marcar_completado(request, ejercicio_id):
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
     try:
         ahora = timezone.now()
-        hoy = ahora.date()
-
-        ejercicio = get_object_or_404(
-            Ejercicio,
-            id=ejercicio_id,
-            alumno__user=request.user
-        )
+        ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id, alumno__user=request.user)
         alumno = ejercicio.alumno
 
-        # 1. Cambiar estado
         ejercicio.completado = not ejercicio.completado
         ejercicio.ultima_vez_hecho = ahora
         ejercicio.save(update_fields=['completado', 'ultima_vez_hecho'])
 
-        # 2. Progreso del día (más eficiente)
-        ejercicios_hoy = Ejercicio.objects.filter(
-            alumno=alumno,
-            dia_semana=ejercicio.dia_semana
-        )
-
+        ejercicios_hoy = Ejercicio.objects.filter(alumno=alumno, dia_semana=ejercicio.dia_semana)
         total_h = ejercicios_hoy.count()
         hechos_h = ejercicios_hoy.filter(completado=True).count()
-
         nuevo_progreso = round((hechos_h / total_h) * 100) if total_h else 0
 
-        # 3. Asistencia
-        asistencia, _ = Asistencia.objects.get_or_create(
-            alumno=alumno,
-            fecha=hoy,
-            defaults={'porcentaje_completado': 0}
-        )
-
+        asistencia, _ = Asistencia.objects.get_or_create(alumno=alumno, fecha=ahora.date())
         asistencia.porcentaje_completado = nuevo_progreso
         asistencia.save(update_fields=['porcentaje_completado'])
 
-        # 4. Distribución (gráfico dona)
+        # Recalcular Distribución
         realizados_hoy = ejercicios_hoy.filter(completado=True)
-        total_realizados = realizados_hoy.count()
+        tr = realizados_hoy.count()
+        datos_d = [
+            round((realizados_hoy.filter(tipo='FUERZA').count() / tr) * 100) if tr else 0,
+            round((realizados_hoy.filter(tipo='AEROBICO').count() / tr) * 100) if tr else 0,
+            round((realizados_hoy.filter(tipo='ZONA_MEDIA').count() / tr) * 100) if tr else 0,
+        ]
 
-        if total_realizados == 0:
-            datos_d = [0, 0, 0]
-        else:
-            fuerza = realizados_hoy.filter(tipo='FUERZA').count()
-            aerobico = realizados_hoy.filter(tipo='AEROBICO').count()
-            zona_media = realizados_hoy.filter(tipo='ZONA_MEDIA').count()
-
-            datos_d = [
-                round((fuerza / total_realizados) * 100),
-                round((aerobico / total_realizados) * 100),
-                round((zona_media / total_realizados) * 100),
-            ]
-
-        # 5. Rendimiento mensual por semanas
-        mes_actual = ahora.month
-        anio_actual = ahora.year
-
-        _, ultimo_dia = calendar.monthrange(anio_actual, mes_actual)
-        semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
-
+        # Recalcular Rendimiento (4 semanas)
+        _, ultimo_dia = calendar.monthrange(ahora.year, ahora.month)
+        semanas = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
         rendimiento_lista = []
-
-        for inicio, fin in semanas_rangos:
+        for inicio, fin in semanas:
             promedio = Asistencia.objects.filter(
-                alumno=alumno,
-                fecha__year=anio_actual,
-                fecha__month=mes_actual,
-                fecha__day__range=(inicio, fin)
-            ).aggregate(
-                avg=Avg('porcentaje_completado')
-            )['avg']
-
+                alumno=alumno, fecha__year=ahora.year, fecha__month=ahora.month, fecha__day__range=(inicio, fin)
+            ).aggregate(avg=Avg('porcentaje_completado'))['avg']
             rendimiento_lista.append(round(promedio) if promedio else 0)
 
         return JsonResponse({
@@ -246,35 +180,20 @@ def marcar_completado(request, ejercicio_id):
             'datos_distribucion': datos_d,
             'rendimiento': rendimiento_lista
         })
-
     except Exception as e:
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({
-            'status': 'error',
-            'message': str(e)
-        }, status=500)
-    else:
-        return redirect('dashboard_alumno')
-
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @login_required
 def mi_rutina(request):
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
-        'Thursday': 'Jueves', 'Friday': 'Viernes',
-        'Saturday': 'Lunes', 'Sunday': 'Lunes'
+        'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Lunes', 'Sunday': 'Lunes'
     }
     dia_default = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
     dia_seleccionado = request.GET.get('dia', dia_default)
     alumno = get_object_or_404(Alumno, user=request.user)
     ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado).distinct()
     
-    hoy = timezone.now().date()
-    for ej in ejercicios:
-        if ej.ultima_vez_hecho and ej.ultima_vez_hecho.date() < hoy:
-            ej.completado = False
-            ej.save()
-
     return render(request, 'alumnos/mi_rutina.html', {'ejercicios': ejercicios, 'dia': dia_seleccionado, 'alumno': alumno})
 
 @csrf_exempt
@@ -300,7 +219,7 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
         except Ejercicio.DoesNotExist:
             return JsonResponse({'status': 'error'}, status=404)
 
-# --- VISTAS DE ADMINISTRACIÓN Y GESTIÓN ---
+# --- VISTAS DE ADMINISTRACIÓN ---
 
 def control_acceso(request):
     mensaje, clase_alerta, alumno_info = "", "", None
@@ -332,14 +251,8 @@ def gestion_gym(request):
     alumnos_activos = Alumno.objects.filter(activo=True).select_related('user')
     alumnos_baja = Alumno.objects.filter(activo=False).select_related('user')
     
-    stats_hombres = []
-    stats_mujeres = []
-    
-    traduccion_dias = {
-        'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
-        'Thursday': 'Jueves', 'Friday': 'Viernes',
-        'Saturday': 'Lunes', 'Sunday': 'Lunes'
-    }
+    stats_hombres, stats_mujeres = [], []
+    traduccion_dias = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles', 'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Lunes', 'Sunday': 'Lunes'}
     dia_hoy = traduccion_dias.get(timezone.now().strftime('%A'), 'Lunes')
 
     for alu in alumnos_activos:
@@ -347,31 +260,21 @@ def gestion_gym(request):
         meta_mes = (alu.plan_semanal or 0) * 4
         porcentaje_asistencia = int((conteo_mes / meta_mes * 100)) if meta_mes > 0 else 0
         
-        ejercicios_hoy = Ejercicio.objects.filter(alumno=alu, dia_semana=dia_hoy).distinct()
-        total_hoy = ejercicios_hoy.count()
-        hechos_hoy = ejercicios_hoy.filter(completado=True).count()
-        progreso_hoy = int((hechos_hoy / total_hoy * 100)) if total_hoy > 0 else 0
-
-        c_color = '#98cf2c' if alu.cuota_pagada else '#ff4d4d'
-        c_estado = 'PAGADO' if alu.cuota_pagada else 'PENDIENTE'
+        ejs_hoy = Ejercicio.objects.filter(alumno=alu, dia_semana=dia_hoy).distinct()
+        t_h = ejs_hoy.count()
+        progreso_hoy = int((ejs_hoy.filter(completado=True).count() / t_h * 100)) if t_h > 0 else 0
 
         data = {
             'alumno': alu,
             'porcentaje_asistencia': porcentaje_asistencia,
             'progreso_rutina': progreso_hoy,
-            'cuota_estado': c_estado,
-            'cuota_color': c_color,
+            'cuota_estado': 'PAGADO' if alu.cuota_pagada else 'PENDIENTE',
+            'cuota_color': '#98cf2c' if alu.cuota_pagada else '#ff4d4d',
         }
-        
-        if alu.genero == 'H':
-            stats_hombres.append(data)
-        else:
-            stats_mujeres.append(data)
+        stats_hombres.append(data) if alu.genero == 'H' else stats_mujeres.append(data)
             
     return render(request, 'alumnos/gestion.html', {
-        'stats_hombres': stats_hombres,
-        'stats_mujeres': stats_mujeres,
-        'alumnos_baja': alumnos_baja
+        'stats_hombres': stats_hombres, 'stats_mujeres': stats_mujeres, 'alumnos_baja': alumnos_baja
     })
 
 @login_required
@@ -413,10 +316,7 @@ def marcar_pago(request, alumno_id):
 def agregar_ejercicio(request, alumno_id):
     if request.method == 'POST':
         alumno = get_object_or_404(Alumno, id=alumno_id)
-        
         timer_raw = request.POST.get('timer', '')
-        timer_final = timer_raw.upper().strip() if timer_raw else None
-
         Ejercicio.objects.create(
             alumno=alumno,
             nombre=request.POST.get('nombre'),
@@ -425,7 +325,7 @@ def agregar_ejercicio(request, alumno_id):
             series=request.POST.get('series') or 0,
             repeticiones=request.POST.get('reps') or "0",
             peso_sugerido=request.POST.get('peso') or 0,
-            timer=timer_final
+            timer=timer_raw.upper().strip() if timer_raw else None
         )
         messages.success(request, "Ejercicio agregado correctamente.")
     return redirect('detalle_alumno', alumno_id=alumno_id)
@@ -453,19 +353,12 @@ def alta_socio_rapida(request):
         nombre = request.POST.get('nombre').strip()
         apellido = request.POST.get('apellido').strip()
         codigo = request.POST.get('codigo').upper().strip()
-        plan = request.POST.get('plan')
-        dni = request.POST.get('dni')
-        domicilio = request.POST.get('domicilio')
-        celular = request.POST.get('celular')
-        emergencia = request.POST.get('emergencia')
-        
-        genero = 'H' if codigo.startswith('H') else 'M'
         user = User.objects.create_user(username=codigo, first_name=nombre, last_name=apellido, password=codigo)
-        
         Alumno.objects.create(
-            user=user, codigo=codigo, genero=genero, plan_semanal=plan,
-            dni=dni, domicilio=domicilio, celular=celular,
-            contacto_emergencia=emergencia, activo=True,
+            user=user, codigo=codigo, genero='H' if codigo.startswith('H') else 'M',
+            plan_semanal=request.POST.get('plan'), dni=request.POST.get('dni'),
+            domicilio=request.POST.get('domicilio'), celular=request.POST.get('celular'),
+            contacto_emergencia=request.POST.get('emergencia'), activo=True,
             fecha_inicio_rutina=timezone.now().date()
         )
         return redirect('gestion_gym')
@@ -485,17 +378,11 @@ def historial_asistencias(request, alumno_id):
     if not request.user.is_staff: return redirect('dashboard_alumno')
     alumno = get_object_or_404(Alumno, id=alumno_id)
     hoy = timezone.now().date()
-    hace_30_dias = hoy - timedelta(days=30)
-    asistencias = Asistencia.objects.filter(alumno=alumno, fecha__range=[hace_30_dias, hoy]).order_by('-fecha')
-    
+    asistencias = Asistencia.objects.filter(alumno=alumno, fecha__range=[hoy - timedelta(days=30), hoy]).order_by('-fecha')
     conteo = Asistencia.objects.filter(alumno=alumno, fecha__month=hoy.month, fecha__year=hoy.year).count()
     meta = int(alumno.plan_semanal or 0) * 4
-    porcentaje_mes = int((conteo / meta * 100)) if meta > 0 else 0
-    
     return render(request, 'alumnos/historial_asistencias.html', {
-        'alumno': alumno,
-        'asistencias': asistencias,
-        'porcentaje_mes': porcentaje_mes,
+        'alumno': alumno, 'asistencias': asistencias, 'porcentaje_mes': int((conteo / meta * 100)) if meta > 0 else 0
     })
 
 @login_required
