@@ -85,7 +85,7 @@ class Ejercicio(models.Model):
     series = models.IntegerField(default=1)
     repeticiones = models.CharField(max_length=50)
     peso_sugerido = models.FloatField(null=True, blank=True)
-    timmer = models.CharField(max_length=10, blank=True, null=True, help_text="Ej: P1, P2, P3 o P4")
+    timer = models.CharField(max_length=10, blank=True, null=True, help_text="Ej: P1, P2, P3 o P4")
 
     # ESTADO
     completado = models.BooleanField(default=False)
