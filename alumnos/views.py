@@ -103,10 +103,10 @@ def dashboard(request):
     for inicio, fin in semanas_rangos:
         ejercicios_segmento = Ejercicio.objects.filter(
             alumno=alumno,
-            fecha__year=hoy.year,
-            fecha__month=hoy.month,
-            fecha__day__gte=inicio,
-            fecha__day__lte=fin
+            fecha_asignacion__year=hoy.year,
+            fecha_asignacion__month=hoy.month,
+            fecha_asignacion__day__gte=inicio,
+            fecha_asignacion__day__lte=fin
         )
         
         t_seg = ejercicios_segmento.count()
