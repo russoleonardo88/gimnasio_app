@@ -361,21 +361,26 @@ def marcar_pago(request, alumno_id):
     return redirect('gestion_gym')
 
 @login_required
-def agregar_ejercicio_rapido(request, alumno_id):
+def agregar_ejercicio(request, alumno_id):
     if request.method == 'POST':
         alumno = get_object_or_404(Alumno, id=alumno_id)
+        
+        # Capturamos el timer y lo pasamos a mayúsculas si existe
+        timer_raw = request.POST.get('timer', '')
+        timer_final = timer_raw.upper().strip() if timer_raw else None
+
         Ejercicio.objects.create(
             alumno=alumno,
             nombre=request.POST.get('nombre'),
             tipo=request.POST.get('tipo'),
             dia_semana=request.POST.get('dia'),
-            series=request.POST.get('series') or 1,
-            repeticiones=request.POST.get('reps'),
+            series=request.POST.get('series') or 0,
+            repeticiones=request.POST.get('reps') or "0",
             peso_sugerido=request.POST.get('peso') or 0,
-            timer=request.POST.get('timer')
+            timer=timer_final  # Ahora sí se guarda correctamente
         )
-        return redirect('detalle_alumno', alumno_id=alumno.id)
-    return redirect('gestion_gym')
+        messages.success(request, "Ejercicio agregado correctamente.")
+    return redirect('detalle_alumno', alumno_id=alumno_id)
 
 @login_required
 def eliminar_ejercicio(request, ejercicio_id):
@@ -453,19 +458,3 @@ def renovar_cuota(request, alumno_id):
     alumno.fecha_pago = timezone.now().date()
     alumno.save()
     return redirect('gestion_gym')
-
-@login_required
-def agregar_ejercicio(request, alumno_id):
-    if request.method == 'POST':
-        alumno = get_object_or_404(Alumno, id=alumno_id)
-        Ejercicio.objects.create(
-            alumno=alumno,
-            nombre=request.POST.get('nombre'),
-            tipo=request.POST.get('tipo'),
-            dia_semana=request.POST.get('dia'),
-            series=request.POST.get('series') or 0,
-            repeticiones=request.POST.get('reps') or "0",
-            peso_sugerido=request.POST.get('peso') or 0
-        )
-        messages.success(request, "Ejercicio agregado correctamente.")
-    return redirect('detalle_alumno', alumno_id=alumno_id)
