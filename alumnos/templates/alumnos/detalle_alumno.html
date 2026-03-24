@@ -92,7 +92,7 @@
                                 {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' %}
                                     <span style="color: #ffbb33; font-weight: bold;">🧘 {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
                                 {% elif ej.tipo == 'AEROBICO' %}
-                                    <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timmr }}{% endif %}</span>
+                                    <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
                                 {% else %}
                                     <span style="color: #98cf2c; font-weight: bold;">💪 {{ ej.series }}x{{ ej.repeticiones }}</span> 
                                     {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">{{ ej.peso_sugerido }}kg</small>{% endif %}
@@ -113,7 +113,7 @@
         const tipo = document.getElementById('tipo_select').value;
         const colSets = document.getElementById('col_sets');
         const campoPeso = document.getElementById('campo_peso');
-        const campoTimer = document.getElementById('campo_timer');
+        const campoTimmr = document.getElementById('campo_timer');
         const labelReps = document.getElementById('label_reps');
         const inputReps = document.getElementById('input_reps');
 
