@@ -1,27 +1,28 @@
-<div class="ejercicio-card">
-    <div class="ejercicio-info">
-        <h3 style="margin: 0; color: #fff;">{{ ej.nombre|upper }}</h3>
-        <p style="margin: 5px 0; font-weight: bold;">
-            {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' %}
-                🧘 {{ ej.repeticiones }} MINUTOS {% if ej.timer %}| 🕒 {{ ej.timer }}{% endif %}
-            {% elif ej.tipo == 'AEROBICO' or ej.tipo == 'AERÓBICO' %}
-                🏃‍♂️ {{ ej.repeticiones }} MINUTOS {% if ej.timer %}| 🕒 {{ ej.timer }}{% endif %}
-            {% elif ej.tipo == 'FUERZA' %}
-                💪 {{ ej.series }} SERIES x {{ ej.repeticiones }} REPS
-            {% else %}
-                {{ ej.series }}x{{ ej.repeticiones }}
-            {% endif %}
-        </p>
-        
-        {% if ej.peso_sugerido and ej.peso_sugerido > 0 and ej.tipo == 'FUERZA' %}
-            <span class="peso-tag" style="color: #98cf2c; font-size: 0.9rem; font-weight: 800; display: block; margin-top: 5px; text-transform: uppercase;">
-                ⚡ CARGAR: {{ ej.peso_sugerido }}kg
-            </span>
-        {% endif %}
-    </div>
+<div class="ejercicio-card" style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid {% if ej.tipo == 'FUERZA' %}#98cf2c{% elif ej.tipo == 'AEROBICO' %}#44aaff{% else %}#ffbb33{% endif %};">
+    <div class="ejercicio-info">
+        <h3 style="margin: 0; color: #fff; font-size: 14px; text-transform: uppercase;">{{ ej.nombre|upper }}</h3>
+        <p style="margin: 5px 0; font-weight: bold; font-size: 13px;">
+            {% if ej.tipo == 'ZONA_MEDIA' %}
+                <span style="color: #ffbb33;">🧘 {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
+            {% elif ej.tipo == 'AEROBICO' %}
+                <span style="color: #44aaff;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
+            {% elif ej.tipo == 'FUERZA' %}
+                <span style="color: #98cf2c;">💪 {{ ej.series }}x{{ ej.repeticiones }}</span>
+            {% else %}
+                <span style="color: #666;">{{ ej.series }}x{{ ej.repeticiones }}</span>
+            {% endif %}
+        </p>
+        
+        {% if ej.peso_sugerido and ej.peso_sugerido > 0 and ej.tipo == 'FUERZA' %}
+            <span class="peso-tag" style="color: #98cf2c; font-size: 0.8rem; font-weight: 800; display: block; margin-top: 2px; text-transform: uppercase;">
+                ⚡ CARGAR: {{ ej.peso_sugerido }}kg
+            </span>
+        {% endif %}
+    </div>
 
-    <div id="check-{{ ej.id }}" 
-         class="circulo {% if ej.completado %}completado{% endif %}" 
-         onclick="toggleEjercicio({{ ej.id }})">
-    </div>
+    <div id="check-{{ ej.id }}" 
+         class="circulo {% if ej.completado %}completado{% endif %}" 
+         onclick="toggleEjercicio({{ ej.id }})"
+         style="width: 25px; height: 25px; border: 2px solid #333; border-radius: 50%; cursor: pointer; {% if ej.completado %}background-color: #98cf2c; border-color: #98cf2c;{% endif %}">
+    </div>
 </div>

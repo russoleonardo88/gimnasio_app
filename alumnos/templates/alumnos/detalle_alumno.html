@@ -1,137 +1,137 @@
 <body style="background-color: #000; color: #fff; font-family: sans-serif; padding: 40px;">
-    
-    <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #98cf2c; padding-bottom: 20px;">
-        <div>
-            <h1 style="margin-bottom: 5px;">
-                FICHA: 
-                {% if alumno.user.get_full_name %}
-                    {{ alumno.user.last_name|upper }}, {{ alumno.user.first_name|upper }}
-                {% else %}
-                    SOCIO {{ alumno.codigo }}
-                {% endif %}
-                <span style="color: #666; font-size: 20px;">({{ alumno.codigo }})</span>
-            </h1>
-            
-            <div style="display: flex; gap: 20px; font-size: 13px; color: #bbb; margin-top: 10px;">
-                {% if alumno.dni %}<span><strong>DNI:</strong> {{ alumno.dni }}</span>{% endif %}
-                {% if alumno.domicilio %}<span><strong>DOMICILIO:</strong> {{ alumno.domicilio }}</span>{% endif %}
-                {% if alumno.celular %}
-                <span>
-                    <strong>CEL:</strong> 
-                    <a href="https://wa.me/{{ alumno.celular }}" target="_blank" style="color: #98cf2c; text-decoration: none;">
-                        {{ alumno.celular }} <span style="font-size: 10px;">(WhatsApp 📱)</span>
-                    </a>
-                </span>
-                {% endif %}
-                {% if alumno.contacto_emergencia %}
-                <span style="color: #ff4d4d;"><strong>🚨 EMERGENCIA:</strong> {{ alumno.contacto_emergencia }}</span>
-                {% endif %}
-            </div>
-        </div>
-        <a href="{% url 'gestion_gym' %}" style="color: #98cf2c; text-decoration: none; font-weight: bold; align-self: center; border: 1px solid #98cf2c; padding: 8px 15px; border-radius: 5px;">← VOLVER AL PANEL</a>
-    </div>
+    
+    <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #98cf2c; padding-bottom: 20px;">
+        <div>
+            <h1 style="margin-bottom: 5px;">
+                FICHA: 
+                {% if alumno.user.get_full_name %}
+                    {{ alumno.user.last_name|upper }}, {{ alumno.user.first_name|upper }}
+                {% else %}
+                    SOCIO {{ alumno.codigo }}
+                {% endif %}
+                <span style="color: #666; font-size: 20px;">({{ alumno.codigo }})</span>
+            </h1>
+            
+            <div style="display: flex; gap: 20px; font-size: 13px; color: #bbb; margin-top: 10px;">
+                {% if alumno.dni %}<span><strong>DNI:</strong> {{ alumno.dni }}</span>{% endif %}
+                {% if alumno.domicilio %}<span><strong>DOMICILIO:</strong> {{ alumno.domicilio }}</span>{% endif %}
+                {% if alumno.celular %}
+                <span>
+                    <strong>CEL:</strong> 
+                    <a href="https://wa.me/{{ alumno.celular }}" target="_blank" style="color: #98cf2c; text-decoration: none;">
+                        {{ alumno.celular }} <span style="font-size: 10px;">(WhatsApp 📱)</span>
+                    </a>
+                </span>
+                {% endif %}
+                {% if alumno.contacto_emergencia %}
+                <span style="color: #ff4d4d;"><strong>🚨 EMERGENCIA:</strong> {{ alumno.contacto_emergencia }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <a href="{% url 'gestion_gym' %}" style="color: #98cf2c; text-decoration: none; font-weight: bold; align-self: center; border: 1px solid #98cf2c; padding: 8px 15px; border-radius: 5px;">← VOLVER AL PANEL</a>
+    </div>
 
-    <div style="display: flex; gap: 30px; margin-top: 30px;">
-        <div style="flex: 1; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #222; height: fit-content; position: sticky; top: 20px;">
-            <h3 style="color: #98cf2c; margin-top: 0; text-transform: uppercase; font-size: 16px;">+ ASIGNAR EJERCICIO</h3>
-            <form action="{% url 'agregar_ejercicio_v2' alumno.id %}" method="POST">
-                {% csrf_token %}
-                
-                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Nombre del ejercicio:</label>
-                <input type="text" name="nombre" placeholder="Ej: Bicicleta Fija" required style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; outline: none;">
+    <div style="display: flex; gap: 30px; margin-top: 30px; align-items: flex-start;">
+        <div style="width: 320px; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #222; height: auto; position: sticky; top: 20px;">
+            <h3 style="color: #98cf2c; margin-top: 0; text-transform: uppercase; font-size: 16px;">+ ASIGNAR EJERCICIO</h3>
+            <form action="{% url 'agregar_ejercicio_v2' alumno.id %}" method="POST">
+                {% csrf_token %}
+                
+                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Nombre del ejercicio:</label>
+                <input type="text" name="nombre" placeholder="Ej: Bicicleta Fija" required style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; outline: none;">
 
-                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Tipo / Categoría:</label>
-                <select name="tipo" id="tipo_select" required onchange="adaptarFormulario()" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; cursor: pointer;">
-                    <option value="FUERZA">💪 FUERZA</option>
-                    <option value="AEROBICO">🏃‍♂️ AERÓBICO</option>
-                    <option value="ZONA_MEDIA">🧘 ZONA MEDIA</option>
-                </select>
+                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Tipo / Categoría:</label>
+                <select name="tipo" id="tipo_select" required onchange="adaptarFormulario()" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; cursor: pointer;">
+                    <option value="FUERZA">💪 FUERZA</option>
+                    <option value="AEROBICO">🏃‍♂️ AERÓBICO</option>
+                    <option value="ZONA_MEDIA">🧘 ZONA MEDIA</option>
+                </select>
 
-                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Día asignado:</label>
-                <select name="dia" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
-                    {% for dia in dias %}
-                        <option value="{{ dia }}">{{ dia|upper }}</option>
-                    {% endfor %}
-                </select>
+                <label style="font-size: 11px; color: #888; text-transform: uppercase;">Día asignado:</label>
+                <select name="dia" style="width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    {% for dia in dias %}
+                        <option value="{{ dia }}">{{ dia|upper }}</option>
+                    {% endfor %}
+                </select>
 
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <div style="flex: 1;" id="col_sets">
-                        <label id="label_series" style="font-size: 11px; color: #888; text-transform: uppercase;">Sets</label>
-                        <input type="number" name="series" value="3" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
-                    </div>
-                    <div style="flex: 1;">
-                        <label id="label_reps" style="font-size: 11px; color: #888; text-transform: uppercase;">Reps / Min</label>
-                        <input type="text" name="reps" id="input_reps" placeholder="12" required style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
-                    </div>
-                    <div style="flex: 1;" id="campo_peso">
-                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Kg</label>
-                        <input type="number" name="peso" placeholder="0" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
-                    </div>
-                    <div style="flex: 1; display: none;" id="campo_timer">
-                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Timer</label>
-                        <input type="text" name="timer" placeholder="P1" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
-                    </div>
-                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <div style="flex: 1;" id="col_sets">
+                        <label id="label_series" style="font-size: 11px; color: #888; text-transform: uppercase;">Sets</label>
+                        <input type="number" name="series" value="3" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label id="label_reps" style="font-size: 11px; color: #888; text-transform: uppercase;">Reps / Min</label>
+                        <input type="text" name="reps" id="input_reps" placeholder="12" required style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1;" id="campo_peso">
+                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Kg</label>
+                        <input type="number" name="peso" placeholder="0" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1; display: none;" id="campo_timer">
+                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Timer</label>
+                        <input type="text" name="timer" placeholder="P1" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    </div>
+                </div>
 
-                <button type="submit" style="width: 100%; padding: 15px; background: #98cf2c; color: #000; font-weight: 900; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; text-transform: uppercase;">
-                    Cargar a la rutina
-                </button>
-            </form>
-        </div>
+                <button type="submit" style="width: 100%; padding: 15px; background: #98cf2c; color: #000; font-weight: 900; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; text-transform: uppercase;">
+                    Cargar a la rutina
+                </button>
+            </form>
+        </div>
 
-        <div style="flex: 3;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-                {% for dia, ejercicios in rutina.items %}
-                <div style="background: #111; padding: 20px; border-radius: 12px; border: 1px solid #222;">
-                    <h4 style="color: #98cf2c; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; text-transform: uppercase;">{{ dia }}</h4>
-                    <div style="margin-top: 15px;">
-                        {% for ej in ejercicios %}
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid {% if ej.tipo == 'FUERZA' %}#98cf2c{% elif ej.tipo == 'AEROBICO' %}#44aaff{% else %}#ffbb33{% endif %};">
-                            <div style="font-size: 14px;">
-                                <strong style="color: #fff; display: block; margin-bottom: 3px;">{{ ej.nombre|upper }}</strong>
-                                {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' %}
-                                    <span style="color: #ffbb33; font-weight: bold;">🧘 {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
-                                {% elif ej.tipo == 'AEROBICO' %}
-                                    <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
-                                {% else %}
-                                    <span style="color: #98cf2c; font-weight: bold;">💪 {{ ej.series }}x{{ ej.repeticiones }}</span> 
-                                    {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">{{ ej.peso_sugerido }}kg</small>{% endif %}
-                                {% endif %}
-                            </div>
-                            <a href="{% url 'eliminar_ejercicio' ej.id %}" onclick="return confirm('¿Eliminar?')" style="color: #ff4d4d; text-decoration: none; font-size: 12px; background: #222; padding: 6px 10px; border-radius: 6px; border: 1px solid #333;">🗑️</a>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
+        <div style="flex: 1;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; align-items: start;">
+                {% for dia, ejercicios in rutina.items %}
+                <div style="background: #111; padding: 20px; border-radius: 12px; border: 1px solid #222; min-height: 200px;">
+                    <h4 style="color: #98cf2c; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; text-transform: uppercase; font-size: 14px;">{{ dia }}</h4>
+                    <div style="margin-top: 15px;">
+                        {% for ej in ejercicios %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid {% if ej.tipo == 'FUERZA' %}#98cf2c{% elif ej.tipo == 'AEROBICO' %}#44aaff{% else %}#ffbb33{% endif %};">
+                            <div style="font-size: 13px; flex: 1; padding-right: 5px;">
+                                <strong style="color: #fff; display: block; margin-bottom: 3px; font-size: 12px;">{{ ej.nombre|upper }}</strong>
+                                {% if ej.tipo == 'ZONA_MEDIA' %}
+                                    <span style="color: #ffbb33; font-weight: bold;">🧘 {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
+                                {% elif ej.tipo == 'AEROBICO' %}
+                                    <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
+                                {% else %}
+                                    <span style="color: #98cf2c; font-weight: bold;">💪 {{ ej.series }}x{{ ej.repeticiones }}</span> 
+                                    {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">{{ ej.peso_sugerido }}kg</small>{% endif %}
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'eliminar_ejercicio' ej.id %}" onclick="return confirm('¿Eliminar?')" style="color: #ff4d4d; text-decoration: none; font-size: 12px; background: #222; padding: 6px 8px; border-radius: 6px; border: 1px solid #333; flex-shrink: 0;">🗑️</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 
-    <script>
-    function adaptarFormulario() {
-        const tipo = document.getElementById('tipo_select').value;
-        const colSets = document.getElementById('col_sets');
-        const campoPeso = document.getElementById('campo_peso');
-        const campoTimmr = document.getElementById('campo_timer');
-        const labelReps = document.getElementById('label_reps');
-        const inputReps = document.getElementById('input_reps');
+    <script>
+    function adaptarFormulario() {
+        const tipo = document.getElementById('tipo_select').value;
+        const colSets = document.getElementById('col_sets');
+        const campoPeso = document.getElementById('campo_peso');
+        const campoTimer = document.getElementById('campo_timer'); // Corregido el nombre aquí
+        const labelReps = document.getElementById('label_reps');
+        const inputReps = document.getElementById('input_reps');
 
-        if (tipo === 'AEROBICO' || tipo === 'ZONA_MEDIA') {
-            colSets.style.display = 'none';
-            campoPeso.style.display = 'none';
-            campoTimer.style.display = 'block';
-            labelReps.innerText = 'MINUTOS';
-            inputReps.placeholder = "20";
-        } 
-        else {
-            colSets.style.display = 'block';
-            campoPeso.style.display = 'block';
-            campoTimer.style.display = 'none';
-            labelReps.innerText = 'REPS';
-            inputReps.placeholder = "12";
-        }
-    }
-    document.addEventListener('DOMContentLoaded', adaptarFormulario);
-    </script>
+        if (tipo === 'AEROBICO' || tipo === 'ZONA_MEDIA') {
+            colSets.style.display = 'none';
+            campoPeso.style.display = 'none';
+            campoTimer.style.display = 'block';
+            labelReps.innerText = 'MINUTOS';
+            inputReps.placeholder = "20";
+        } 
+        else {
+            colSets.style.display = 'block';
+            campoPeso.style.display = 'block';
+            campoTimer.style.display = 'none';
+            labelReps.innerText = 'REPS';
+            inputReps.placeholder = "12";
+        }
+    }
+    document.addEventListener('DOMContentLoaded', adaptarFormulario);
+    </script>
 </body>
