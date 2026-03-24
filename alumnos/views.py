@@ -142,40 +142,47 @@ def dashboard(request):
 @csrf_exempt
 @login_required
 def marcar_completado(request, ejercicio_id):
+    """
+    Esta es la función principal que debe llamar tu JavaScript en el Dashboard.
+    """
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
     try:
         ahora = timezone.now()
+        # Buscamos el ejercicio asegurándonos que pertenezca al alumno logueado
         ejercicio = get_object_or_404(Ejercicio, id=ejercicio_id, alumno__user=request.user)
         alumno = ejercicio.alumno
 
+        # 1. Cambiar estado del ejercicio
         ejercicio.completado = not ejercicio.completado
         ejercicio.ultima_vez_hecho = ahora
         ejercicio.save(update_fields=['completado', 'ultima_vez_hecho'])
 
+        # 2. Recalcular progreso del día actual
         ejercicios_hoy = Ejercicio.objects.filter(alumno=alumno, dia_semana=ejercicio.dia_semana)
         total_h = ejercicios_hoy.count()
         hechos_h = ejercicios_hoy.filter(completado=True).count()
         nuevo_progreso = int((hechos_h / total_h * 100)) if total_h > 0 else 0
 
-        asistencia, _ = Asistencia.objects.get_or_create(alumno=alumno, fecha=ahora.date())
-        asistencia.porcentaje_completado = nuevo_progreso
-        asistencia.save(update_fields=['porcentaje_completado'])
+        # 3. ACTUALIZAR ASISTENCIA (Solo si ya existe la del día, no crear una nueva)
+        # Esto evita que el alumno se ponga "Presente" solo marcando ejercicios desde casa
+        asistencia = Asistencia.objects.filter(alumno=alumno, fecha=ahora.date()).first()
+        if asistencia:
+            asistencia.porcentaje_completado = nuevo_progreso
+            asistencia.save(update_fields=['porcentaje_completado'])
 
-        # Recalcular Distribución para AJAX
+        # 4. Datos para actualizar gráficos vía AJAX (Distribución y Rendimiento)
         realizados_hoy = ejercicios_hoy.filter(completado=True)
-        if not realizados_hoy.exists():
-            datos_d = [0, 0, 0]
-        else:
-            t_d = max(1, realizados_hoy.count())
-            datos_d = [
-                round((realizados_hoy.filter(tipo='FUERZA').count() / t_d) * 100),
-                round((realizados_hoy.filter(tipo='AEROBICO').count() / t_d) * 100),
-                round((realizados_hoy.filter(tipo='ZONA_MEDIA').count() / t_d) * 100),
-            ]
+        t_d = max(1, realizados_hoy.count())
+        datos_d = [
+    round((realizados_hoy.filter(tipo='FUERZA').count() / t_d) * 100),
+    round((realizados_hoy.filter(tipo='AEROBICO').count() / t_d) * 100),
+    round((realizados_hoy.filter(tipo='ZONA_MEDIA').count() / t_d) * 100),
+] if realizados_hoy.exists() else [0, 0, 0]
 
-        # Recalcular Rendimiento para AJAX
+
+        # Rendimiento semanal
         mes_actual, anio_actual = ahora.month, ahora.year
         rendimiento_lista = []
         _, ultimo_dia = calendar.monthrange(anio_actual, mes_actual)
@@ -186,11 +193,8 @@ def marcar_completado(request, ejercicio_id):
                 alumno=alumno, fecha__year=anio_actual, fecha__month=mes_actual,
                 fecha__day__gte=inicio, fecha__day__lte=fin
             )
-            if asistencias_segmento.exists():
-                prom_asist = asistencias_segmento.aggregate(Avg('porcentaje_completado'))['porcentaje_completado__avg'] or 0
-                rendimiento_lista.append(round(prom_asist))
-            else:
-                rendimiento_lista.append(0)
+            prom_asist = asistencias_segmento.aggregate(Avg('porcentaje_completado'))['porcentaje_completado__avg'] or 0
+            rendimiento_lista.append(round(prom_asist))
 
         return JsonResponse({
             'status': 'ok',
@@ -214,29 +218,6 @@ def mi_rutina(request):
     ejercicios = Ejercicio.objects.filter(alumno=alumno, dia_semana=dia_seleccionado).distinct()
     
     return render(request, 'alumnos/mi_rutina.html', {'ejercicios': ejercicios, 'dia': dia_seleccionado, 'alumno': alumno})
-
-@csrf_exempt
-@login_required
-def marcar_ejercicio_hecho(request, ejercicio_id):
-    if request.method == 'POST':
-        try:
-            ejercicio = Ejercicio.objects.get(id=ejercicio_id, alumno__user=request.user)
-            ejercicio.completado = not ejercicio.completado
-            ejercicio.ultima_vez_hecho = timezone.now()
-            ejercicio.save()
-            
-            ejercicios_dia = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana).distinct()
-            total = ejercicios_dia.count()
-            hechos = ejercicios_dia.filter(completado=True).count()
-            nuevo_progreso = int((hechos / total * 100)) if total > 0 else 0
-            
-            asistencia, _ = Asistencia.objects.get_or_create(alumno=ejercicio.alumno, fecha=timezone.now().date())
-            asistencia.porcentaje_completado = nuevo_progreso
-            asistencia.save()
-            
-            return JsonResponse({'status': 'ok', 'completado': ejercicio.completado, 'progreso': nuevo_progreso})
-        except Ejercicio.DoesNotExist:
-            return JsonResponse({'status': 'error'}, status=404)
 
 # --- VISTAS DE ADMINISTRACIÓN ---
 

@@ -260,114 +260,119 @@
     </div>
 
     <script>
-    let chartDistribucion;
-    let chartRendimiento;
+let chartDistribucion;
+let chartRendimiento;
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const defaults = { 
-            color: '#888888',
-            font: { family: "'Inter', sans-serif", size: 9 }
-        };
+document.addEventListener('DOMContentLoaded', function () {
+    const defaults = { 
+        color: '#888888',
+        font: { family: "'Inter', sans-serif", size: 9 }
+    };
 
-        Chart.defaults.color = defaults.color;
-        Chart.defaults.font = defaults.font;
+    Chart.defaults.color = defaults.color;
+    Chart.defaults.font = defaults.font;
 
-        // Carga inicial de datos
-        const datosDistribucion = {{ datos_distribucion|safe }};
-        const datosRendimiento = {{ rendimiento|safe }};
+    // Datos iniciales desde Django
+    const datosDistribucion = {{ datos_distribucion|safe }};
+    const datosRendimiento = {{ rendimiento|safe }};
 
-        // Gráfico de Dona
-        chartDistribucion = new Chart(document.getElementById('graficoDistribucion'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Fuerza', 'Aeróbico', 'Zona Media'],
-                datasets: [{
-                    data: datosDistribucion,
-                    backgroundColor: ['#98cf2c', '#333333', '#666666'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                maintainAspectRatio: false,
-                cutout: '80%',
-                plugins: {
-                    legend: { display: true, position: 'bottom', labels: { boxWidth: 8, color: '#fff' } },
-                    title: { display: true, text: 'DISTRIBUCIÓN (%)', color: '#fff' }
-                }
+    // Gráfico de Dona
+    chartDistribucion = new Chart(document.getElementById('graficoDistribucion'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Fuerza', 'Aeróbico', 'Zona Media'],
+            datasets: [{
+                data: datosDistribucion,
+                backgroundColor: ['#98cf2c', '#333333', '#666666'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            cutout: '80%',
+            plugins: {
+                legend: { display: true, position: 'bottom', labels: { boxWidth: 8, color: '#fff' } },
+                title: { display: true, text: 'DISTRIBUCIÓN (%)', color: '#fff' }
             }
-        });
+        }
+    });
 
-        // Gráfico de Línea
-        chartRendimiento = new Chart(document.getElementById('graficoIntensidad'), {
-            type: 'line',
-            data: {
-                labels: ['S1', 'S2', 'S3', 'S4'],
-                datasets: [{
-                    data: datosRendimiento,
-                    borderColor: '#98cf2c',
-                    tension: 0.4,
-                    fill: false,
-                    pointRadius: 3
-                }]
+    // Gráfico de Línea
+    chartRendimiento = new Chart(document.getElementById('graficoIntensidad'), {
+        type: 'line',
+        data: {
+            labels: ['S1', 'S2', 'S3', 'S4'],
+            datasets: [{
+                data: datosRendimiento,
+                borderColor: '#98cf2c',
+                tension: 0.4,
+                fill: false,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'RENDIMIENTO SEMANAL (%)', color: '#fff' }
             },
-            options: {
-                maintainAspectRatio: false,
-                animation: { duration: 1000, easing: 'easeOutQuart' },
-                plugins: {
-                    legend: { display: false },
-                    title: { display: true, text: 'RENDIMIENTO POR SEMANA (%)', color: '#fff' }
-                },
-                scales: {
-                    y: { min: 0, max: 100, ticks: { color: '#fff' } },
-                    x: { ticks: { color: '#fff' } }
-                }
+            scales: {
+                y: { min: 0, max: 100, ticks: { color: '#fff' } },
+                x: { ticks: { color: '#fff' } }
             }
-        });
+        }
+    });
 
-        // Manejo de clic en los ejercicios
-        document.querySelectorAll('.btn-ejercicio').forEach(card => {
-            card.addEventListener('click', function() {
-                const ejercicioId = this.getAttribute('data-id');
-                // IMPORTANTE: Asegúrate de que esta URL coincida con tu urls.py
-                const url = `/marcar_completado/${ejercicioId}/`; 
+    // --- MANEJO DE CLIC EN EJERCICIOS ---
+    document.querySelectorAll('.btn-ejercicio').forEach(card => {
+        card.addEventListener('click', function() {
+            const ejercicioId = this.getAttribute('data-id');
+            const url = `/marcar-completado/${ejercicioId}/`; // Asegura que esta URL sea la correcta en urls.py
 
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                        'X-Requested-With': 'XMLHttpRequest'
+            // 1. Cambio visual inmediato (Optimismo)
+            this.classList.toggle('completado');
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    // 2. Sincronizar estado real por si hubo error
+                    if (data.completado) {
+                        this.classList.add('completado');
+                    } else {
+                        this.classList.remove('completado');
                     }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        // Cambiar estilo de la card
-                        if (data.completado) {
-                            this.classList.add('completado');
-                        } else {
-                            this.classList.remove('completado');
-                        }
 
-                        // Actualizar barra de progreso
-                        document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
-                        document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
+                    // 3. Actualizar barra de progreso
+                    document.getElementById('texto-progreso').innerText = data.progreso_hoy + '%';
+                    document.getElementById('barra-progreso').style.width = data.progreso_hoy + '%';
 
-                        // ACTUALIZAR GRÁFICOS (Corrección del índice del dataset)
-                        if (chartDistribucion) {
-                            chartDistribucion.data.datasets.data = data.datos_distribucion;
-                            chartDistribucion.update();
-                        }
-
-                        if (chartRendimiento) {
-                            chartRendimiento.data.datasets.data = data.rendimiento;
-                            chartRendimiento.update();
-                        }
+                    // 4. ACTUALIZAR GRÁFICOS (Corregido: datasets)
+                    if (chartDistribucion && data.datos_distribucion) {
+                        chartDistribucion.data.datasets.data = data.datos_distribucion;
+                        chartDistribucion.update('none'); // Update sin animar para que sea fluido
                     }
-                })
-                .catch(error => console.error('Error:', error));
+
+                    if (chartRendimiento && data.rendimiento) {
+                        chartRendimiento.data.datasets.data = data.rendimiento;
+                        chartRendimiento.update('none');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Revertir cambio visual si falló la red
+                this.classList.toggle('completado');
             });
         });
     });
-    </script>
+});
+</script>
 </body>
 </html>
