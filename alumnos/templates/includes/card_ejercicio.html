@@ -5,7 +5,7 @@
             {% if ej.tipo == 'ZONA_MEDIA' or ej.tipo == 'ZONA MEDIA' %}
                 🧘 {{ ej.repeticiones }} MINUTOS {% if ej.timer %}| 🕒 {{ ej.timer }}{% endif %}
             {% elif ej.tipo == 'AEROBICO' or ej.tipo == 'AERÓBICO' %}
-                🏃‍♂️ {{ ej.repeticiones }} MINUTOS {% if ej.timmr %}| 🕒 {{ ej.timer }}{% endif %}
+                🏃‍♂️ {{ ej.repeticiones }} MINUTOS {% if ej.timer %}| 🕒 {{ ej.timer }}{% endif %}
             {% elif ej.tipo == 'FUERZA' %}
                 💪 {{ ej.series }} SERIES x {{ ej.repeticiones }} REPS
             {% else %}
