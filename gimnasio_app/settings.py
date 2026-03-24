@@ -38,10 +38,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'gimnasio_app.urls'
 
+# --- CONFIGURACIÓN DE TEMPLATES (MODIFICADO PARA QUE ENCUENTRE RECEPCION.HTML) ---
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'alumnos', 'templates'), # Fuerza la búsqueda aquí
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -59,7 +62,6 @@ WSGI_APPLICATION = 'gimnasio_app.wsgi.application'
 # --- BASE DE DATOS (NEON) ---
 DATABASES = {
     'default': dj_database_url.config(
-        # Si no hay DATABASE_URL (estás en tu PC), usa SQLite
         default='sqlite:///db.sqlite3',
         conn_max_age=600
     )
@@ -77,13 +79,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # --- CONFIGURACIÓN DE LOGIN ---
-# Usamos los nombres de las URLs definidos en tus urls.py
 LOGIN_REDIRECT_URL = 'dashboard_alumno'
 LOGIN_URL = 'login'
 
-# --- CONFIGURACIÓN DE SESIONES (PARA MANTENER EL LOGIN) ---
+# --- CONFIGURACIÓN DE SESIONES ---
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 31536000  # 1 año en segundos
+SESSION_COOKIE_AGE = 31536000 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 
@@ -97,20 +98,14 @@ CSRF_TRUSTED_ORIGINS = [
 if not DEBUG or os.environ.get('RENDER'):
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
-    # SameSite=None permite que el WebView de Android reciba la cookie desde el dominio de Render
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
-
-    # HttpOnly=True es más seguro, pero dejamos CSRF en False para evitar bloqueos en Android
     SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_HTTPONLY = False
-
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = False
     APPEND_SLASH = True
 else:
-    # Desarrollo local
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SAMESITE = 'Lax'
