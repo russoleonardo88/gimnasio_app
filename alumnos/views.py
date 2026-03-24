@@ -84,13 +84,15 @@ def dashboard(request):
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
     # --- LÓGICA GRÁFICO DE DISTRIBUCIÓN (Dona) ---
-ejercicios_completados_hoy = ejercicios_hoy.filter(completado=True)
+    ejercicios_completados_hoy = ejercicios_hoy.filter(completado=True)
 
-if not ejercicios_completados_hoy.exists():
+    if not ejercicios_completados_hoy.exists():
     # Si no hay ejercicios, definimos la lista directamente con ceros
     datos_distribucion = [0, 0, 0]
-else:
+
+    else:
     total_c = ejercicios_completados_hoy.count()
+
     # Definimos las variables aquí para que existan antes de usarlas
     p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / total_c) * 100)
     p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / total_c) * 100)
@@ -128,6 +130,7 @@ else:
         c = ejs.filter(completado=True).count()
         progreso_dias.append({'nombre': d, 'porcentaje': int(c / t * 100) if t > 0 else 0})
 
+    # --- FIN DE LA FUNCIÓN DASHBOARD ---
     return render(request, 'alumnos/dashboard.html', {
         'alumno': alumno,
         'ejercicios_hoy': ejercicios_hoy,
