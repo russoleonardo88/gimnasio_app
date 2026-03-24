@@ -83,32 +83,28 @@ def dashboard(request):
     completados_hoy = ejercicios_hoy.filter(completado=True).count()
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
-   # --- LÓGICA GRÁFICO DE DISTRIBUCIÓN (Dona) ---
-ejercicios_completados_hoy = ejercicios_hoy.filter(completado=True)
+    # --- LÓGICA GRÁFICO DE DISTRIBUCIÓN (Dona) ---
+    ejercicios_completados_hoy = ejercicios_hoy.filter(completado=True)
 
-if not ejercicios_completados_hoy.exists():
-    datos_distribucion = [0, 0, 0]
-else:
-    total_c = ejercicios_completados_hoy.count()
-    p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / total_c) * 100) if total_c > 0 else 0
-    p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / total_c) * 100) if total_c > 0 else 0
-    p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / total_c) * 100) if total_c > 0 else 0
-    datos_distribucion = [p_fuerza, p_aero, p_media]
-    
+    if not ejercicios_completados_hoy.exists():
+        datos_distribucion = [0, 0, 0]
+    else:
+        total_c = ejercicios_completados_hoy.count()
+        p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / total_c) * 100)
+        p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / total_c) * 100)
+        p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / total_c) * 100)
+        datos_distribucion = [p_fuerza, p_aero, p_media]
+
     # --- LÓGICA GRÁFICO DE RENDIMIENTO SEMANAL (Línea) ---
     rendimiento = []
-    import calendar
     _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
     semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
-    mes_actual = hoy.month
-    anio_actual = hoy.year
 
     for inicio, fin in semanas_rangos:
-        # Medimos rendimiento por ejercicios hechos en esa semana
         ejercicios_segmento = Ejercicio.objects.filter(
             alumno=alumno,
-            fecha__year=anio_actual,
-            fecha__month=mes_actual,
+            fecha__year=hoy.year,
+            fecha__month=hoy.month,
             fecha__day__gte=inicio,
             fecha__day__lte=fin
         )
@@ -116,20 +112,22 @@ else:
         t_seg = ejercicios_segmento.count()
         c_seg = ejercicios_segmento.filter(completado=True).count()
         
-        if t_seg > 0:
-            rendimiento.append(round((c_seg / t_seg) * 100))
-        else:
-            rendimiento.append(0)
+        rendimiento.append(round((c_seg / t_seg) * 100) if t_seg > 0 else 0)
 
     # --- BARRAS DE DÍAS ---
     dias_label = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
     progreso_dias = []
+
     for d in dias_label:
         ejs = todos_ejercicios.filter(dia_semana=d)
         t = ejs.count()
         c = ejs.filter(completado=True).count()
-        progreso_dias.append({'nombre': d, 'porcentaje': int(c / t * 100) if t > 0 else 0})
+        progreso_dias.append({
+            'nombre': d,
+            'porcentaje': int(c / t * 100) if t > 0 else 0
+        })
 
+    # --- RETORNO ---
     return render(request, 'alumnos/dashboard.html', {
         'alumno': alumno,
         'ejercicios_hoy': ejercicios_hoy,
