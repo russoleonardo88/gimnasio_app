@@ -91,13 +91,13 @@ def dashboard(request):
         datos_distribucion = [0, 0, 0]
 
     else:
-        total_c = ejercicios_completados_hoy.count()
+            total_c = ejercicios_completados_hoy.count()
 
-    # Definimos las variables aquí para que existan antes de usarlas
-    p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / total_c) * 100)
-    p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / total_c) * 100)
-    p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / total_c) * 100)
-    datos_distribucion = [p_fuerza, p_aero, p_media]
+            # Estas líneas DEBEN tener 8 espacios de sangría (dentro del else)
+            p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / total_c) * 100)
+            p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / total_c) * 100)
+            p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / total_c) * 100)
+            datos_distribucion = [p_fuerza, p_aero, p_media]
     
     # --- LÓGICA GRÁFICO DE RENDIMIENTO SEMANAL (Línea) ---
     rendimiento = []
