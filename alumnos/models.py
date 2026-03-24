@@ -101,13 +101,9 @@ class Ejercicio(models.Model):
 # 4. Registro de Asistencia
 class Asistencia(models.Model):
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE, related_name='asistencias')
-    fecha = models.DateField(default=timezone.now)
+    alumno = models.ForeignKey(Alumno, on_delete=CASCADE, related_name='asistencias_registro')
+    fecha = models.DateField(auto_now_add=True)
     hora_entrada = models.TimeField(auto_now_add=True)
-    porcentaje_completado = models.FloatField(default=0.0)
 
     class Meta:
-        unique_together = ('alumno', 'fecha')
-        verbose_name_plural = "Asistencias"
-
-    def __str__(self):
-        return f"{self.alumno.codigo} - {self.fecha}"
+        unique_together = ('alumno', 'fecha') # Evita duplicar presentes el mismo día

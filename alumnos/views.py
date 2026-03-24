@@ -242,25 +242,37 @@ def marcar_ejercicio_hecho(request, ejercicio_id):
 # --- VISTAS DE ADMINISTRACIÓN ---
 
 def control_acceso(request):
-    mensaje, clase_alerta, alumno_info = "", "", None
-    if request.method == "POST":
-        dato_ingresado = request.POST.get("codigo", "").upper().strip()
+    mensaje = None
+    clase_alerta = "warning"
+
+    if request.method == 'POST':
+        codigo = request.POST.get('codigo')
         try:
-            alumno = Alumno.objects.get(Q(codigo=dato_ingresado) | Q(dni=dato_ingresado))
-            if not alumno.activo:
-                mensaje = f"ACCESO DENEGADO: {alumno.user.first_name.upper()} ESTÁ DE BAJA"
-                clase_alerta = "danger"
-            else:
-                Asistencia.objects.get_or_create(alumno=alumno, fecha=timezone.now().date())
-                mensaje = f"BIENVENIDO/A {alumno.user.first_name.upper()}!"
-                clase_alerta = "success"
-                alumno_info = alumno
-        except Alumno.DoesNotExist:
-            mensaje, clase_alerta = "CÓDIGO O DNI NO ENCONTRADO", "warning"
-        except Alumno.MultipleObjectsReturned:
-            mensaje, clase_alerta = "ERROR: DNI DUPLICADO EN SISTEMA", "danger"
+            # Buscamos al alumno por su código o DNI
+            alumno = Alumno.objects.get(codigo=codigo)
             
-    return render(request, "alumnos/recepcion.html", {"mensaje": mensaje, "clase_alerta": clase_alerta, "alumno_info": alumno_info})
+            # --- REGISTRO DE ASISTENCIA ---
+            # get_or_create evita que se sumen varias asistencias si pasa el código dos veces el mismo día
+            asistencia, creado = Asistencia.objects.get_or_create(
+                alumno=alumno,
+                fecha=timezone.now().date()
+            )
+
+            if creado:
+                mensaje = f"BIENVENIDO/A {alumno.user.first_name.upper()}"
+                clase_alerta = "success"
+            else:
+                mensaje = f"YA REGISTRASTE TU ENTRADA, {alumno.user.first_name.upper()}"
+                clase_alerta = "warning"
+
+        except Alumno.DoesNotExist:
+            mensaje = "CÓDIGO NO ENCONTRADO"
+            clase_alerta = "danger"
+
+    return render(request, 'recepcion.html', {
+        'mensaje': mensaje,
+        'clase_alerta': clase_alerta
+    })
 
 @login_required
 def gestion_gym(request):
@@ -395,14 +407,24 @@ def resetear_rutina(request, alumno_id):
 
 @login_required
 def historial_asistencias(request, alumno_id):
-    if not request.user.is_staff: return redirect('dashboard_alumno')
     alumno = get_object_or_404(Alumno, id=alumno_id)
     hoy = timezone.now().date()
-    asistencias = Asistencia.objects.filter(alumno=alumno, fecha__range=[hoy - timedelta(days=30), hoy]).order_by('-fecha')
-    conteo = Asistencia.objects.filter(alumno=alumno, fecha__month=hoy.month, fecha__year=hoy.year).count()
-    meta = int(alumno.plan_semanal or 0) * 4
-    return render(request, 'alumnos/historial_asistencias.html', {
-        'alumno': alumno, 'asistencias': asistencias, 'porcentaje_mes': int((conteo / meta * 100)) if meta > 0 else 0
+    hace_30_dias = hoy - timedelta(days=30)
+    
+    # Buscamos los registros REALES de la recepción
+    asistencias = Asistencia.objects.filter(
+        alumno=alumno, 
+        fecha__range=[hace_30_dias, hoy]
+    ).order_by('-fecha')
+
+    # Cálculo del porcentaje del mes (basado en 30 días)
+    # Por ejemplo, si asistió 3 veces de 30 días, es 10%
+    porcentaje_mes = (asistencias.count() / 30) * 100
+
+    return render(request, 'historial_asistencias.html', {
+        'alumno': alumno,
+        'asistencias': asistencias,
+        'porcentaje_mes': porcentaje_mes
     })
 
 @login_required

@@ -42,19 +42,21 @@
             <tbody>
                 {% for asistencia in asistencias %}
                 <tr style="border-bottom: 1px solid #222;">
-                    <td style="padding: 15px; color: #fff; font-weight: bold;">
-                        {{ asistencia.fecha|date:"d/m/Y" }}
-                    </td>
-                    <td style="padding: 15px; color: #bbb;">
-                        Registrado
-                    </td>
-                    <td style="padding: 15px; text-align: center;">
-                        <span style="background: rgba(152, 207, 44, 0.1); color: #98cf2c; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid #98cf2c;">
-                            PRESENTE
-                        </span>
-                    </td>
-                </tr>
-                {% empty %}
+                <td style="padding: 15px; color: #fff; font-weight: bold;">
+                {{ asistencia.fecha|date:"d/m/Y" }}
+                </td>
+    
+                <td style="padding: 15px; color: #bbb;">
+                 {{ asistencia.hora_entrada|time:"H:i" }} HS
+                </td>
+
+    <td style="padding: 15px; text-align: center;">
+        <span style="background: rgba(152, 207, 44, 0.1); color: #98cf2c; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid #98cf2c;">
+            PRESENTE
+        </span>
+    </td>
+</tr>
+{% empty %}
                 <tr>
                     <td colspan="3" style="padding: 40px; text-align: center; color: #666;">
                         No se registraron asistencias en los últimos 30 días.
