@@ -83,58 +83,12 @@ def dashboard(request):
     completados_hoy = ejercicios_hoy.filter(completado=True).count()
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
-    # --- LÓGICA GRÁFICO DE DISTRIBUCIÓN (Dona) ---
-    ejercicios_completados_hoy = ejercicios_hoy.filter(completado=True)
+    # SE ELIMINÓ LÓGICA DE GRÁFICOS (DONA Y RENDIMIENTO SEMANAL)
 
-    if not ejercicios_completados_hoy.exists():
-        datos_distribucion = [0, 0, 0]
-    else:
-        total_c = ejercicios_completados_hoy.count()
-        p_fuerza = round((ejercicios_completados_hoy.filter(tipo='FUERZA').count() / total_c) * 100)
-        p_aero = round((ejercicios_completados_hoy.filter(tipo='AEROBICO').count() / total_c) * 100)
-        p_media = round((ejercicios_completados_hoy.filter(tipo='ZONA_MEDIA').count() / total_c) * 100)
-        datos_distribucion = [p_fuerza, p_aero, p_media]
-
-    # --- LÓGICA GRÁFICO DE RENDIMIENTO SEMANAL (Línea) ---
-    rendimiento = []
-    _, ultimo_dia = calendar.monthrange(hoy.year, hoy.month)
-    semanas_rangos = [(1, 7), (8, 14), (15, 21), (22, ultimo_dia)]
-
-    for inicio, fin in semanas_rangos:
-        ejercicios_segmento = Ejercicio.objects.filter(
-            alumno=alumno,
-            fecha_asignacion__year=hoy.year,
-            fecha_asignacion__month=hoy.month,
-            fecha_asignacion__day__gte=inicio,
-            fecha_asignacion__day__lte=fin
-        )
-        
-        t_seg = ejercicios_segmento.count()
-        c_seg = ejercicios_segmento.filter(completado=True).count()
-        
-        rendimiento.append(round((c_seg / t_seg) * 100) if t_seg > 0 else 0)
-
-    # --- BARRAS DE DÍAS ---
-    dias_label = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
-    progreso_dias = []
-
-    for d in dias_label:
-        ejs = todos_ejercicios.filter(dia_semana=d)
-        t = ejs.count()
-        c = ejs.filter(completado=True).count()
-        progreso_dias.append({
-            'nombre': d,
-            'porcentaje': int(c / t * 100) if t > 0 else 0
-        })
-
-    # --- RETORNO ---
     return render(request, 'alumnos/dashboard.html', {
         'alumno': alumno,
         'ejercicios_hoy': ejercicios_hoy,
         'progreso_hoy': progreso_hoy,
-        'progreso_dias': progreso_dias,
-        'datos_distribucion': json.dumps(datos_distribucion),
-        'rendimiento': json.dumps(rendimiento),
         'dia_hoy': dia_hoy_esp,
         'frase_motivadora': "¡A darle con todo! 🔥"
     })
@@ -148,33 +102,19 @@ def marcar_completado(request, ejercicio_id):
             ejercicio.completado = not ejercicio.completado
             ejercicio.save()
 
-            # 1. Cálculo de progreso (Evitando división por cero)
+            # Cálculo de progreso (Único dato necesario para la barra superior)
             ejercicios_hoy = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana)
             total = ejercicios_hoy.count()
             completados = ejercicios_hoy.filter(completado=True).count()
             progreso = int((completados / total) * 100) if total > 0 else 0
 
-            # 2. Datos para la Dona (Fuerza, Aeróbico, Zona Media)
-            # El orden AQUÍ debe ser el mismo que en el JS
-            dist_data = [
-                ejercicios_hoy.filter(tipo='FUERZA', completado=True).count(),
-                ejercicios_hoy.filter(tipo='AEROBICO', completado=True).count(),
-                ejercicios_hoy.filter(tipo='ZONA_MEDIA', completado=True).count()
-            ]
-
-            # 3. Datos para la Línea (Rendimiento semanal)
-            # Mandamos el progreso actual en la última semana para que se mueva el punto
-            rendimiento = [0, 0, 0, progreso] 
-
             return JsonResponse({
                 'status': 'ok',
                 'completado': ejercicio.completado,
                 'progreso_hoy': progreso,
-                'datos_distribucion': dist_data,
-                'rendimiento': rendimiento
+                # SE ELIMINARON DATOS DE DISTRIBUCIÓN Y RENDIMIENTO PARA AJAX
             })
         except Exception as e:
-            # Esto te va a decir en la consola EXACTAMENTE qué falló si sigue dando 500
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
             
     return JsonResponse({'status': 'invalid method'}, status=400)
@@ -201,10 +141,7 @@ def control_acceso(request):
     if request.method == 'POST':
         codigo = request.POST.get('codigo')
         try:
-            # Buscamos al alumno por su código o DNI
             alumno = Alumno.objects.get(codigo=codigo)
-            
-            # Registro de asistencia (evita duplicados el mismo día)
             asistencia, creado = Asistencia.objects.get_or_create(
                 alumno=alumno,
                 fecha=timezone.now().date()
@@ -221,7 +158,6 @@ def control_acceso(request):
             mensaje = "CÓDIGO NO ENCONTRADO"
             clase_alerta = "danger"
 
-    # CAMBIO AQUÍ: Agregamos 'alumnos/' para que coincida con tu carpeta en VS Code
     return render(request, 'alumnos/recepcion.html', {
         'mensaje': mensaje,
         'clase_alerta': clase_alerta
@@ -233,11 +169,7 @@ def gestion_gym(request):
         return redirect('dashboard_alumno')
     
     hoy = timezone.now().date()
-    
-    # --- CAMBIO 1: Ordenamos alumnos activos por código ---
     alumnos_activos = Alumno.objects.filter(activo=True).select_related('user').order_by('codigo')
-    
-    # --- CAMBIO 2: Separamos y ordenamos las bajas por género y código ---
     bajas_hombres = Alumno.objects.filter(activo=False, genero='H').select_related('user').order_by('codigo')
     bajas_mujeres = Alumno.objects.filter(activo=False, genero='M').select_related('user').order_by('codigo')
     
@@ -263,7 +195,6 @@ def gestion_gym(request):
         }
         stats_hombres.append(data) if alu.genero == 'H' else stats_mujeres.append(data)
             
-    # --- CAMBIO 3: Enviamos las nuevas variables de bajas al template ---
     return render(request, 'alumnos/gestion.html', {
         'stats_hombres': stats_hombres, 
         'stats_mujeres': stats_mujeres, 
@@ -362,7 +293,7 @@ def alta_socio_rapida(request):
 def resetear_rutina(request, alumno_id):
     if not request.user.is_staff: return redirect('dashboard_alumno')
     alumno = get_object_or_404(Alumno, id=alumno_id)
-    Ejercicio.objects.filter(alumno=alumno).delete()
+    Ejercicio.objects.filter(alumno=alumno).update(completado=False)
     alumno.fecha_inicio_rutina = timezone.now().date()
     alumno.save()
     return redirect('gestion_gym')
@@ -372,22 +303,14 @@ def historial_asistencias(request, alumno_id):
     alumno = get_object_or_404(Alumno, id=alumno_id)
     hoy = timezone.now().date()
     hace_30_dias = hoy - timedelta(days=30)
-    
-    # Buscamos los registros REALES de la recepción
-    asistencias = Asistencia.objects.filter(
-        alumno=alumno, 
-        fecha__range=[hace_30_dias, hoy]
-    ).order_by('-fecha')
-
-    # Cálculo del porcentaje del mes (basado en 30 días)
-    # Por ejemplo, si asistió 3 veces de 30 días, es 10%
+    asistencias = Asistencia.objects.filter(alumno=alumno, fecha__range=[hace_30_dias, hoy]).order_by('-fecha')
     porcentaje_mes = (asistencias.count() / 30) * 100
 
-    return render(request, 'alumnos/historial_asistencias.html', { # Agregamos 'alumnos/'
-    'alumno': alumno,
-    'asistencias': asistencias,
-    'porcentaje_mes': porcentaje_mes
-})
+    return render(request, 'alumnos/historial_asistencias.html', {
+        'alumno': alumno,
+        'asistencias': asistencias,
+        'porcentaje_mes': porcentaje_mes
+    })
 
 @login_required
 def renovar_cuota(request, alumno_id):

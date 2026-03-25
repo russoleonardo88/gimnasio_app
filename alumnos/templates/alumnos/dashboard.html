@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Aquiles Gym</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --negro-fondo: #0a0a0a;
@@ -105,27 +104,6 @@
             margin-top: 10px;
             text-transform: uppercase;
             font-weight: 800;
-        }
-
-        .contenedor-graficos {
-            width: 100%;
-            max-width: 800px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 500px) {
-            .contenedor-graficos { grid-template-columns: 1fr; }
-        }
-
-        .grafico-card {
-            background: var(--negro-card);
-            border: 1px solid var(--gris-borde);
-            border-radius: 16px;
-            padding: 15px;
-            height: 220px;
         }
 
         .footer-links { 
@@ -236,16 +214,6 @@
         </div>
     </div>
 
-    <h3 class="seccion-titulo">Estadísticas</h3>
-    <div class="contenedor-graficos">
-        <div class="grafico-card">
-            <canvas id="graficoDistribucion"></canvas>
-        </div>
-        <div class="grafico-card">
-            <canvas id="graficoIntensidad"></canvas>
-        </div>
-    </div>
-
     <div class="footer-links">
         <a href="{% url 'cambiar_password' %}" class="link-config">
             ⚙️ CAMBIAR CONTRASEÑA
@@ -260,76 +228,14 @@
     </div>
 
     <script>
-let chartDistribucion;
-let chartRendimiento;
-
 document.addEventListener('DOMContentLoaded', function () {
-    const defaults = { 
-        color: '#888888',
-        font: { family: "'Inter', sans-serif", size: 9 }
-    };
-
-    Chart.defaults.color = defaults.color;
-    Chart.defaults.font = defaults.font;
-
-    // Datos iniciales desde Django
-    const datosDistribucion = {{ datos_distribucion|safe }};
-    const datosRendimiento = {{ rendimiento|safe }};
-
-    // Gráfico de Dona
-    chartDistribucion = new Chart(document.getElementById('graficoDistribucion'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Fuerza', 'Aeróbico', 'Zona Media'],
-            datasets: [{
-                data: datosDistribucion,
-                backgroundColor: ['#98cf2c', '#333333', '#666666'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            maintainAspectRatio: false,
-            cutout: '80%',
-            plugins: {
-                legend: { display: true, position: 'bottom', labels: { boxWidth: 8, color: '#fff' } },
-                title: { display: true, text: 'DISTRIBUCIÓN (%)', color: '#fff' }
-            }
-        }
-    });
-
-    // Gráfico de Línea
-    chartRendimiento = new Chart(document.getElementById('graficoIntensidad'), {
-        type: 'line',
-        data: {
-            labels: ['S1', 'S2', 'S3', 'S4'],
-            datasets: [{
-                data: datosRendimiento,
-                borderColor: '#98cf2c',
-                tension: 0.4,
-                fill: false,
-                pointRadius: 3
-            }]
-        },
-        options: {
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                title: { display: true, text: 'RENDIMIENTO SEMANAL (%)', color: '#fff' }
-            },
-            scales: {
-                y: { min: 0, max: 100, ticks: { color: '#fff' } },
-                x: { ticks: { color: '#fff' } }
-            }
-        }
-    });
-
     // --- MANEJO DE CLIC EN EJERCICIOS ---
     document.querySelectorAll('.btn-ejercicio').forEach(card => {
         card.addEventListener('click', function() {
             const ejercicioId = this.getAttribute('data-id');
-            const url = `/marcar-completado/${ejercicioId}/`; // Asegura que esta URL sea la correcta en urls.py
+            const url = `/marcar-completado/${ejercicioId}/`;
 
-            // 1. Cambio visual inmediato (Optimismo)
+            // Cambio visual inmediato
             this.classList.toggle('completado');
 
             fetch(url, {
@@ -340,30 +246,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
             .then(response => {
-                if (!response.ok) throw new Error('Error 500 del servidor');
+                if (!response.ok) throw new Error('Error del servidor');
                 return response.json();
             })
             .then(data => {
                 if (data.status === 'ok') {
-                    // Sincronizar clases
                     this.classList.toggle('completado', data.completado);
 
-                    // Actualizar Barra
+                    // Actualizar Barra de Progreso
                     const barra = document.getElementById('barra-progreso');
                     const texto = document.getElementById('texto-progreso');
                     if (barra) barra.style.width = data.progreso_hoy + '%';
                     if (texto) texto.innerText = data.progreso_hoy + '%';
-
-                    // ACTUALIZAR GRÁFICOS (Corrección definitiva:)
-                    if (chartDistribucion && data.datos_distribucion) {
-                        chartDistribucion.data.datasets.data = data.datos_distribucion;
-                        chartDistribucion.update(); 
-                    }
-
-                    if (chartRendimiento && data.rendimiento) {
-                        chartRendimiento.data.datasets.data = data.rendimiento;
-                        chartRendimiento.update();
-                    }
                 }
             })
             .catch(error => {
