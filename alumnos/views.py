@@ -237,23 +237,32 @@ def marcar_pago(request, alumno_id):
     messages.success(request, f"Pago registrado para {alumno.user.first_name}.")
     return redirect('gestion_gym')
 
+# --- VISTAS DE ADMINISTRACIÓN (SOLO SECCIONES CORREGIDAS) ---
+
 @login_required
 def agregar_ejercicio(request, alumno_id):
     if request.method == 'POST':
         alumno = get_object_or_404(Alumno, id=alumno_id)
         timer_raw = request.POST.get('timer', '')
+        
+        # Usamos peso_sugerido para mapear el name="peso" del HTML
+        # Usamos series y repeticiones para mapear los nombres del modelo
         Ejercicio.objects.create(
             alumno=alumno,
             nombre=request.POST.get('nombre'),
             tipo=request.POST.get('tipo'),
             dia_semana=request.POST.get('dia'),
-            series=request.POST.get('series') or 0,
+            series=request.POST.get('series') or 1,
             repeticiones=request.POST.get('reps') or "0",
             peso_sugerido=request.POST.get('peso') or 0,
+            # El timer ahora se guarda siempre que se envíe en el POST
             timer=timer_raw.upper().strip() if timer_raw else None
         )
         messages.success(request, "Ejercicio agregado correctamente.")
     return redirect('detalle_alumno', alumno_id=alumno_id)
+
+# La función agregar_ejercicio_v2 que mencionamos antes no estaba en tu código, 
+# así que unifiqué la lógica en 'agregar_ejercicio' que es la que ya usabas.
 
 @login_required
 def eliminar_ejercicio(request, ejercicio_id):

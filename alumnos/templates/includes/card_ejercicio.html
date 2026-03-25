@@ -3,11 +3,11 @@
         <h3 style="margin: 0; color: #fff; font-size: 14px; text-transform: uppercase;">{{ ej.nombre|upper }}</h3>
         <p style="margin: 5px 0; font-weight: bold; font-size: 13px;">
             {% if ej.tipo == 'ZONA_MEDIA' %}
-                <span style="color: #ffbb33;">🧘 {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
+                <span style="color: #ffbb33;">🧘 {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer|upper }}{% endif %}</span>
             {% elif ej.tipo == 'AEROBICO' %}
-                <span style="color: #44aaff;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
+                <span style="color: #44aaff;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer|upper }}{% endif %}</span>
             {% elif ej.tipo == 'FUERZA' %}
-                <span style="color: #98cf2c;">💪 {{ ej.series }}x{{ ej.repeticiones }}</span>
+                <span style="color: #98cf2c;">💪 {{ ej.series }}x{{ ej.repeticiones }} {% if ej.timer %}| {{ ej.timer|upper }}{% endif %}</span>
             {% else %}
                 <span style="color: #666;">{{ ej.series }}x{{ ej.repeticiones }}</span>
             {% endif %}

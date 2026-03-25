@@ -171,7 +171,7 @@
             {% if ejercicio.tipo == 'ZONA_MEDIA' %}
             <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
                 <strong>{{ ejercicio.nombre }}</strong>
-                <p>{{ ejercicio.repeticiones }} MIN {% if ejercicio.timer %}| {{ ejercicio.timer }}{% endif %}</p>
+                <p>{{ ejercicio.repeticiones }} MIN {% if ejercicio.timer %}| {{ ejercicio.timer|upper }}{% endif %}</p>
             </div>
             {% endif %}
         {% endfor %}
@@ -181,7 +181,11 @@
             {% if ejercicio.tipo == 'FUERZA' %}
             <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
                 <strong>{{ ejercicio.nombre }}</strong>
-                <p>{{ ejercicio.series }}x{{ ejercicio.repeticiones }}</p>
+                <p>
+                    {{ ejercicio.series }}x{{ ejercicio.repeticiones }}
+                    {% if ejercicio.peso_sugerido %} | {{ ejercicio.peso_sugerido }}KG{% endif %}
+                    {% if ejercicio.timer %} | {{ ejercicio.timer|upper }}{% endif %}
+                </p>
             </div>
             {% endif %}
         {% endfor %}
@@ -191,7 +195,7 @@
             {% if ejercicio.tipo == 'AEROBICO' %}
             <div data-id="{{ ejercicio.id }}" class="ejercicio-card btn-ejercicio {% if ejercicio.completado %}completado{% endif %}">
                 <strong>{{ ejercicio.nombre }}</strong>
-                <p>{{ ejercicio.repeticiones }} MIN {% if ejercicio.timer %}| {{ ejercicio.timer }}{% endif %}</p>
+                <p>{{ ejercicio.repeticiones }} MIN {% if ejercicio.timer %}| {{ ejercicio.timer|upper }}{% endif %}</p>
             </div>
             {% endif %}
         {% endfor %}
@@ -226,13 +230,11 @@
 
     <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // --- MANEJO DE CLIC EN EJERCICIOS ---
     document.querySelectorAll('.btn-ejercicio').forEach(card => {
         card.addEventListener('click', function() {
             const ejercicioId = this.getAttribute('data-id');
             const url = `/marcar-completado/${ejercicioId}/`;
 
-            // Cambio visual inmediato
             this.classList.toggle('completado');
 
             fetch(url, {
@@ -250,7 +252,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (data.status === 'ok') {
                     this.classList.toggle('completado', data.completado);
 
-                    // Actualizar Barra de Progreso
                     const barra = document.getElementById('barra-progreso');
                     const texto = document.getElementById('texto-progreso');
                     if (barra) barra.style.width = data.progreso_hoy + '%';

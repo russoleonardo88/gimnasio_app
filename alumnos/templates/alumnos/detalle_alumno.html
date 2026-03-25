@@ -54,22 +54,22 @@
                     {% endfor %}
                 </select>
 
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 8px; margin-bottom: 20px;">
                     <div style="flex: 1;" id="col_sets">
-                        <label id="label_series" style="font-size: 11px; color: #888; text-transform: uppercase;">Sets</label>
-                        <input type="number" name="series" value="3" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                        <label id="label_series" style="font-size: 9px; color: #888; text-transform: uppercase;">Sets</label>
+                        <input type="number" name="series" value="3" style="width: 100%; padding: 10px 5px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
-                    <div style="flex: 1;">
-                        <label id="label_reps" style="font-size: 11px; color: #888; text-transform: uppercase;">Reps / Min</label>
-                        <input type="text" name="reps" id="input_reps" placeholder="12" required style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    <div style="flex: 1.5;">
+                        <label id="label_reps" style="font-size: 9px; color: #888; text-transform: uppercase;">Reps</label>
+                        <input type="text" name="reps" id="input_reps" placeholder="12" required style="width: 100%; padding: 10px 5px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
                     <div style="flex: 1;" id="campo_peso">
-                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Kg</label>
-                        <input type="number" name="peso" placeholder="0" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                        <label style="font-size: 9px; color: #888; text-transform: uppercase;">Kg</label>
+                        <input type="number" name="peso" placeholder="0" style="width: 100%; padding: 10px 5px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
-                    <div style="flex: 1; display: none;" id="campo_timer">
-                        <label style="font-size: 11px; color: #888; text-transform: uppercase;">Timer</label>
-                        <input type="text" name="timer" placeholder="P1" style="width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
+                    <div style="flex: 1;" id="campo_timer">
+                        <label style="font-size: 9px; color: #888; text-transform: uppercase;">Timer</label>
+                        <input type="text" name="timer" placeholder="P1" style="width: 100%; padding: 10px 5px; background: #222; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box;">
                     </div>
                 </div>
 
@@ -90,12 +90,13 @@
                             <div style="font-size: 13px; flex: 1; padding-right: 5px;">
                                 <strong style="color: #fff; display: block; margin-bottom: 3px; font-size: 12px;">{{ ej.nombre|upper }}</strong>
                             {% if ej.tipo == 'ZONA_MEDIA' %}
-                                <span style="color: #ffbb33; font-weight: bold;">🧘 {{ ej.repeticiones }} MIN {% if ej.timer %}{{ ej.timer }}{% endif %}</span>
+                                <span style="color: #ffbb33; font-weight: bold;">🧘 {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
                             {% elif ej.tipo == 'AEROBICO' %}
-                                <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}{{ ej.timer }}{% endif %}</span>
+                                <span style="color: #44aaff; font-weight: bold;">🏃‍♂️ {{ ej.repeticiones }} MIN {% if ej.timer %}| {{ ej.timer }}{% endif %}</span>
                             {% else %}
                                 <span style="color: #98cf2c; font-weight: bold;">💪 {{ ej.series }}x{{ ej.repeticiones }}</span> 
                                     {% if ej.peso_sugerido %}<small style="color: #666; margin-left: 5px;">{{ ej.peso_sugerido }}kg</small>{% endif %}
+                                    {% if ej.timer %}<small style="color: #44aaff; margin-left: 5px;">{{ ej.timer }}</small>{% endif %}
                             {% endif %}
                             </div>
                             <a href="{% url 'eliminar_ejercicio' ej.id %}" onclick="return confirm('¿Eliminar?')" style="color: #ff4d4d; text-decoration: none; font-size: 12px; background: #222; padding: 6px 8px; border-radius: 6px; border: 1px solid #333; flex-shrink: 0;">🗑️</a>
@@ -113,24 +114,22 @@
         const tipo = document.getElementById('tipo_select').value;
         const colSets = document.getElementById('col_sets');
         const campoPeso = document.getElementById('campo_peso');
-        const campoTimer = document.getElementById('campo_timer'); // Corregido el nombre aquí
         const labelReps = document.getElementById('label_reps');
         const inputReps = document.getElementById('input_reps');
 
         if (tipo === 'AEROBICO' || tipo === 'ZONA_MEDIA') {
             colSets.style.display = 'none';
             campoPeso.style.display = 'none';
-            campoTimer.style.display = 'block';
             labelReps.innerText = 'MINUTOS';
             inputReps.placeholder = "20";
         } 
         else {
             colSets.style.display = 'block';
             campoPeso.style.display = 'block';
-            campoTimer.style.display = 'none';
             labelReps.innerText = 'REPS';
             inputReps.placeholder = "12";
         }
+        // El Timer queda siempre visible para todas las categorías
     }
     document.addEventListener('DOMContentLoaded', adaptarFormulario);
     </script>
