@@ -61,11 +61,11 @@
 
             <div style="margin-bottom: 30px; padding: 15px; background: rgba(152, 207, 44, 0.05); border-radius: 12px; border: 1px dashed #333;">
                 <label style="display: flex; align-items: center; cursor: pointer; gap: 12px;">
-                    <input type="checkbox" name="cuota_pagada" {% if alumno.cuota_pagada %}checked{% endif %} 
+                    <input type="checkbox" name="cuota_pagada" {% if alumno.esta_al_dia %}checked{% endif %} 
                            style="width: 22px; height: 22px; accent-color: #98cf2c; cursor: pointer;">
                     <div>
                         <span style="display: block; color: #98cf2c; font-size: 12px; font-weight: 900; text-transform: uppercase;">Estado de Pago</span>
-                        <span style="color: #888; font-size: 13px;">Marcar como mensualidad pagada</span>
+                        <span style="color: #888; font-size: 13px;">Registrar pago del mes actual</span>
                     </div>
                 </label>
             </div>

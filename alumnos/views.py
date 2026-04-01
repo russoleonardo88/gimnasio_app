@@ -83,8 +83,6 @@ def dashboard(request):
     completados_hoy = ejercicios_hoy.filter(completado=True).count()
     progreso_hoy = int((completados_hoy / total_hoy * 100)) if total_hoy > 0 else 0
 
-    # SE ELIMINÓ LÓGICA DE GRÁFICOS (DONA Y RENDIMIENTO SEMANAL)
-
     return render(request, 'alumnos/dashboard.html', {
         'alumno': alumno,
         'ejercicios_hoy': ejercicios_hoy,
@@ -102,7 +100,6 @@ def marcar_completado(request, ejercicio_id):
             ejercicio.completado = not ejercicio.completado
             ejercicio.save()
 
-            # Cálculo de progreso (Único dato necesario para la barra superior)
             ejercicios_hoy = Ejercicio.objects.filter(alumno=ejercicio.alumno, dia_semana=ejercicio.dia_semana)
             total = ejercicios_hoy.count()
             completados = ejercicios_hoy.filter(completado=True).count()
@@ -112,7 +109,6 @@ def marcar_completado(request, ejercicio_id):
                 'status': 'ok',
                 'completado': ejercicio.completado,
                 'progreso_hoy': progreso,
-                # SE ELIMINARON DATOS DE DISTRIBUCIÓN Y RENDIMIENTO PARA AJAX
             })
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
@@ -186,12 +182,15 @@ def gestion_gym(request):
         t_h = ejs_hoy.count()
         progreso_hoy = int((ejs_hoy.filter(completado=True).count() / t_h * 100)) if t_h > 0 else 0
 
+        # Usamos la property .esta_al_dia del modelo corregido
+        al_dia = alu.esta_al_dia 
+
         data = {
             'alumno': alu,
             'porcentaje_asistencia': porcentaje_asistencia,
             'progreso_rutina': progreso_hoy,
-            'cuota_estado': 'PAGADO' if alu.cuota_pagada else 'PENDIENTE',
-            'cuota_color': '#98cf2c' if alu.cuota_pagada else '#ff4d4d',
+            'cuota_estado': 'PAGADO' if al_dia else 'PENDIENTE',
+            'cuota_color': '#98cf2c' if al_dia else '#ff4d4d',
         }
         stats_hombres.append(data) if alu.genero == 'H' else stats_mujeres.append(data)
             
@@ -222,7 +221,11 @@ def editar_alumno(request, alumno_id):
         alumno.domicilio = request.POST.get('domicilio')
         alumno.celular = request.POST.get('celular')
         alumno.contacto_emergencia = request.POST.get('emergencia')
-        alumno.cuota_pagada = 'cuota_pagada' in request.POST
+        
+        # Si se marca el check en edición, guardamos la fecha de hoy
+        if 'cuota_pagada' in request.POST:
+            alumno.ultimo_pago = timezone.now().date()
+            
         alumno.save()
         messages.success(request, f"Datos de {alumno.user.first_name} actualizados.")
         return redirect('gestion_gym')
@@ -230,14 +233,16 @@ def editar_alumno(request, alumno_id):
 
 @login_required
 def marcar_pago(request, alumno_id):
+    """
+    Función optimizada: Ahora registra la fecha exacta del pago.
+    Esto hace que 'esta_al_dia' sea True durante el mes actual.
+    """
     if not request.user.is_staff: return redirect('dashboard_alumno')
     alumno = get_object_or_404(Alumno, id=alumno_id)
-    alumno.cuota_pagada = True
+    alumno.ultimo_pago = timezone.now().date()
     alumno.save()
     messages.success(request, f"Pago registrado para {alumno.user.first_name}.")
     return redirect('gestion_gym')
-
-# --- VISTAS DE ADMINISTRACIÓN (SOLO SECCIONES CORREGIDAS) ---
 
 @login_required
 def agregar_ejercicio(request, alumno_id):
@@ -245,8 +250,6 @@ def agregar_ejercicio(request, alumno_id):
         alumno = get_object_or_404(Alumno, id=alumno_id)
         timer_raw = request.POST.get('timer', '')
         
-        # Usamos peso_sugerido para mapear el name="peso" del HTML
-        # Usamos series y repeticiones para mapear los nombres del modelo
         Ejercicio.objects.create(
             alumno=alumno,
             nombre=request.POST.get('nombre'),
@@ -255,14 +258,10 @@ def agregar_ejercicio(request, alumno_id):
             series=request.POST.get('series') or 1,
             repeticiones=request.POST.get('reps') or "0",
             peso_sugerido=request.POST.get('peso') or 0,
-            # El timer ahora se guarda siempre que se envíe en el POST
             timer=timer_raw.upper().strip() if timer_raw else None
         )
         messages.success(request, "Ejercicio agregado correctamente.")
     return redirect('detalle_alumno', alumno_id=alumno_id)
-
-# La función agregar_ejercicio_v2 que mencionamos antes no estaba en tu código, 
-# así que unifiqué la lógica en 'agregar_ejercicio' que es la que ya usabas.
 
 @login_required
 def eliminar_ejercicio(request, ejercicio_id):
@@ -323,9 +322,11 @@ def historial_asistencias(request, alumno_id):
 
 @login_required
 def renovar_cuota(request, alumno_id):
+    """
+    Registra el nuevo pago actualizando la fecha de último pago a hoy.
+    """
     if not request.user.is_staff: return redirect('dashboard_alumno')
     alumno = get_object_or_404(Alumno, id=alumno_id)
-    alumno.cuota_pagada = True
-    alumno.fecha_pago = timezone.now().date()
+    alumno.ultimo_pago = timezone.now().date()
     alumno.save()
     return redirect('gestion_gym')

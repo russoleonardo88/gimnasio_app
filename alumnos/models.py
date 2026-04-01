@@ -23,15 +23,16 @@ class Alumno(models.Model):
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    entrenador = models.ForeignKey(Entrenador, on_delete=models.SET_NULL, null=True, blank=True, related_name='mis_alumnos')
+    entrenador = models.ForeignKey('Entrenador', on_delete=models.SET_NULL, null=True, blank=True, related_name='mis_alumnos')
     
     genero = models.CharField(max_length=1, choices=GENERO_CHOICES, default='H')
     codigo = models.CharField(max_length=10, unique=True, help_text="Ej: H0249 o M1223")
     activo = models.BooleanField(default=True, help_text="Desmarcar para dar de BAJA al socio")
     plan_semanal = models.IntegerField(default=3, help_text="Cantidad de días por semana contratados (2, 3, 4, 5)")
     
-    # CUOTA
-    cuota_pagada = models.BooleanField(default=False, verbose_name="¿Cuota Pagada este Mes?")
+    # --- SECCIÓN DE CUOTA OPTIMIZADA ---
+    # Reemplazamos el booleano por la fecha del último pago realizado
+    ultimo_pago = models.DateField(null=True, blank=True, verbose_name="Fecha del Último Pago")
     fecha_vencimiento = models.DateField(null=True, blank=True, help_text="Fecha en que vence la cuota")
     
     # CONTACTO
@@ -43,6 +44,22 @@ class Alumno(models.Model):
     # RUTINA
     fecha_inicio_rutina = models.DateField(default=timezone.now)
     
+    # --- LÓGICA AUTOMÁTICA ---
+
+    @property
+    def esta_al_dia(self):
+        """
+        Determina si el alumno pagó la cuota del mes actual.
+        Si estamos en Abril y el último pago fue en Abril, devuelve True.
+        Si llega Mayo, automáticamente devuelve False.
+        """
+        if not self.ultimo_pago:
+            return False
+        
+        hoy = timezone.now().date()
+        # Compara si el mes y el año del último pago coinciden con el mes y año actual
+        return self.ultimo_pago.year == hoy.year and self.ultimo_pago.month == hoy.month
+
     def dias_transcurridos(self):
         diferencia = timezone.now().date() - self.fecha_inicio_rutina
         return diferencia.days
