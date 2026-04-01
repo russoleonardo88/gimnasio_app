@@ -210,36 +210,48 @@ def detalle_alumno(request, alumno_id):
 
 @login_required
 def editar_alumno(request, alumno_id):
-    if not request.user.is_staff: return redirect('dashboard_alumno')
+    if not request.user.is_staff: 
+        return redirect('dashboard_alumno')
+    
     alumno = get_object_or_404(Alumno, id=alumno_id)
+    
     if request.method == "POST":
+        # 1. Actualización de datos básicos
         alumno.user.first_name = request.POST.get('nombre')
         alumno.user.last_name = request.POST.get('apellido')
         alumno.user.save()
+        
         alumno.plan_semanal = request.POST.get('plan')
         alumno.dni = request.POST.get('dni')
         alumno.domicilio = request.POST.get('domicilio')
         alumno.celular = request.POST.get('celular')
         alumno.contacto_emergencia = request.POST.get('emergencia')
         
-        # Si se marca el check en edición, guardamos la fecha de hoy
+        # 2. LÓGICA DE CUOTA (Aquí estaba el fallo)
         if 'cuota_pagada' in request.POST:
-            alumno.ultimo_pago = timezone.now().date()
+            # Si el check está marcado, grabamos la fecha de hoy (Abril) -> VERDE
+            alumno.ultimo_pago = timezone.localdate()
+        else:
+            # Si el check NO está (porque lo desmarcaste), 
+            # grabamos una fecha del mes pasado -> ROJO
+            # Esto es lo que va a arreglar a Enzo Pérez
+            mes_pasado = timezone.localdate().replace(day=1) - timedelta(days=1)
+            alumno.ultimo_pago = mes_pasado
             
         alumno.save()
         messages.success(request, f"Datos de {alumno.user.first_name} actualizados.")
         return redirect('gestion_gym')
+        
     return render(request, 'alumnos/editar_alumno.html', {'alumno': alumno})
 
 @login_required
 def marcar_pago(request, alumno_id):
-    """
-    Función optimizada: Ahora registra la fecha exacta del pago.
-    Esto hace que 'esta_al_dia' sea True durante el mes actual.
-    """
-    if not request.user.is_staff: return redirect('dashboard_alumno')
+    if not request.user.is_staff: 
+        return redirect('dashboard_alumno')
+    
     alumno = get_object_or_404(Alumno, id=alumno_id)
-    alumno.ultimo_pago = timezone.now().date()
+    # Usamos localdate para mantener consistencia con el modelo
+    alumno.ultimo_pago = timezone.localdate()
     alumno.save()
     messages.success(request, f"Pago registrado para {alumno.user.first_name}.")
     return redirect('gestion_gym')
