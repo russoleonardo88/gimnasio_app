@@ -69,7 +69,7 @@ def dashboard(request):
     except Alumno.DoesNotExist:
         return render(request, 'alumnos/dashboard.html', {'error': 'Perfil no encontrado.'})
 
-    hoy = timezone.now()
+    hoy = timezone.localdate()
     traduccion_dias = {
         'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
         'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday': 'Domingo'
