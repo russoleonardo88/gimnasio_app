@@ -55,7 +55,7 @@ class Alumno(models.Model):
             return False
         
         # Usamos localdate para asegurar que se compare con la fecha de Argentina configurada
-        hoy = timezone.localdate()
+        hoy = timezone.localdate().replace(month=5, day=1)
         
         # Validación: Solo está al día si el mes y el año coinciden con el presente
         pago_mes_actual = (self.ultimo_pago.year == hoy.year and 
